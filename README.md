@@ -6,7 +6,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前版本：`v0.2.0 — Authoring`。
+当前版本：`v0.3.0 — Knowledge System`。
 
 ## 快速开始
 
@@ -41,6 +41,36 @@ pnpm dev
 - Python Lab 修改后使用 `Save to note` 写回原始 executable Fence。
 
 内置和 GitHub Workspace 仍保持只读，不显示写入入口。
+
+## 知识系统
+
+TensorNote 会在打开或保存 Workspace 时，从 Markdown 重建统一 `KnowledgeIndex`：
+
+- `[[WikiLink]]`、`[[Note#Heading|显示文字]]` 与标准 Markdown 链接。
+- `![[Embedded Note]]` 和 `![[Note#Heading]]` 笔记嵌入。
+- Frontmatter `aliases`、`tags`、任意 Properties 与正文 `#inline-tag`。
+- 当前笔记的 Backlinks、Outgoing Links、Outline 与一跳 Local Graph。
+- Search v2 按 Title、Alias、Tag、Heading、Path、Property 和 Body 加权检索。
+- Knowledge 页面集中浏览 Tag Atlas、Properties、关联笔记和未解析链接。
+
+示例：
+
+```markdown
+---
+title: Self-Attention
+aliases: [Scaled Dot-Product Attention]
+tags: [transformer, attention]
+status: growing
+---
+
+继续阅读 [[Multi-Head Attention#核心结构|多头注意力]]。
+
+![[Transformer 学习地图#学习路径]]
+```
+
+索引只存在于运行时，可以随时从 Markdown 重新生成，不会创建专有知识数据库。
+
+完整语法、链接解析规则和重命名注意事项见[知识系统使用说明](docs/KNOWLEDGE_SYSTEM.md)。
 
 生产检查：
 
@@ -128,7 +158,7 @@ X = torch.randn(4, 8)
 tensornote/
 ├── src/                 React 应用
 │   ├── components/      阅读与 Lab UI
-│   ├── content/         Markdown 加载和 Lab Parser
+│   ├── content/         Markdown、Lab Parser 与 KnowledgeIndex
 │   ├── jupyter/         Jupyter 执行层
 │   ├── workspace/       Schema、统一加载器与 Providers
 │   └── store/           Workspace、界面、进度与连接配置

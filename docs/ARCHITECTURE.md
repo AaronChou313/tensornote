@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录 `v0.1.0 — Workspace Foundation` 与 `v0.2.0 — Authoring` 已落地的稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录 `v0.1.0 — Workspace Foundation`、`v0.2.0 — Authoring` 与 `v0.3.0 — Knowledge System` 已落地的稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -19,7 +19,7 @@ loadWorkspace ── tensornote.yaml / safe defaults
         │
         ├── Markdown parse + Lab extraction
         ├── filesystem navigation index
-        └── document/search index
+        └── KnowledgeIndex
         │
         ▼
 WorkspaceSession ── UI / search / reader / lab
@@ -59,6 +59,31 @@ Markdown draft ── CodeMirror history / dirty state
 - Lab Drawer 使用 executable Fence 的 `lab` 与 `cell` 标识，把编辑后的 Python 精确写回原 Markdown。
 - 资源粘贴、拖放与上传统一写入 manifest 的 `assets.root`，正文只插入相对 Markdown 链接。
 
+## v0.3 KnowledgeIndex
+
+```text
+Markdown + Frontmatter
+        │
+        ├── headings / aliases / tags / properties
+        ├── WikiLink / Markdown link / embedded note
+        ▼
+KnowledgeIndex
+        ├── linksBySource
+        ├── backlinksByTarget
+        ├── headingsByDocument
+        ├── tagsByDocument
+        ├── propertiesByDocument
+        ├── Search v2
+        └── Local Graph
+```
+
+- `KnowledgeIndex` 属于 `WorkspaceSession`，每次打开、刷新或保存后从 Markdown 重建，不持久化为数据库。
+- WikiLink 可以通过文档 `id`、标题、Alias、文件名或路径解析；Heading Fragment 映射到稳定的 Markdown slug。
+- 标准相对 `.md` 链接与 WikiLink 共同进入出向链接/反向链接索引；外部 URL 不进入知识关系。
+- Embedded Note 在渲染阶段展开目标 Markdown，并阻止循环嵌入；源文件不被改写。
+- Search v2 对 Title、Alias、Tag、Heading、Path、Property 和 Body 分字段加权，同时仍索引代码正文。
+- Local Graph 只显示当前笔记、显式一跳链接和少量共享 Tag 节点，避免过早构建不可读的全局大图。
+
 ## `tensornote.yaml` v1
 
 ```yaml
@@ -88,9 +113,9 @@ features:
 - Jupyter Token 只写入 `sessionStorage`，关闭浏览器会话后清除；长期配置只保存 Server URL 与 Kernel Name。
 - Workspace 配置不得包含 Token、密码或云端密钥。
 
-## v0.2 当前明确不做
+## v0.3 当前明确不做
 
-v0.2 不提供反向链接/图谱、插件市场、AI 辅助或多人协同。这些能力分别属于后续 Knowledge System、Extensibility 与 Collaboration 阶段。
+v0.3 不提供全局巨型图、数据库视图、插件市场、AI 辅助或多人协同。Compute Platform、Workbench、Extensibility 与 Structured Knowledge 将继续按路线图演进。
 
 ## 版本更新规则
 

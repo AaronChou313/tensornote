@@ -52,7 +52,7 @@ uv pip install -r requirements-jupyter.txt
 
 ```bash
 git fetch origin --tags
-git switch --detach v0.2.0
+git switch --detach v0.3.0
 pnpm install --frozen-lockfile
 ```
 
@@ -88,6 +88,7 @@ git switch -c feat/功能短名称
 - 新增内容来源：实现 `src/workspace/types.ts` 中的 `WorkspaceProvider`；写入来源还要实现相应 mutation 方法。UI 必须读取 capability，不直接根据 Provider 类型假定读写能力。
 - 修改目录和路由：编辑 `src/content/noteTree.ts`、`src/workspace/loadWorkspace.ts` 与相关页面。
 - 修改 Markdown 渲染：编辑 `src/components/MarkdownRenderer.tsx` 和 `src/styles.css`。
+- 修改 WikiLink、Tag、Backlink、Search v2 或图谱索引：编辑 `src/content/knowledgeIndex.ts`，并同步更新 `KnowledgePanel` / `KnowledgePage`。
 - 修改 Python Lab：编辑 `src/components/LabDrawer.tsx`、`CodeCell.tsx` 或 `src/jupyter/`。
 - 修改主题与界面状态：编辑 `src/store/useAppStore.ts` 和相应组件。
 - 新增 Python 课程依赖：修改 `requirements-jupyter.txt`，并同步更新环境手册。
@@ -147,7 +148,7 @@ TensorNote 在 `1.0.0` 前使用以下约定：
 
 ## 4. 发布下一版本
 
-以下示例发布 `v0.2.1`：
+以下示例发布 `v0.3.1`：
 
 ```bash
 git switch main
@@ -162,10 +163,10 @@ git status
 
 ```bash
 git push origin main
-gh release create v0.2.1 \
+gh release create v0.3.1 \
   --target main \
-  --title "TensorNote v0.2.1" \
-  --notes-file docs/releases/v0.2.1.md
+  --title "TensorNote v0.3.1" \
+  --notes-file docs/releases/v0.3.1.md
 ```
 
 验证：
@@ -173,7 +174,7 @@ gh release create v0.2.1 \
 ```bash
 git fetch origin --tags
 git tag --points-at HEAD
-gh release view v0.2.1
+gh release view v0.3.1
 ```
 
 Release 创建后，GitHub 会提供该 Tag 对应的源码压缩包。当前 TensorNote 是本地开发型 Web App，因此 Release 暂不附带独立安装程序。
@@ -192,5 +193,5 @@ Release 创建后，GitHub 会提供该 Tag 对应的源码压缩包。当前 Te
 一个可直接使用的示例：
 
 ```text
-为 TensorNote 增加笔记收藏功能。入口放在笔记标题右侧，收藏状态保存在浏览器本地；主页增加“已收藏”筛选。要求支持明暗主题和移动端，完成测试后提交、推送并发布 v0.2.1。
+为 TensorNote 增加笔记收藏功能。入口放在笔记标题右侧，收藏状态保存在浏览器本地；主页增加“已收藏”筛选。要求支持明暗主题和移动端，完成测试后提交、推送并发布 v0.3.1。
 ```
