@@ -1,12 +1,12 @@
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { SearchDialog } from './SearchDialog'
 import { useAppStore } from '../store/useAppStore'
-import { LabDrawer } from './LabDrawer'
 import { JupyterSettingsDialog } from './JupyterSettingsDialog'
-import { jupyterClient } from '../jupyter/JupyterClient'
+
+const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: module.LabDrawer })))
 
 export function AppShell() {
   const theme = useAppStore((state) => state.theme)
@@ -33,7 +33,7 @@ export function AppShell() {
   useEffect(() => {
     if (previousPath.current !== location.pathname) {
       setActiveLabId(null)
-      void jupyterClient.shutdown()
+      void import('../jupyter/JupyterClient').then(({ jupyterClient }) => jupyterClient.shutdown())
       previousPath.current = location.pathname
     }
   }, [location.pathname, setActiveLabId])
@@ -46,7 +46,7 @@ export function AppShell() {
         <Outlet />
       </div>
       <SearchDialog />
-      <LabDrawer />
+      <Suspense fallback={null}><LabDrawer /></Suspense>
       <JupyterSettingsDialog />
     </div>
   )

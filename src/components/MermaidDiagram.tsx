@@ -1,5 +1,4 @@
 import { useEffect, useId, useState } from 'react'
-import mermaid from 'mermaid'
 import { useAppStore } from '../store/useAppStore'
 
 export function MermaidDiagram({ chart }: { chart: string }) {
@@ -10,15 +9,16 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
   useEffect(() => {
     let cancelled = false
-    mermaid.initialize({
-      startOnLoad: false,
-      securityLevel: 'strict',
-      theme: theme === 'dark' ? 'dark' : 'neutral',
-      fontFamily: 'Avenir Next, PingFang SC, sans-serif',
-      flowchart: { curve: 'basis', htmlLabels: false },
+    void import('mermaid').then(({ default: mermaid }) => {
+      mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'strict',
+        theme: theme === 'dark' ? 'dark' : 'neutral',
+        fontFamily: 'Avenir Next, PingFang SC, sans-serif',
+        flowchart: { curve: 'basis', htmlLabels: false },
+      })
+      return mermaid.render(id, chart)
     })
-    mermaid
-      .render(id, chart)
       .then(({ svg: result }) => {
         if (!cancelled) {
           setSvg(result)

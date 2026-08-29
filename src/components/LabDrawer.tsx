@@ -17,28 +17,36 @@ function initialCellState(cell: LabCell): CodeCellState {
 
 export function LabDrawer() {
   const activeLabId = useAppStore((state) => state.activeLabId)
+  const lab = useMemo(() => allLabs.find((item) => item.id === activeLabId), [activeLabId])
+
+  if (!lab) return null
+  return <LabDrawerSession key={lab.id} lab={lab} />
+}
+
+function LabDrawerSession({ lab }: { lab: (typeof allLabs)[number] }) {
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
   const setKernelStatus = useAppStore((state) => state.setKernelStatus)
   const updateProgress = useAppStore((state) => state.updateProgress)
   const theme = useAppStore((state) => state.theme)
-  const config = useJupyterStore((state) => ({ serverUrl: state.serverUrl, token: state.token, kernelName: state.kernelName }))
+  const serverUrl = useJupyterStore((state) => state.serverUrl)
+  const token = useJupyterStore((state) => state.token)
+  const kernelName = useJupyterStore((state) => state.kernelName)
+  const config = useMemo(() => ({ serverUrl, token, kernelName }), [serverUrl, token, kernelName])
   const setSettingsOpen = useJupyterStore((state) => state.setSettingsOpen)
-  const lab = useMemo(() => allLabs.find((item) => item.id === activeLabId), [activeLabId])
   const [width, setWidth] = useState(620)
-  const [cells, setCells] = useState<Record<string, CodeCellState>>({})
+  const [cells, setCells] = useState<Record<string, CodeCellState>>(() =>
+    Object.fromEntries(lab.cells.map((cell) => [cell.id, initialCellState(cell)])),
+  )
   const [error, setError] = useState<string | null>(null)
   const cellsRef = useRef(cells)
-  cellsRef.current = cells
 
   useEffect(() => {
     jupyterClient.onStatus(setKernelStatus)
   }, [setKernelStatus])
 
   useEffect(() => {
-    if (!lab) return
-    setCells(Object.fromEntries(lab.cells.map((cell) => [cell.id, initialCellState(cell)])))
-    setError(null)
-  }, [lab])
+    cellsRef.current = cells
+  }, [cells])
 
   const updateCell = useCallback((id: string, update: Partial<CodeCellState> | ((state: CodeCellState) => Partial<CodeCellState>)) => {
     setCells((current) => {
@@ -91,8 +99,6 @@ export function LabDrawer() {
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
   }
-
-  if (!lab) return null
 
   return (
     <aside className="lab-drawer" style={{ width: `min(${width}px, 100vw)` }} aria-label={`${lab.title} Python Lab`}>

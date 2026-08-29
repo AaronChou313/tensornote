@@ -9,7 +9,8 @@ const options: { key: keyof NoteProgressType; label: string }[] = [
 ]
 
 export function NoteProgress({ noteId, hasLab }: { noteId: string; hasLab: boolean }) {
-  const progress = useAppStore((state) => state.progress[noteId] ?? { read: false, labRun: false, reviewed: false })
+  const progressByNote = useAppStore((state) => state.progress)
+  const progress = progressByNote[noteId] ?? { read: false, labRun: false, reviewed: false }
   const updateProgress = useAppStore((state) => state.updateProgress)
 
   return (

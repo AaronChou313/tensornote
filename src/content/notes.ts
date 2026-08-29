@@ -1,6 +1,9 @@
 import matter from 'gray-matter'
+import { Buffer } from 'buffer'
 import type { Heading, Note, NoteFrontmatter } from '../types'
 import { extractLabs } from './labParser'
+
+if (!globalThis.Buffer) globalThis.Buffer = Buffer
 
 const modules = import.meta.glob('../../notes/**/*.md', {
   eager: true,

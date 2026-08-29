@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { ArrowRight, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
@@ -14,9 +14,10 @@ export function SearchDialog() {
   const navigate = useNavigate()
   const results = useMemo(() => searchNotes(query).slice(0, 12), [query])
 
-  useEffect(() => {
-    if (!open) setQuery('')
-  }, [open])
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (!nextOpen) setQuery('')
+  }
 
   const choose = (noteId: string) => {
     navigate(`/notes/${noteId}`)
@@ -24,7 +25,7 @@ export function SearchDialog() {
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-[#07110c]/40 backdrop-blur-[2px]" />
         <Dialog.Content className="fixed left-1/2 top-[12vh] z-[51] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 overflow-hidden rounded-[var(--radius)] border border-[var(--line)] bg-[var(--surface-raised)] shadow-[0_24px_90px_rgba(17,32,24,0.2)]">
