@@ -10,6 +10,8 @@ TensorNote 是一个本地优先、Markdown 优先的可执行 AI 学习笔记 W
 
 首次配置请先阅读[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)，其中包含 Conda、标准 `venv`、`uv`、Jupyter Kernel、Token/CORS 和每日启动顺序。
 
+已有安装如何拉取更新、开发新功能和发布新版本，请阅读[开发与版本更新指南](docs/DEVELOPMENT.md)。
+
 ```bash
 pnpm install
 pnpm dev

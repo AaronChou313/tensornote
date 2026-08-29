@@ -16,6 +16,21 @@
   --accent-soft: #dff2e8;
   --danger: #b2443b;
   --warning: #9a671c;
+  --code-surface: #f6f8fa;
+  --code-ink: #24292f;
+  --code-line: #d0d7de;
+  --syntax-keyword: #cf222e;
+  --syntax-title: #8250df;
+  --syntax-constant: #0550ae;
+  --syntax-string: #0a3069;
+  --syntax-built-in: #953800;
+  --syntax-comment: #57606a;
+  --syntax-tag: #116329;
+  --syntax-bullet: #7d4e00;
+  --syntax-addition: #1a7f37;
+  --syntax-addition-bg: #dafbe1;
+  --syntax-deletion: #cf222e;
+  --syntax-deletion-bg: #ffebe9;
   --radius: 10px;
 }
 
@@ -32,6 +47,21 @@
   --accent-soft: #193b2d;
   --danger: #ec8b82;
   --warning: #d7a95d;
+  --code-surface: #1b211e;
+  --code-ink: #dfe8e2;
+  --code-line: #303a35;
+  --syntax-keyword: #ff7b72;
+  --syntax-title: #d2a8ff;
+  --syntax-constant: #79c0ff;
+  --syntax-string: #a5d6ff;
+  --syntax-built-in: #ffa657;
+  --syntax-comment: #8b949e;
+  --syntax-tag: #7ee787;
+  --syntax-bullet: #f2cc60;
+  --syntax-addition: #aff5b4;
+  --syntax-addition-bg: #033a16;
+  --syntax-deletion: #ffdcd7;
+  --syntax-deletion-bg: #67060c;
 }
 
 * {
@@ -231,11 +261,11 @@ a {
   position: relative;
   margin: 1.4rem 0;
   overflow-x: auto;
-  border: 1px solid var(--line);
+  border: 1px solid var(--code-line);
   border-radius: var(--radius);
-  background: #202824;
+  background: var(--code-surface);
   padding: 1.2rem 1.3rem;
-  color: #dfe8e2;
+  color: var(--code-ink);
   font-size: .82rem;
   line-height: 1.75;
   tab-size: 2;
@@ -243,12 +273,103 @@ a {
 
 .note-prose pre code {
   background: transparent;
+  color: inherit;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-[data-theme="dark"] .hljs {
-  color: #dfe8e2;
+.note-prose pre code.hljs {
+  display: block;
+  overflow: visible;
+  padding: 0;
+}
+
+.note-prose .hljs {
+  color: var(--code-ink);
   background: transparent;
+}
+
+.note-prose .hljs-doctag,
+.note-prose .hljs-keyword,
+.note-prose .hljs-meta .hljs-keyword,
+.note-prose .hljs-template-tag,
+.note-prose .hljs-template-variable,
+.note-prose .hljs-type,
+.note-prose .hljs-variable.language_ {
+  color: var(--syntax-keyword);
+}
+
+.note-prose .hljs-title,
+.note-prose .hljs-title.class_,
+.note-prose .hljs-title.class_.inherited__,
+.note-prose .hljs-title.function_ {
+  color: var(--syntax-title);
+}
+
+.note-prose .hljs-attr,
+.note-prose .hljs-attribute,
+.note-prose .hljs-literal,
+.note-prose .hljs-meta,
+.note-prose .hljs-number,
+.note-prose .hljs-operator,
+.note-prose .hljs-variable,
+.note-prose .hljs-selector-attr,
+.note-prose .hljs-selector-class,
+.note-prose .hljs-selector-id,
+.note-prose .hljs-section {
+  color: var(--syntax-constant);
+}
+
+.note-prose .hljs-regexp,
+.note-prose .hljs-string,
+.note-prose .hljs-meta .hljs-string {
+  color: var(--syntax-string);
+}
+
+.note-prose .hljs-built_in,
+.note-prose .hljs-symbol {
+  color: var(--syntax-built-in);
+}
+
+.note-prose .hljs-comment,
+.note-prose .hljs-code,
+.note-prose .hljs-formula {
+  color: var(--syntax-comment);
+}
+
+.note-prose .hljs-name,
+.note-prose .hljs-quote,
+.note-prose .hljs-selector-tag,
+.note-prose .hljs-selector-pseudo {
+  color: var(--syntax-tag);
+}
+
+.note-prose .hljs-bullet {
+  color: var(--syntax-bullet);
+}
+
+.note-prose .hljs-subst,
+.note-prose .hljs-emphasis,
+.note-prose .hljs-strong {
+  color: var(--code-ink);
+}
+
+.note-prose .hljs-section,
+.note-prose .hljs-strong {
+  font-weight: 700;
+}
+
+.note-prose .hljs-emphasis {
+  font-style: italic;
+}
+
+.note-prose .hljs-addition {
+  color: var(--syntax-addition);
+  background-color: var(--syntax-addition-bg);
+}
+
+.note-prose .hljs-deletion {
+  color: var(--syntax-deletion);
+  background-color: var(--syntax-deletion-bg);
 }
 
 .note-prose table {

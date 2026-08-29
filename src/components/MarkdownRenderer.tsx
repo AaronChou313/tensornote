@@ -1,4 +1,4 @@
-import { Children, isValidElement, type ReactNode } from 'react'
+import { isValidElement, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
@@ -59,9 +59,14 @@ export function MarkdownRenderer({ content, labs }: { content: string; labs: Lab
           if (inline) return <code {...props}>{children}</code>
           return <code className={className} {...props}>{children}</code>
         },
-        pre: ({ children }) => {
-          const child = Children.toArray(children)[0]
-          if (isValidElement(child) && (child.type === LabCard || child.type === MermaidDiagram)) return <>{children}</>
+        pre: ({ children, node }) => {
+          const codeNode = node?.children[0]
+          const classNames = codeNode?.type === 'element' ? codeNode.properties.className : []
+          const classes = Array.isArray(classNames) ? classNames.map(String) : [String(classNames ?? '')]
+          const isCustomBlock = classes.some((className) =>
+            className === 'language-mermaid' || className === 'language-tensornote-lab',
+          )
+          if (isCustomBlock) return <>{children}</>
           return <pre>{children}</pre>
         },
       }}
