@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  font-family: "Avenir Next", Avenir, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --surface: #f5f7f6;
+  --surface-raised: #ffffff;
+  --surface-muted: #eef1ef;
+  --ink: #17201c;
+  --muted: #66716b;
+  --faint: #8b958f;
+  --line: #dce2de;
+  --accent: #137a56;
+  --accent-soft: #dff2e8;
+  --danger: #b2443b;
+  --warning: #9a671c;
+  --radius: 10px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #111614;
+  --surface-raised: #181e1b;
+  --surface-muted: #202723;
+  --ink: #e8ece9;
+  --muted: #a3ada7;
+  --faint: #78827c;
+  --line: #2c3530;
+  --accent: #58c493;
+  --accent-soft: #193b2d;
+  --danger: #ec8b82;
+  --warning: #d7a95d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--surface);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100dvh;
+  background: var(--surface);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
