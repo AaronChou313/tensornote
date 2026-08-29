@@ -1,0 +1,61 @@
+import type { Lab, LabCell } from '../types'
+
+const EXEC_BLOCK = /```python\s+exec([^\n]*)\n([\s\S]*?)```/g
+const ATTRIBUTE = /(lab|cell|title|difficulty)="([^"]+)"/g
+
+function parseAttributes(meta: string) {
+  const attributes: Record<string, string> = {}
+  for (const match of meta.matchAll(ATTRIBUTE)) {
+    attributes[match[1]] = match[2]
+  }
+  return attributes
+}
+
+export function extractLabs(content: string): { labs: Lab[]; renderedContent: string } {
+  const grouped = new Map<string, LabCell[]>()
+  let match: RegExpExecArray | null
+
+  while ((match = EXEC_BLOCK.exec(content))) {
+    const attributes = parseAttributes(match[1])
+    const lab = attributes.lab ?? 'default-lab'
+    const order = Number(attributes.cell ?? 1)
+    const difficulty = (attributes.difficulty ?? 'basic') as LabCell['difficulty']
+    const cell: LabCell = {
+      id: `${lab}-${order}`,
+      lab,
+      order,
+      title: attributes.title ?? `Cell ${order}`,
+      difficulty,
+      code: match[2].trim(),
+    }
+    grouped.set(lab, [...(grouped.get(lab) ?? []), cell])
+  }
+
+  const labs: Lab[] = [...grouped.entries()].map(([id, cells]) => {
+    const sortedCells = cells.sort((a, b) => a.order - b.order)
+    return {
+      id,
+      title: id
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' '),
+      difficulty: sortedCells.some((cell) => cell.difficulty === 'heavy')
+        ? 'heavy'
+        : sortedCells.some((cell) => cell.difficulty === 'medium')
+          ? 'medium'
+          : 'basic',
+      cells: sortedCells,
+    }
+  })
+
+  const emitted = new Set<string>()
+  const renderedContent = content.replace(EXEC_BLOCK, (_whole, meta: string) => {
+    const attributes = parseAttributes(meta)
+    const lab = attributes.lab ?? 'default-lab'
+    if (emitted.has(lab)) return ''
+    emitted.add(lab)
+    return `\n\`\`\`tensornote-lab\n${lab}\n\`\`\`\n`
+  })
+
+  return { labs, renderedContent }
+}
