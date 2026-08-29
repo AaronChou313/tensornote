@@ -19,9 +19,10 @@ interface CodeCellProps {
   onCodeChange: (code: string) => void
   onRun: () => void
   theme: 'light' | 'dark'
+  executionDisabled?: boolean
 }
 
-export function CodeCell({ cell, state, onCodeChange, onRun, theme }: CodeCellProps) {
+export function CodeCell({ cell, state, onCodeChange, onRun, theme, executionDisabled = false }: CodeCellProps) {
   return (
     <section className="code-cell">
       <header className="code-cell__header">
@@ -29,7 +30,7 @@ export function CodeCell({ cell, state, onCodeChange, onRun, theme }: CodeCellPr
           <span className="font-mono text-[10px] text-[var(--faint)]">[{state.executionCount ?? ' '}] CELL {cell.order}</span>
           <h3>{cell.title}</h3>
         </div>
-        <Button variant="ghost" size="icon" onClick={onRun} disabled={state.running} aria-label={`运行 ${cell.title}`}>
+        <Button variant="ghost" size="icon" onClick={onRun} disabled={state.running || executionDisabled} aria-label={`运行 ${cell.title}`}>
           <Play size={17} weight="fill" className={state.running ? 'animate-pulse' : ''} />
         </Button>
       </header>

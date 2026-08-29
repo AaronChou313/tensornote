@@ -1,87 +1,157 @@
-import { ArrowRight, Brain, Eye, Flask, TextT, Waveform } from '@phosphor-icons/react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import {
+  ArrowRight,
+  BookOpenText,
+  ClockCounterClockwise,
+  FolderOpen,
+  GithubLogo,
+  Leaf,
+  Moon,
+  Plus,
+  Sun,
+} from '@phosphor-icons/react'
+import { useNavigate } from 'react-router-dom'
+import logoWide from '../../assets/images/TensorNote_logo_wide.png'
+import { Button } from '../components/ui/Button'
+import { useAppStore } from '../store/useAppStore'
+import { useWorkspaceStore } from '../store/useWorkspaceStore'
+import { BundledWorkspaceProvider } from '../workspace/providers/BundledWorkspaceProvider'
+import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
+import { pickLocalWorkspace } from '../workspace/providers/LocalWorkspaceProvider'
+import type { RecentWorkspace, WorkspaceProvider } from '../workspace/types'
 
-const routes = [
-  {
-    label: '视觉表示',
-    path: ['Deep Learning', 'CNN', 'ResNet', 'ViT'],
-    description: '从局部感受野到视觉 Token，理解图像如何成为可学习的表示。',
-    to: '/notes/deep-learning-overview',
-    icon: Eye,
-  },
-  {
-    label: '序列表示',
-    path: ['Embedding', 'RNN', 'Attention', 'Transformer'],
-    description: '从状态传播到 Token 之间的直接关系，理解序列建模的演化。',
-    to: '/notes/sequence-and-rnn',
-    icon: Waveform,
-  },
-]
+function parseGitHubRepository(value: string) {
+  const normalized = value.trim().replace(/\.git$/, '').replace(/\/$/, '')
+  const urlMatch = normalized.match(/github\.com[/:]([^/]+)\/([^/]+)$/i)
+  const shortMatch = normalized.match(/^([^/\s]+)\/([^/\s]+)$/)
+  const match = urlMatch ?? shortMatch
+  return match ? { owner: match[1], repo: match[2] } : null
+}
 
 export function HomePage() {
+  const navigate = useNavigate()
+  const theme = useAppStore((state) => state.theme)
+  const toggleTheme = useAppStore((state) => state.toggleTheme)
+  const status = useWorkspaceStore((state) => state.status)
+  const loadingMessage = useWorkspaceStore((state) => state.loadingMessage)
+  const error = useWorkspaceStore((state) => state.error)
+  const clearError = useWorkspaceStore((state) => state.clearError)
+  const openProvider = useWorkspaceStore((state) => state.openProvider)
+  const recentWorkspaces = useWorkspaceStore((state) => state.recentWorkspaces)
+  const [repository, setRepository] = useState('')
+  const [ref, setRef] = useState('')
+  const [inputError, setInputError] = useState<string | null>(null)
+
+  const open = async (provider: WorkspaceProvider) => {
+    setInputError(null)
+    clearError()
+    try {
+      await openProvider(provider)
+      navigate('/workspace')
+    } catch {
+      // Store exposes the user-facing error state.
+    }
+  }
+
+  const openLocal = async () => {
+    try {
+      await open(await pickLocalWorkspace())
+    } catch (reason) {
+      setInputError(reason instanceof Error ? reason.message : '无法打开本地目录')
+    }
+  }
+
+  const openGitHub = async () => {
+    const parsed = parseGitHubRepository(repository)
+    if (!parsed) {
+      setInputError('请输入 owner/repository 或完整 GitHub Repository URL')
+      return
+    }
+    await open(new GitHubWorkspaceProvider(parsed.owner, parsed.repo, ref.trim() || undefined))
+  }
+
+  const reopen = async (recent: RecentWorkspace) => {
+    if (recent.type === 'bundled') return open(new BundledWorkspaceProvider())
+    if (recent.type === 'github' && recent.config?.owner && recent.config.repo) {
+      return open(new GitHubWorkspaceProvider(recent.config.owner, recent.config.repo, recent.config.ref))
+    }
+    await openLocal()
+  }
+
+  const busy = status === 'loading'
+
   return (
-    <main className="home-page px-5 py-12 md:px-10 md:py-16">
-      <div className="mx-auto max-w-[1040px]">
-        <header className="max-w-3xl">
-          <div className="mb-6 flex items-center gap-3 text-[var(--accent)]">
-            <Brain size={24} weight="duotone" />
-            <span className="font-mono text-xs font-semibold tracking-[0.08em]">TENSORNOTE</span>
-          </div>
-          <h1 className="text-4xl font-semibold leading-[1.06] tracking-[-0.045em] md:text-6xl">从张量出发，建立完整的 AI 心智模型。</h1>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--muted)] md:text-lg">理论负责建立结构，Shape 负责检查理解，Python 实验负责验证直觉。所有知识始终保存在可独立阅读的 Markdown 中。</p>
-        </header>
+    <main className="workspace-home">
+      <header className="landing-nav">
+        <div className="brand-compact"><span>T</span><strong>TensorNote</strong></div>
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === 'light' ? '切换深色模式' : '切换浅色模式'}>
+          {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+        </Button>
+      </header>
 
-        <section className="mt-14 grid gap-4 md:grid-cols-2" aria-label="学习主线">
-          {routes.map((route) => {
-            const Icon = route.icon
-            return (
-              <Link key={route.label} to={route.to} className="route-card group">
-                <span className="route-card__icon"><Icon size={22} weight="duotone" /></span>
-                <h2>{route.label}</h2>
-                <p>{route.description}</p>
-                <div className="route-path">
-                  {route.path.map((item, index) => (
-                    <span key={item}>
-                      {item}
-                      {index < route.path.length - 1 && <ArrowRight size={12} />}
-                    </span>
-                  ))}
-                </div>
-              </Link>
-            )
-          })}
+      <div className="workspace-home__content">
+        <section className="workspace-hero">
+          <div className="workspace-hero__eyebrow"><Leaf size={15} weight="fill" /> Markdown-first workspace</div>
+          <div className="workspace-hero__logo"><img src={logoWide} alt="TensorNote — Executable Notes for Learning AI" /></div>
+          <h1>让知识、代码与计算环境，<br />安静地待在同一个地方。</h1>
+          <p>打开任意 Markdown Workspace，保持文件自由可读；需要验证想法时，再连接自己的 Jupyter。</p>
         </section>
 
-        <section className="knowledge-convergence">
-          <div className="convergence-source">
-            <span><Eye size={18} /> ViT</span>
-            <span><TextT size={18} /> Transformer</span>
+        {(error || inputError) && (
+          <div className="workspace-alert" role="alert">
+            <span>{inputError || error}</span>
+            <button onClick={() => { setInputError(null); clearError() }}>关闭</button>
           </div>
-          <ArrowRight size={24} className="convergence-arrow" />
-          <Link to="/notes/clip-overview" className="convergence-clip">
-            <strong>CLIP</strong>
-            <span>Vision + Language</span>
-          </Link>
-          <ArrowRight size={24} className="convergence-arrow" />
-          <div className="convergence-future">
-            <span>VLM</span>
-            <span>VLA</span>
-            <small>Future</small>
+        )}
+
+        <section className="workspace-actions" aria-label="打开 Workspace">
+          <button className="workspace-action workspace-action--primary" onClick={() => void openLocal()} disabled={busy}>
+            <span className="workspace-action__icon"><FolderOpen size={23} weight="duotone" /></span>
+            <span><strong>Open local workspace</strong><small>选择电脑上的 Markdown 文件夹</small></span>
+            <ArrowRight size={17} />
+          </button>
+
+          <button className="workspace-action" onClick={() => void open(new BundledWorkspaceProvider())} disabled={busy}>
+            <span className="workspace-action__icon"><BookOpenText size={23} weight="duotone" /></span>
+            <span><strong>AI Learning Notes</strong><small>打开随 TensorNote 提供的示例 Workspace</small></span>
+            <ArrowRight size={17} />
+          </button>
+
+          <div className="workspace-action workspace-action--disabled" aria-disabled="true">
+            <span className="workspace-action__icon"><Plus size={22} /></span>
+            <span><strong>New workspace</strong><small>将在 v0.2 Authoring 中开放</small></span>
+            <span className="version-chip">v0.2</span>
           </div>
         </section>
 
-        <section className="mt-14 flex flex-col gap-4 border-t border-[var(--line)] pt-8 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <Flask size={21} className="mt-0.5 text-[var(--accent)]" />
-            <div>
-              <h2 className="text-sm font-semibold">核心验收路径</h2>
-              <p className="mt-1 text-sm text-[var(--muted)]">打开 Self-Attention，运行 7 个 Cell，观察 Attention Heatmap。</p>
+        <section className="github-open">
+          <div>
+            <span className="workspace-section-icon"><GithubLogo size={18} weight="fill" /></span>
+            <div><h2>Open from GitHub</h2><p>读取公开 Repository；默认禁用远程可执行代码。</p></div>
+          </div>
+          <form onSubmit={(event) => { event.preventDefault(); void openGitHub() }}>
+            <input value={repository} onChange={(event) => setRepository(event.target.value)} placeholder="owner/repository 或 GitHub URL" aria-label="GitHub Repository" />
+            <input value={ref} onChange={(event) => setRef(event.target.value)} placeholder="Branch / Ref（可选）" aria-label="GitHub Branch 或 Ref" />
+            <Button type="submit" variant="primary" disabled={busy || !repository.trim()}>Open</Button>
+          </form>
+        </section>
+
+        {recentWorkspaces.length > 0 && (
+          <section className="recent-workspaces">
+            <div className="section-heading"><ClockCounterClockwise size={17} /><h2>Recent workspaces</h2></div>
+            <div className="recent-list">
+              {recentWorkspaces.map((recent) => (
+                <button key={recent.id} onClick={() => void reopen(recent)} disabled={busy}>
+                  <span className="recent-mark">{recent.name.slice(0, 1).toUpperCase()}</span>
+                  <span><strong>{recent.name}</strong><small>{recent.detail || recent.sourceLabel}</small></span>
+                  <span className="recent-source">{recent.sourceLabel}</span>
+                </button>
+              ))}
             </div>
-          </div>
-          <Link to="/notes/self-attention" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent)] hover:underline">
-            开始实验 <ArrowRight size={15} />
-          </Link>
-        </section>
+          </section>
+        )}
+
+        {busy && <div className="workspace-loading" role="status"><span />{loadingMessage || '正在打开 Workspace…'}</div>}
       </div>
     </main>
   )

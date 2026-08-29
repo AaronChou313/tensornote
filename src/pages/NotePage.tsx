@@ -1,17 +1,20 @@
 import { Navigate, useParams } from 'react-router-dom'
-import { noteById } from '../content/notes'
 import { MarkdownRenderer } from '../components/MarkdownRenderer'
 import { NoteProgress } from '../components/NoteProgress'
+import { useWorkspaceStore } from '../store/useWorkspaceStore'
 
 export function NotePage() {
   const { noteId } = useParams()
-  const note = noteId ? noteById.get(noteId) : undefined
+  const session = useWorkspaceStore((state) => state.session)
+  const provider = useWorkspaceStore((state) => state.provider)
+  const note = noteId ? session?.documentById.get(noteId) : undefined
 
-  if (!note) return <Navigate to="/" replace />
+  if (!session || !provider) return <Navigate to="/" replace />
+  if (!note) return <Navigate to="/workspace" replace />
 
   return (
-    <main className="px-5 py-10 md:px-10 md:py-14">
-      <article className="note-prose mx-auto max-w-[840px]">
+    <main className="note-page">
+      <article className="note-prose">
         <header className="note-header">
           <p className="note-section">{note.frontmatter.section}</p>
           <h1>{note.frontmatter.title}</h1>
@@ -20,8 +23,13 @@ export function NotePage() {
             {note.frontmatter.tags.map((tag) => <span key={tag}>{tag}</span>)}
           </div>
         </header>
-        <MarkdownRenderer content={note.renderedContent} labs={note.labs} />
-        <NoteProgress noteId={note.id} hasLab={note.labs.length > 0} />
+        <MarkdownRenderer
+          content={note.renderedContent}
+          labs={note.labs}
+          documentPath={note.path}
+          resolveAssetUrl={(path) => provider.resolveAssetUrl(path, note.path)}
+        />
+        <NoteProgress noteId={`${session.descriptor.id}:${note.id}`} hasLab={note.labs.length > 0} />
       </article>
     </main>
   )

@@ -1,0 +1,17 @@
+schemaVersion: 1
+
+workspace:
+  name: AI Learning Notes
+  description: 从深度学习基础到 Transformer、ViT 与 CLIP 的可执行学习知识库
+
+content:
+  root: notes
+
+assets:
+  root: assets
+
+navigation:
+  mode: filesystem
+
+features:
+  executable: true

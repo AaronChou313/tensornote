@@ -5,9 +5,10 @@ import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import type { Lab } from '../types'
-import { slugify } from '../content/notes'
+import { slugify } from '../content/document'
 import { LabCard } from './LabCard'
 import { MermaidDiagram } from './MermaidDiagram'
+import { WorkspaceImage } from './WorkspaceImage'
 
 const calloutLabels: Record<string, string> = {
   intuition: '直觉',
@@ -25,7 +26,14 @@ function textFromNode(node: ReactNode): string {
   return ''
 }
 
-export function MarkdownRenderer({ content, labs }: { content: string; labs: Lab[] }) {
+interface MarkdownRendererProps {
+  content: string
+  labs: Lab[]
+  documentPath?: string
+  resolveAssetUrl?: (path: string) => Promise<string>
+}
+
+export function MarkdownRenderer({ content, labs, documentPath = '', resolveAssetUrl }: MarkdownRendererProps) {
   const labMap = new Map(labs.map((lab) => [lab.id, lab]))
 
   return (
@@ -36,6 +44,9 @@ export function MarkdownRenderer({ content, labs }: { content: string; labs: Lab
         h1: ({ children }) => <h1 id={slugify(textFromNode(children))}>{children}</h1>,
         h2: ({ children }) => <h2 id={slugify(textFromNode(children))}>{children}</h2>,
         h3: ({ children }) => <h3 id={slugify(textFromNode(children))}>{children}</h3>,
+        img: ({ src, alt }) => (
+          <WorkspaceImage src={src ?? ''} alt={alt ?? ''} documentPath={documentPath} resolveAssetUrl={resolveAssetUrl} />
+        ),
         blockquote: ({ children }) => {
           const text = textFromNode(children).trim()
           const match = text.match(/^\[!(\w+)]\s*([\s\S]*)$/)

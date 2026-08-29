@@ -1,7 +1,8 @@
-import { List, MagnifyingGlass, Moon, Sun } from '@phosphor-icons/react'
+import { List, MagnifyingGlass, Moon, ShieldCheck, ShieldWarning, Sun } from '@phosphor-icons/react'
 import { useLocation, useParams } from 'react-router-dom'
 import { findTrail } from '../content/noteTree'
 import { useAppStore } from '../store/useAppStore'
+import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
 
 const statusLabels = {
@@ -20,34 +21,33 @@ export function TopBar() {
   const kernelStatus = useAppStore((state) => state.kernelStatus)
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
-  const trail = noteId ? findTrail(noteId) : location.pathname === '/' ? ['学习路线'] : []
+  const session = useWorkspaceStore((state) => state.session)
+  const trustActiveWorkspace = useWorkspaceStore((state) => state.trustActiveWorkspace)
+  const trail = noteId && session
+    ? findTrail(noteId, session.navigation)
+    : location.pathname === '/workspace' ? ['Overview'] : []
+
+  if (!session) return null
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_92%,transparent)] px-4 backdrop-blur-lg md:px-6">
-      <Button className="mr-2 lg:hidden" variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} aria-label="打开目录">
-        <List size={20} />
-      </Button>
-      <div className="min-w-0 flex-1 truncate text-xs text-[var(--faint)]">
-        {trail.map((label, index) => (
-          <span key={`${label}-${index}`}>
-            {index > 0 && <span className="mx-2 text-[var(--line)]">/</span>}
-            <span className={index === trail.length - 1 ? 'font-medium text-[var(--ink)]' : ''}>{label}</span>
-          </span>
-        ))}
+    <header className="workbench-topbar">
+      <Button className="mr-1 lg:hidden" variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} aria-label="打开目录"><List size={20} /></Button>
+      <div className="workbench-breadcrumbs">
+        <span>{session.manifest.workspace.name}</span>
+        {trail.map((label, index) => <span key={`${label}-${index}`}><i>/</i><strong>{label}</strong></span>)}
       </div>
-      <div className="flex items-center gap-1.5">
-        <Button variant="ghost" className="hidden min-w-40 justify-between border border-[var(--line)] sm:flex" onClick={() => setSearchOpen(true)}>
-          <span className="flex items-center gap-2"><MagnifyingGlass size={15} />搜索</span>
-          <kbd className="font-mono text-[10px] text-[var(--faint)]">⌘K</kbd>
+      <div className="topbar-actions">
+        {session.descriptor.type === 'github' && (
+          session.trusted ? (
+            <span className="trust-status trust-status--trusted" title="当前 GitHub Revision 已受信任"><ShieldCheck size={14} />Trusted</span>
+          ) : (
+            <button className="trust-status trust-status--pending" onClick={trustActiveWorkspace} title="信任当前 GitHub Revision 后允许执行代码"><ShieldWarning size={14} />Trust to run</button>
+          )
+        )}
+        <Button variant="ghost" className="search-trigger" onClick={() => setSearchOpen(true)}>
+          <span><MagnifyingGlass size={15} />Search</span><kbd>⌘K</kbd>
         </Button>
-        <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setSearchOpen(true)} aria-label="搜索">
-          <MagnifyingGlass size={18} />
-        </Button>
-        <span className="hidden h-5 w-px bg-[var(--line)] sm:block" />
-        <div className="hidden items-center gap-2 px-2 text-xs text-[var(--muted)] md:flex" title="Jupyter Kernel 状态">
-          <span className={`kernel-dot kernel-dot--${kernelStatus}`} aria-hidden="true" />
-          {statusLabels[kernelStatus]}
-        </div>
+        <div className="kernel-status" title="Jupyter Kernel 状态"><span className={`kernel-dot kernel-dot--${kernelStatus}`} />{statusLabels[kernelStatus]}</div>
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === 'light' ? '切换深色模式' : '切换浅色模式'}>
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </Button>
