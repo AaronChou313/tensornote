@@ -2,9 +2,11 @@
 
 # TensorNote
 
-TensorNote 是一个本地优先、Markdown 优先的可执行 AI 学习笔记 Web App。
+TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。它不限定知识领域，也不把内容锁进数据库；普通文件夹、公开 GitHub Repository 和随应用提供的示例内容都通过同一套 Workspace 接口读取。
 
-知识正文始终保存在 `notes/**/*.md`。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码在用户自己的 Jupyter Server 与 Python 环境中运行。
+知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
+
+当前版本：`v0.1.0 — Workspace Foundation`。
 
 ## 快速开始
 
@@ -18,6 +20,13 @@ pnpm dev
 ```
 
 打开 <http://localhost:5173>。
+
+首页可以：
+
+- 打开本地 Markdown 文件夹（Chrome / Edge 的 File System Access API）。
+- 打开内置的 AI Learning Notes 示例 Workspace。
+- 输入 `owner/repository`、完整 GitHub URL 和可选 Ref，读取公开仓库。
+- 通过 `/open/github/{owner}/{repo}?ref={branch}` 直接打开公开仓库。
 
 生产检查：
 
@@ -51,6 +60,25 @@ jupyter server list
 第一次运行 Cell 时才会创建 Kernel。同一篇笔记内的所有 Lab 共享 Kernel。切换笔记会关闭当前 Kernel，防止变量污染。
 
 ## 可执行 Markdown 语法
+
+Workspace 根目录可选放置 `tensornote.yaml`：
+
+```yaml
+schemaVersion: 1
+workspace:
+  name: My Knowledge Base
+  description: Portable Markdown notes
+content:
+  root: notes
+assets:
+  root: assets
+navigation:
+  mode: filesystem
+features:
+  executable: true
+```
+
+没有配置文件时，TensorNote 仍会尝试把目录作为普通 Markdown Workspace 打开，但默认不授予可执行能力。
 
 普通 Python Fence 只用于展示：
 
@@ -88,7 +116,8 @@ tensornote/
 │   ├── components/      阅读与 Lab UI
 │   ├── content/         Markdown 加载和 Lab Parser
 │   ├── jupyter/         Jupyter 执行层
-│   └── store/           界面、进度与连接配置
+│   ├── workspace/       Schema、统一加载器与 Providers
+│   └── store/           Workspace、界面、进度与连接配置
 ├── notes/               唯一知识源，共 35 篇 V1 笔记
 ├── assets/
 │   ├── images/
@@ -99,3 +128,5 @@ tensornote/
 ```
 
 即使 Web App 停止维护，`notes/` 仍可由 VS Code、Obsidian、GitHub 或普通 Markdown 阅读器直接使用。
+
+实现边界与后续演进见 [v0.1 架构说明](docs/ARCHITECTURE.md)，环境配置见[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)。

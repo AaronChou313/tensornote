@@ -409,15 +409,16 @@ http://localhost:5173
 
 ## 8. 在 TensorNote 中填写连接信息
 
-1. 打开任意带 Python Lab 的笔记，例如 Self-Attention。
-2. 展开 Python Lab，点击右上角设置。
-3. 填写：
+1. 在首页打开本地 Workspace，或打开内置的 AI Learning Notes。
+2. 打开任意带 Python Lab 的笔记，例如 Self-Attention。
+3. 展开 Python Lab，点击右上角设置。
+4. 填写：
    - Server URL：`http://127.0.0.1:8888`
    - Token：Jupyter 输出中 `token=` 后的随机字符串
    - Kernel Name：`tensornote`
-4. 保存后运行一个 Cell。
+5. 保存后运行一个 Cell。
 
-Token 只保存在当前浏览器的本地存储中，不会写入 Markdown 或 Git。第一次运行 Cell 时才创建 Kernel；同一篇笔记的 Lab 共享 Kernel，切换笔记会关闭当前 Kernel。
+Token 只保存在当前浏览器会话的 `sessionStorage` 中，关闭浏览器会话后即清除，也不会写入 Markdown 或 Git。Server URL 与 Kernel Name 会保存在本地，方便下次复用。第一次运行 Cell 时才创建 Kernel；同一篇笔记的 Lab 共享 Kernel，切换笔记会关闭当前 Kernel。
 
 ## 9. 以后每天启动什么
 
