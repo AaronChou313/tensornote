@@ -6,7 +6,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前版本：`v0.1.0 — Workspace Foundation`。
+当前版本：`v0.2.0 — Authoring`。
 
 ## 快速开始
 
@@ -27,6 +27,20 @@ pnpm dev
 - 打开内置的 AI Learning Notes 示例 Workspace。
 - 输入 `owner/repository`、完整 GitHub URL 和可选 Ref，读取公开仓库。
 - 通过 `/open/github/{owner}/{repo}?ref={branch}` 直接打开公开仓库。
+
+## 本地创作
+
+本地 Workspace 在支持 File System Access API 的浏览器中提供：
+
+- Reading、Editing 和 Split 三种模式。
+- CodeMirror 6 Markdown 编辑器、Undo / Redo 与 `Ctrl/Cmd + S`。
+- Dirty State、离开保护、外部文件变化检测和保存冲突保护。
+- 新建笔记/文件夹、重命名、移动、删除和复制。
+- 粘贴图片、拖放文件或通过 Asset 按钮上传到 `assets/`。
+- 可视化 Frontmatter 属性编辑；属性仍保存在 Markdown 中。
+- Python Lab 修改后使用 `Save to note` 写回原始 executable Fence。
+
+内置和 GitHub Workspace 仍保持只读，不显示写入入口。
 
 生产检查：
 
@@ -129,4 +143,4 @@ tensornote/
 
 即使 Web App 停止维护，`notes/` 仍可由 VS Code、Obsidian、GitHub 或普通 Markdown 阅读器直接使用。
 
-实现边界与后续演进见 [v0.1 架构说明](docs/ARCHITECTURE.md)，环境配置见[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)。
+实现边界与后续演进见 [TensorNote 架构说明](docs/ARCHITECTURE.md)，环境配置见[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)。

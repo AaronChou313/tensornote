@@ -407,6 +407,16 @@ http://localhost:5173
 
 `--strictPort` 会在 5173 被占用时直接报错，而不是自动换端口。这样可以保证页面 Origin 与 Jupyter 的 `allow_origin` 始终一致。
 
+### 7.1 本地文件编辑权限
+
+TensorNote v0.2 的本地编辑功能依赖 File System Access API，建议使用最新版 Chrome 或 Edge：
+
+1. 首页选择 `Open local workspace` 或 `New workspace`。
+2. 在系统目录选择器中选择 Workspace 根目录。
+3. 浏览器询问权限时允许查看并保存该目录中的文件。
+
+如果浏览器没有提供目录选择 API，仍可读取内置或 GitHub Workspace，但首页会提示改用支持该能力的浏览器。TensorNote 不会自动访问未由你选择的目录。
+
 ## 8. 在 TensorNote 中填写连接信息
 
 1. 在首页打开本地 Workspace，或打开内置的 AI Learning Notes。
