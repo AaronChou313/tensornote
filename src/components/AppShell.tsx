@@ -52,7 +52,7 @@ export function AppShell() {
   }, [kernelStatus, location.pathname, setActiveLabId])
 
   if (!session) {
-    if (status === 'idle' && location.pathname === '/workspace') return <Navigate to="/" replace />
+    if (status === 'idle' && (location.pathname === '/workspace' || location.pathname === '/knowledge')) return <Navigate to="/" replace />
     return (
       <main className="route-status-page">
         <span className="workspace-spinner" />

@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage'
 import { NotePage } from './pages/NotePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { WorkspacePage } from './pages/WorkspacePage'
+import { KnowledgePage } from './pages/KnowledgePage'
 
 function RouteScrollReset() {
   const { pathname } = useLocation()
@@ -33,6 +34,7 @@ export function App() {
         <Route path="open/github/:owner/:repo" element={<GitHubOpenPage />} />
         <Route element={<AppShell />}>
           <Route path="workspace" element={<WorkspacePage />} />
+          <Route path="knowledge" element={<KnowledgePage />} />
           <Route path="notes/:noteId" element={<NotePage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />

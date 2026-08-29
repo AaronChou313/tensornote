@@ -24,6 +24,7 @@ import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { NoteProgress } from './NoteProgress'
+import { KnowledgePanel } from './KnowledgePanel'
 
 type EditorMode = 'read' | 'edit' | 'split'
 
@@ -41,7 +42,9 @@ function NotePreview({ note, provider, compact = false }: { note: Note; provider
         content={note.renderedContent}
         labs={note.labs}
         documentPath={note.path}
-        resolveAssetUrl={(path) => provider.resolveAssetUrl(path, note.path)}
+        resolveAssetUrl={(path, fromDocument) => provider.resolveAssetUrl(path, fromDocument)}
+        knowledgeIndex={session?.knowledgeIndex}
+        noteId={note.id}
       />
       {!compact && session && <NoteProgress noteId={`${session.descriptor.id}:${note.id}`} hasLab={note.labs.length > 0} />}
     </article>
@@ -57,6 +60,7 @@ function PropertiesPanel({ raw, onChange, onClose }: { raw: string; onChange: (r
       <header><div><span>Frontmatter</span><h2>Document properties</h2></div><Button variant="ghost" size="icon" onClick={onClose} aria-label="关闭属性"><X size={17} /></Button></header>
       <div className="properties-panel__body">
         <label><span>Title</span><input value={properties.title} onChange={(event) => update({ title: event.target.value })} /></label>
+        <label><span>Aliases</span><input value={properties.aliases.join(', ')} onChange={(event) => update({ aliases: event.target.value.split(',') })} placeholder="alternate title, abbreviation" /></label>
         <label><span>Section</span><input value={properties.section} onChange={(event) => update({ section: event.target.value })} /></label>
         <label><span>Tags</span><input value={properties.tags.join(', ')} onChange={(event) => update({ tags: event.target.value.split(',') })} placeholder="tag-one, tag-two" /></label>
         <label><span>Summary</span><textarea value={properties.summary} onChange={(event) => update({ summary: event.target.value })} rows={5} /></label>
@@ -223,7 +227,7 @@ export function NoteEditor({ note, provider }: { note: Note; provider: Workspace
   }
 
   return (
-    <main className={`note-page note-page--authoring mode-${mode}`}>
+    <main className={`note-page note-page--authoring note-page--knowledge mode-${mode}`}>
       <header className="authoring-toolbar">
         <div className="mode-switcher" aria-label="阅读与编辑模式">
           <button className={mode === 'read' ? 'is-active' : ''} onClick={() => setMode('read')}><Eye size={15} />Reading</button>
@@ -269,6 +273,7 @@ export function NoteEditor({ note, provider }: { note: Note; provider: Workspace
           </section>
         )}
         {mode !== 'edit' && <section className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} compact={mode === 'split'} /></section>}
+        {mode === 'read' && <KnowledgePanel noteId={note.id} />}
         {propertiesOpen && mode !== 'read' && <PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} />}
       </div>
     </main>

@@ -1,4 +1,4 @@
-import { ArrowRight, BracketsCurly, FilePlus, FileText, Flask, Tag } from '@phosphor-icons/react'
+import { ArrowRight, BracketsCurly, FilePlus, FileText, Flask, ShareNetwork, Tag } from '@phosphor-icons/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { createDocumentTemplate } from '../content/document'
@@ -55,6 +55,12 @@ export function WorkspacePage() {
             )) : <div className="workspace-empty-state"><span><FilePlus size={22} /></span><div><strong>This workspace is empty</strong><p>创建第一篇 Markdown 笔记，内容仍会直接保存在所选文件夹中。</p></div>{session.capabilities.write && <Button variant="primary" size="sm" onClick={() => void createFirstNote()}>New note</Button>}</div>}
           </div>
         </section>
+
+        <Link className="workspace-knowledge-link" to="/knowledge">
+          <span><ShareNetwork size={19} /></span>
+          <span><strong>Explore knowledge index</strong><small>WikiLinks、Backlinks、Tags、Properties 与局部图谱</small></span>
+          <ArrowRight size={16} />
+        </Link>
       </div>
     </main>
   )

@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { ArrowRight, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
-import { searchDocuments } from '../content/document'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
@@ -15,8 +14,8 @@ export function SearchDialog() {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
-  const documents = useWorkspaceStore((state) => state.session?.documents ?? [])
-  const results = useMemo(() => searchDocuments(documents, query).slice(0, 12), [documents, query])
+  const session = useWorkspaceStore((state) => state.session)
+  const results = useMemo(() => session?.knowledgeIndex.search(query).slice(0, 12) ?? [], [query, session])
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
@@ -42,7 +41,7 @@ export function SearchDialog() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === 'Enter' && results[0]) choose(results[0].id)
+                if (event.key === 'Enter' && results[0]) choose(results[0].note.id)
               }}
               className="h-14 min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[var(--faint)]"
               placeholder="Search documents, headings or tags"
@@ -56,7 +55,7 @@ export function SearchDialog() {
             {!query ? (
               <div className="px-4 py-10 text-center text-sm text-[var(--faint)]">输入标题、正文、Heading 或 Tag</div>
             ) : results.length ? (
-              results.map((note) => (
+              results.map(({ note, matches, snippet }) => (
                 <button
                   key={note.id}
                   onClick={() => choose(note.id)}
@@ -64,7 +63,8 @@ export function SearchDialog() {
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-medium text-[var(--ink)]">{note.frontmatter.title}</span>
-                    <span className="mt-1 block truncate text-xs text-[var(--faint)]">{note.frontmatter.section} / {note.frontmatter.tags.join(', ')}</span>
+                    <span className="search-result-meta">{matches.join(' · ')}</span>
+                    <span className="search-result-snippet">{snippet || note.frontmatter.summary || note.path}</span>
                   </span>
                   <ArrowRight size={16} className="text-[var(--faint)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
                 </button>

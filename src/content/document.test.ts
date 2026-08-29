@@ -6,12 +6,13 @@ describe('document authoring helpers', () => {
     const source = '---\nid: demo\ntitle: Old\ncustom: keep-me\n---\n# Body\n'
     const updated = updateDocumentProperties(source, {
       title: 'New title',
+      aliases: ['New', 'Demo'],
       section: 'Research',
       tags: ['one', 'two'],
       summary: 'A summary',
     })
 
-    expect(getDocumentProperties(updated)).toEqual({ title: 'New title', section: 'Research', tags: ['one', 'two'], summary: 'A summary' })
+    expect(getDocumentProperties(updated)).toEqual({ title: 'New title', aliases: ['New', 'Demo'], section: 'Research', tags: ['one', 'two'], summary: 'A summary' })
     expect(updated).toContain('custom: keep-me')
     expect(updated).toContain('# Body')
   })

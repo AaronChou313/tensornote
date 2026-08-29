@@ -14,11 +14,36 @@ export function slugify(value: string) {
 }
 
 function getHeadings(content: string): Heading[] {
-  return [...content.matchAll(/^(#{1,3})\s+(.+)$/gm)].map((match) => ({
-    depth: match[1].length,
-    text: match[2].trim(),
-    id: slugify(match[2]),
-  }))
+  const seen = new Map<string, number>()
+  const source = content.replace(/```[\s\S]*?```|~~~[\s\S]*?~~~/g, (block) => block.replace(/[^\n]/g, ' '))
+  return [...source.matchAll(/^(#{1,6})\s+(.+)$/gm)].map((match) => {
+    const text = match[2].replace(/\s+#+\s*$/, '').trim()
+    const baseId = slugify(text)
+    const count = seen.get(baseId) ?? 0
+    seen.set(baseId, count + 1)
+    return {
+      depth: match[1].length,
+      text,
+      id: count ? `${baseId}-${count}` : baseId,
+    }
+  })
+}
+
+function normalizeStringList(value: unknown) {
+  if (Array.isArray(value)) return value.map(String).map((item) => item.trim()).filter(Boolean)
+  if (typeof value === 'string') return value.split(',').map((item) => item.trim()).filter(Boolean)
+  return []
+}
+
+function extractInlineTags(content: string) {
+  const withoutCode = content
+    .replace(/```[\s\S]*?```|~~~[\s\S]*?~~~/g, ' ')
+    .replace(/`[^`\n]*`/g, ' ')
+  return [...new Set(
+    [...withoutCode.matchAll(/(?:^|[\s([{>])#([\p{L}\p{N}_/-]+)/gmu)]
+      .map((match) => match[1].replace(/\/$/, ''))
+      .filter(Boolean),
+  )]
 }
 
 function normalizeFrontmatter(data: Record<string, unknown>, path: string): NoteFrontmatter {
@@ -26,10 +51,11 @@ function normalizeFrontmatter(data: Record<string, unknown>, path: string): Note
   return {
     id: String(data.id ?? fallbackId),
     title: String(data.title ?? fallbackId),
+    aliases: normalizeStringList(data.aliases ?? data.alias),
     section: String(data.section ?? '未分类'),
     order: Number(data.order ?? 0),
-    tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
-    prerequisites: Array.isArray(data.prerequisites) ? data.prerequisites.map(String) : [],
+    tags: normalizeStringList(data.tags).map((tag) => tag.replace(/^#/, '')),
+    prerequisites: normalizeStringList(data.prerequisites),
     summary: data.summary ? String(data.summary) : undefined,
   }
 }
@@ -39,6 +65,7 @@ export function parseDocument(path: string, raw: string, source?: { modifiedAt?:
   const frontmatter = normalizeFrontmatter(parsed.data, path)
   const { labs, renderedContent } = extractLabs(parsed.content)
   const headings = getHeadings(parsed.content)
+  const inlineTags = extractInlineTags(parsed.content)
   const directory = path.split('/').slice(0, -1).join('/')
 
   return {
@@ -46,6 +73,8 @@ export function parseDocument(path: string, raw: string, source?: { modifiedAt?:
     path,
     directory,
     frontmatter,
+    properties: parsed.data,
+    inlineTags,
     raw,
     content: parsed.content,
     renderedContent,
@@ -54,7 +83,10 @@ export function parseDocument(path: string, raw: string, source?: { modifiedAt?:
     searchText: [
       frontmatter.title,
       frontmatter.section,
+      ...frontmatter.aliases,
       ...frontmatter.tags,
+      ...inlineTags,
+      ...Object.entries(parsed.data).flatMap(([key, value]) => [key, String(value)]),
       ...headings.map((heading) => heading.text),
       parsed.content.replace(/[`#>*_[\]()]/g, ' '),
     ]
@@ -79,6 +111,7 @@ export function searchDocuments(documents: Note[], query: string) {
 
 export interface DocumentProperties {
   title: string
+  aliases: string[]
   section: string
   tags: string[]
   summary: string
@@ -88,6 +121,7 @@ export function getDocumentProperties(raw: string): DocumentProperties {
   const data = matter(raw).data
   return {
     title: String(data.title ?? ''),
+    aliases: normalizeStringList(data.aliases ?? data.alias),
     section: String(data.section ?? ''),
     tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
     summary: String(data.summary ?? ''),
@@ -99,10 +133,12 @@ export function updateDocumentProperties(raw: string, properties: DocumentProper
   const data = {
     ...parsed.data,
     title: properties.title.trim(),
+    aliases: properties.aliases.map((alias) => alias.trim()).filter(Boolean),
     section: properties.section.trim(),
     tags: properties.tags.map((tag) => tag.trim()).filter(Boolean),
     ...(properties.summary.trim() ? { summary: properties.summary.trim() } : {}),
   }
+  delete (data as Record<string, unknown>).alias
   if (!properties.summary.trim()) delete data.summary
   return matter.stringify(parsed.content.replace(/^\n/, ''), data)
 }
@@ -111,6 +147,7 @@ export function createDocumentTemplate(id: string, title: string, section = 'Not
   return matter.stringify(`# ${title}\n\n开始记录。\n`, {
     id,
     title,
+    aliases: [],
     section,
     order: 0,
     tags: [],

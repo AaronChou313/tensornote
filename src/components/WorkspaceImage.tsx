@@ -4,7 +4,7 @@ interface WorkspaceImageProps {
   src: string
   alt: string
   documentPath: string
-  resolveAssetUrl?: (path: string) => Promise<string>
+  resolveAssetUrl?: (path: string, fromDocument: string) => Promise<string>
 }
 
 export function WorkspaceImage({ src, alt, documentPath, resolveAssetUrl }: WorkspaceImageProps) {
@@ -19,11 +19,11 @@ export function WorkspaceImage({ src, alt, documentPath, resolveAssetUrl }: Work
   useEffect(() => {
     let cancelled = false
     if (!src || isDirectSource || !resolveAssetUrl) return
-    void resolveAssetUrl(src)
+    void resolveAssetUrl(src, documentPath)
       .then((url) => { if (!cancelled) setResult({ key: requestKey, resolved: url, failed: false }) })
       .catch(() => { if (!cancelled) setResult({ key: requestKey, resolved: '', failed: true }) })
     return () => { cancelled = true }
-  }, [isDirectSource, requestKey, resolveAssetUrl, src])
+  }, [documentPath, isDirectSource, requestKey, resolveAssetUrl, src])
 
   const resolved = isDirectSource || !resolveAssetUrl ? src : result.key === requestKey ? result.resolved : ''
   const failed = result.key === requestKey && result.failed

@@ -1,5 +1,6 @@
 import { buildNoteTree } from '../content/noteTree'
 import { parseDocument } from '../content/document'
+import { buildKnowledgeIndex } from '../content/knowledgeIndex'
 import { joinWorkspacePath, normalizeWorkspacePath } from './path'
 import { parseWorkspaceManifest } from './schema'
 import type { WorkspaceEntry, WorkspaceProvider, WorkspaceSession } from './types'
@@ -56,6 +57,7 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     manifest,
     documents,
     documentById,
+    knowledgeIndex: buildKnowledgeIndex(documents),
     navigation: buildNoteTree(
       documents,
       contentRoot,

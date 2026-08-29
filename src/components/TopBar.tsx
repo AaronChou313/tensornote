@@ -25,7 +25,7 @@ export function TopBar() {
   const trustActiveWorkspace = useWorkspaceStore((state) => state.trustActiveWorkspace)
   const trail = noteId && session
     ? findTrail(noteId, session.navigation)
-    : location.pathname === '/workspace' ? ['Overview'] : []
+    : location.pathname === '/workspace' ? ['Overview'] : location.pathname === '/knowledge' ? ['Knowledge'] : []
 
   if (!session) return null
 

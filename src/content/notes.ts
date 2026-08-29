@@ -1,4 +1,5 @@
-import { parseDocument, searchDocuments, slugify } from './document'
+import { parseDocument, slugify } from './document'
+import { buildKnowledgeIndex } from './knowledgeIndex'
 
 const modules = import.meta.glob('../../notes/**/*.md', {
   eager: true,
@@ -18,9 +19,10 @@ export const notes = Object.entries(modules)
   .sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'))
 
 export const noteById = new Map(notes.map((note) => [note.id, note]))
+const bundledKnowledgeIndex = buildKnowledgeIndex(notes)
 
 export function searchNotes(query: string) {
-  return searchDocuments(notes, query)
+  return bundledKnowledgeIndex.search(query).map((result) => result.note)
 }
 
 export { slugify }

@@ -1,5 +1,6 @@
 import type { Note } from '../types'
 import type { NoteTreeItem } from '../content/noteTree'
+import type { KnowledgeIndex } from '../content/knowledgeIndex'
 
 export interface WorkspaceCapabilities {
   read: boolean
@@ -97,6 +98,7 @@ export interface WorkspaceSession {
   manifest: WorkspaceManifest
   documents: Note[]
   documentById: Map<string, Note>
+  knowledgeIndex: KnowledgeIndex
   navigation: NoteTreeItem[]
   trusted: boolean
   openedAt: number

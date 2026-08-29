@@ -3,6 +3,7 @@ export type KernelStatus = 'offline' | 'starting' | 'idle' | 'busy' | 'error'
 export interface NoteFrontmatter {
   id: string
   title: string
+  aliases: string[]
   section: string
   order: number
   tags: string[]
@@ -37,6 +38,8 @@ export interface Note {
   path: string
   directory: string
   frontmatter: NoteFrontmatter
+  properties: Record<string, unknown>
+  inlineTags: string[]
   raw: string
   content: string
   renderedContent: string
