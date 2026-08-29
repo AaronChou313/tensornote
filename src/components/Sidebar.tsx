@@ -6,6 +6,7 @@ import { noteTree, type NoteTreeItem } from '../content/noteTree'
 import { cn } from '../lib/cn'
 import { useAppStore } from '../store/useAppStore'
 import { Button } from './ui/Button'
+import logoWide from '../../assets/images/TensorNote_logo_wide.png'
 
 function TreeItem({ item, depth = 0 }: { item: NoteTreeItem; depth?: number }) {
   const [expanded, setExpanded] = useState(depth < 1)
@@ -86,12 +87,8 @@ export function Sidebar() {
         )}
       >
         <div className="flex h-16 items-center border-b border-[var(--line)] px-4">
-          <NavLink to="/" className="flex min-w-0 flex-1 items-center gap-3" onClick={() => setSidebarOpen(false)}>
-            <span className="grid size-8 place-items-center rounded-[8px] bg-[var(--ink)] font-mono text-xs font-semibold text-[var(--surface-raised)]">T</span>
-            <span>
-              <strong className="block text-[15px] tracking-[-0.02em]">TensorNote</strong>
-              <span className="block text-[10px] text-[var(--faint)]">Executable AI Textbook</span>
-            </span>
+          <NavLink to="/" className="flex min-w-0 flex-1 items-center" onClick={() => setSidebarOpen(false)} aria-label="TensorNote 首页">
+            <img src={logoWide} alt="TensorNote — Executable Notes for Learning AI" className="h-12 w-[174px] object-contain object-left" />
           </NavLink>
           <Button className="lg:hidden" variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} aria-label="关闭目录">
             <X size={18} />

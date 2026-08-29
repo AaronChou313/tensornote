@@ -1,3 +1,5 @@
+![TensorNote — Executable Notes for Learning AI](assets/images/TensorNote_logo_wide.png)
+
 # TensorNote
 
 TensorNote 是一个本地优先、Markdown 优先的可执行 AI 学习笔记 Web App。
@@ -5,6 +7,8 @@ TensorNote 是一个本地优先、Markdown 优先的可执行 AI 学习笔记 W
 知识正文始终保存在 `notes/**/*.md`。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码在用户自己的 Jupyter Server 与 Python 环境中运行。
 
 ## 快速开始
+
+首次配置请先阅读[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)，其中包含 Conda、标准 `venv`、`uv`、Jupyter Kernel、Token/CORS 和每日启动顺序。
 
 ```bash
 pnpm install
@@ -40,7 +44,7 @@ jupyter server list
 
 - Server URL，默认 `http://127.0.0.1:8888`
 - Token
-- Kernel Name，默认 `python3`
+- Kernel Name；按完整手册注册后填写 `tensornote`
 
 第一次运行 Cell 时才会创建 Kernel。同一篇笔记内的所有 Lab 共享 Kernel。切换笔记会关闭当前 Kernel，防止变量污染。
 
@@ -88,6 +92,7 @@ tensornote/
 │   ├── images/
 │   ├── diagrams/
 │   └── sketches/
+├── docs/                安装、配置与使用文档
 └── public/
 ```
 
