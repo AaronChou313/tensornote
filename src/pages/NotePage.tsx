@@ -1,7 +1,10 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { MarkdownRenderer } from '../components/MarkdownRenderer'
 import { NoteProgress } from '../components/NoteProgress'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
+
+const NoteEditor = lazy(() => import('../components/NoteEditor').then((module) => ({ default: module.NoteEditor })))
 
 export function NotePage() {
   const { noteId } = useParams()
@@ -11,6 +14,8 @@ export function NotePage() {
 
   if (!session || !provider) return <Navigate to="/" replace />
   if (!note) return <Navigate to="/workspace" replace />
+
+  if (session.capabilities.write) return <Suspense fallback={<main className="route-status-page"><span className="workspace-spinner" /></main>}><NoteEditor key={note.path} note={note} provider={provider} /></Suspense>
 
   return (
     <main className="note-page">

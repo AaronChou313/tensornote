@@ -10,6 +10,8 @@ import { Button } from './ui/Button'
 export function SearchDialog() {
   const open = useAppStore((state) => state.searchOpen)
   const setOpen = useAppStore((state) => state.setSearchOpen)
+  const editorDirtyPath = useAppStore((state) => state.editorDirtyPath)
+  const labDirty = useAppStore((state) => state.labDirty)
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
@@ -22,6 +24,7 @@ export function SearchDialog() {
   }
 
   const choose = (noteId: string) => {
+    if ((editorDirtyPath || labDirty) && !window.confirm('当前笔记或实验还有未保存修改，确定离开吗？')) return
     navigate(`/notes/${noteId}`)
     setOpen(false)
   }

@@ -43,6 +43,8 @@ export interface Note {
   labs: Lab[]
   headings: Heading[]
   searchText: string
+  sourceModifiedAt?: number
+  sourceSize?: number
 }
 
 export interface NoteProgress {

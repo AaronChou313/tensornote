@@ -59,3 +59,14 @@ export function extractLabs(content: string): { labs: Lab[]; renderedContent: st
 
   return { labs, renderedContent }
 }
+
+export function updateLabCells(raw: string, labId: string, codeByCellId: Record<string, string>) {
+  return raw.replace(EXEC_BLOCK, (whole, meta: string) => {
+    const attributes = parseAttributes(meta)
+    const lab = attributes.lab ?? 'default-lab'
+    const order = Number(attributes.cell ?? 1)
+    const replacement = codeByCellId[`${lab}-${order}`]
+    if (lab !== labId || replacement === undefined) return whole
+    return `\`\`\`python exec${meta}\n${replacement.trimEnd()}\n\`\`\``
+  })
+}

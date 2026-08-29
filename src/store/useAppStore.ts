@@ -10,12 +10,16 @@ interface AppState {
   searchOpen: boolean
   activeLabId: string | null
   kernelStatus: KernelStatus
+  editorDirtyPath: string | null
+  labDirty: boolean
   progress: Record<string, NoteProgress>
   toggleTheme: () => void
   setSidebarOpen: (open: boolean) => void
   setSearchOpen: (open: boolean) => void
   setActiveLabId: (id: string | null) => void
   setKernelStatus: (status: KernelStatus) => void
+  setEditorDirtyPath: (path: string | null) => void
+  setLabDirty: (dirty: boolean) => void
   updateProgress: (noteId: string, patch: Partial<NoteProgress>) => void
 }
 
@@ -29,12 +33,16 @@ export const useAppStore = create<AppState>()(
       searchOpen: false,
       activeLabId: null,
       kernelStatus: 'offline',
+      editorDirtyPath: null,
+      labDirty: false,
       progress: {},
       toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       setSearchOpen: (searchOpen) => set({ searchOpen }),
       setActiveLabId: (activeLabId) => set({ activeLabId }),
       setKernelStatus: (kernelStatus) => set({ kernelStatus }),
+      setEditorDirtyPath: (editorDirtyPath) => set({ editorDirtyPath }),
+      setLabDirty: (labDirty) => set({ labDirty }),
       updateProgress: (noteId, patch) =>
         set((state) => ({
           progress: {

@@ -23,6 +23,18 @@ export interface WorkspaceFileStat {
   modifiedAt?: number
 }
 
+export interface WorkspaceWriteOptions {
+  expectedModifiedAt?: number
+  expectedSize?: number
+}
+
+export class WorkspaceConflictError extends Error {
+  constructor(readonly path: string) {
+    super(`文件已在外部发生变化：${path}`)
+    this.name = 'WorkspaceConflictError'
+  }
+}
+
 export type WorkspaceSourceType = 'bundled' | 'local' | 'github'
 
 export interface WorkspaceDescriptor {
@@ -49,6 +61,13 @@ export interface WorkspaceProvider {
   readBinary(path: string): Promise<ArrayBuffer>
   stat(path: string): Promise<WorkspaceFileStat>
   resolveAssetUrl(path: string, fromDocument: string): Promise<string>
+  writeText?(path: string, content: string, options?: WorkspaceWriteOptions): Promise<WorkspaceFileStat>
+  writeBinary?(path: string, content: ArrayBuffer): Promise<WorkspaceFileStat>
+  createDirectory?(path: string): Promise<void>
+  removeEntry?(path: string): Promise<void>
+  copyEntry?(source: string, destination: string): Promise<void>
+  moveEntry?(source: string, destination: string): Promise<void>
+  watch?(path: string, onChange: (stat: WorkspaceFileStat) => void): () => void
 }
 
 export interface WorkspaceManifest {

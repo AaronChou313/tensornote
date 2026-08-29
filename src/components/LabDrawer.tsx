@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowClockwise, Broom, Gear, Play, ShieldWarning, Stop, X } from '@phosphor-icons/react'
+import { ArrowClockwise, Broom, FloppyDisk, Gear, Play, ShieldWarning, Stop, X } from '@phosphor-icons/react'
 import { jupyterClient } from '../jupyter/JupyterClient'
 import type { CellOutput } from '../jupyter/types'
 import { useAppStore } from '../store/useAppStore'
 import { useJupyterStore } from '../store/useJupyterStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import type { LabCell } from '../types'
+import { updateLabCells } from '../content/labParser'
 import { Button } from './ui/Button'
 import { CodeCell, type CodeCellState } from './CodeCell'
 
@@ -37,10 +38,13 @@ interface ActiveLab {
 function LabDrawerSession({ lab }: { lab: ActiveLab }) {
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
   const setKernelStatus = useAppStore((state) => state.setKernelStatus)
+  const setLabDirty = useAppStore((state) => state.setLabDirty)
   const updateProgress = useAppStore((state) => state.updateProgress)
   const theme = useAppStore((state) => state.theme)
   const session = useWorkspaceStore((state) => state.session)
   const trustActiveWorkspace = useWorkspaceStore((state) => state.trustActiveWorkspace)
+  const provider = useWorkspaceStore((state) => state.provider)
+  const saveDocument = useWorkspaceStore((state) => state.saveDocument)
   const canExecute = Boolean(session?.trusted && session.manifest.features.executable)
   const serverUrl = useJupyterStore((state) => state.serverUrl)
   const token = useJupyterStore((state) => state.token)
@@ -53,6 +57,28 @@ function LabDrawerSession({ lab }: { lab: ActiveLab }) {
   )
   const [error, setError] = useState<string | null>(null)
   const cellsRef = useRef(cells)
+  const sourceNote = session?.documentById.get(lab.noteId)
+  const labDirty = lab.cells.some((cell) => cells[cell.id]?.code !== cell.code)
+
+  useEffect(() => {
+    setLabDirty(labDirty)
+    if (!labDirty) return
+    const beforeUnload = (event: BeforeUnloadEvent) => event.preventDefault()
+    const guardNavigation = (event: MouseEvent) => {
+      const anchor = (event.target as HTMLElement).closest('a[href]')
+      if (anchor && !window.confirm('实验代码还有未保存到 Markdown 的修改，确定离开吗？')) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+    }
+    window.addEventListener('beforeunload', beforeUnload)
+    document.addEventListener('click', guardNavigation, true)
+    return () => {
+      setLabDirty(false)
+      window.removeEventListener('beforeunload', beforeUnload)
+      document.removeEventListener('click', guardNavigation, true)
+    }
+  }, [labDirty, setLabDirty])
 
   useEffect(() => {
     jupyterClient.onStatus(setKernelStatus)
@@ -104,6 +130,26 @@ function LabDrawerSession({ lab }: { lab: ActiveLab }) {
     setCells((current) => Object.fromEntries(lab.cells.map((cell) => [cell.id, { ...current[cell.id], outputs: [], executionCount: null }])))
   }
 
+  const saveToNote = async () => {
+    if (!sourceNote || !provider?.capabilities.write) return
+    setError(null)
+    try {
+      const codeByCell = Object.fromEntries(Object.entries(cells).map(([id, state]) => [id, state.code]))
+      const updated = updateLabCells(sourceNote.raw, lab.id, codeByCell)
+      await saveDocument(sourceNote.path, updated, {
+        expectedModifiedAt: sourceNote.sourceModifiedAt,
+        expectedSize: sourceNote.sourceSize,
+      })
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : '无法把实验代码写回 Markdown')
+    }
+  }
+
+  const closeLab = () => {
+    if (labDirty && !window.confirm('实验代码还有未保存到 Markdown 的修改，确定关闭吗？')) return
+    setActiveLabId(null)
+  }
+
   const startResize = (event: React.PointerEvent) => {
     event.currentTarget.setPointerCapture(event.pointerId)
     const onMove = (moveEvent: PointerEvent) => {
@@ -128,13 +174,14 @@ function LabDrawerSession({ lab }: { lab: ActiveLab }) {
           <span>Python 3 / {lab.cells.length} Cells</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="Jupyter 设置"><Gear size={18} /></Button>
-        <Button variant="ghost" size="icon" onClick={() => setActiveLabId(null)} aria-label="关闭实验"><X size={18} /></Button>
+        <Button variant="ghost" size="icon" onClick={closeLab} aria-label="关闭实验"><X size={18} /></Button>
       </header>
       <div className="lab-toolbar">
         <Button variant="primary" size="sm" onClick={runAll} disabled={!canExecute}><Play size={14} weight="fill" />Run All</Button>
         <Button variant="secondary" size="sm" onClick={() => jupyterClient.restart()} disabled={!canExecute}><ArrowClockwise size={14} />Restart</Button>
         <Button variant="secondary" size="sm" onClick={() => jupyterClient.interrupt()} disabled={!canExecute}><Stop size={14} />Interrupt</Button>
         <Button variant="ghost" size="sm" onClick={clearOutputs}><Broom size={14} />Clear</Button>
+        {provider?.capabilities.write && <Button className="lab-save-note" variant="secondary" size="sm" onClick={() => void saveToNote()} disabled={!labDirty}><FloppyDisk size={14} />Save to note</Button>}
       </div>
       {!session?.manifest.features.executable && (
         <div className="lab-trust-banner">

@@ -34,7 +34,7 @@ function normalizeFrontmatter(data: Record<string, unknown>, path: string): Note
   }
 }
 
-export function parseDocument(path: string, raw: string): Note {
+export function parseDocument(path: string, raw: string, source?: { modifiedAt?: number; size?: number }): Note {
   const parsed = matter(raw)
   const frontmatter = normalizeFrontmatter(parsed.data, path)
   const { labs, renderedContent } = extractLabs(parsed.content)
@@ -60,6 +60,8 @@ export function parseDocument(path: string, raw: string): Note {
     ]
       .join(' ')
       .toLocaleLowerCase(),
+    sourceModifiedAt: source?.modifiedAt,
+    sourceSize: source?.size,
   }
 }
 
@@ -73,4 +75,51 @@ export function searchDocuments(documents: Note[], query: string) {
       const bTitle = b.frontmatter.title.toLocaleLowerCase()
       return Number(bTitle.includes(terms[0])) - Number(aTitle.includes(terms[0]))
     })
+}
+
+export interface DocumentProperties {
+  title: string
+  section: string
+  tags: string[]
+  summary: string
+}
+
+export function getDocumentProperties(raw: string): DocumentProperties {
+  const data = matter(raw).data
+  return {
+    title: String(data.title ?? ''),
+    section: String(data.section ?? ''),
+    tags: Array.isArray(data.tags) ? data.tags.map(String) : [],
+    summary: String(data.summary ?? ''),
+  }
+}
+
+export function updateDocumentProperties(raw: string, properties: DocumentProperties) {
+  const parsed = matter(raw)
+  const data = {
+    ...parsed.data,
+    title: properties.title.trim(),
+    section: properties.section.trim(),
+    tags: properties.tags.map((tag) => tag.trim()).filter(Boolean),
+    ...(properties.summary.trim() ? { summary: properties.summary.trim() } : {}),
+  }
+  if (!properties.summary.trim()) delete data.summary
+  return matter.stringify(parsed.content.replace(/^\n/, ''), data)
+}
+
+export function createDocumentTemplate(id: string, title: string, section = 'Notes') {
+  return matter.stringify(`# ${title}\n\n开始记录。\n`, {
+    id,
+    title,
+    section,
+    order: 0,
+    tags: [],
+    prerequisites: [],
+    summary: '',
+  })
+}
+
+export function duplicateDocument(raw: string, id: string, title: string) {
+  const parsed = matter(raw)
+  return matter.stringify(parsed.content.replace(/^\n/, ''), { ...parsed.data, id, title })
 }

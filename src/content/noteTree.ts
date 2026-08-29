@@ -19,20 +19,14 @@ function fallbackLabel(value: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
-export function buildNoteTree(documents: Note[], contentRoot: string): NoteTreeItem[] {
+export function buildNoteTree(documents: Note[], contentRoot: string, directoryPaths: string[] = []): NoteTreeItem[] {
   const root: MutableTreeItem = { label: 'Workspace', children: [] }
   const folders = new Map<string, MutableTreeItem>([['', root]])
   const normalizedRoot = normalizeWorkspacePath(contentRoot)
 
-  for (const note of documents) {
-    const relativePath = normalizedRoot && note.path.startsWith(`${normalizedRoot}/`)
-      ? note.path.slice(normalizedRoot.length + 1)
-      : note.path
-    const segments = relativePath.split('/')
-    const fileName = segments.pop() ?? basename(note.path)
+  const ensureFolder = (segments: string[]) => {
     let parentPath = ''
     let parent = root
-
     for (const segment of segments) {
       const folderPath = parentPath ? `${parentPath}/${segment}` : segment
       let folder = folders.get(folderPath)
@@ -44,6 +38,24 @@ export function buildNoteTree(documents: Note[], contentRoot: string): NoteTreeI
       parent = folder
       parentPath = folderPath
     }
+    return parent
+  }
+
+  for (const directoryPath of directoryPaths.sort((a, b) => a.localeCompare(b))) {
+    const normalized = normalizeWorkspacePath(directoryPath)
+    if (!normalized || normalized === normalizedRoot) continue
+    if (normalizedRoot && !normalized.startsWith(`${normalizedRoot}/`)) continue
+    const relative = normalizedRoot ? normalized.slice(normalizedRoot.length + 1) : normalized
+    ensureFolder(relative.split('/').filter(Boolean))
+  }
+
+  for (const note of documents) {
+    const relativePath = normalizedRoot && note.path.startsWith(`${normalizedRoot}/`)
+      ? note.path.slice(normalizedRoot.length + 1)
+      : note.path
+    const segments = relativePath.split('/')
+    const fileName = segments.pop() ?? basename(note.path)
+    const parent = ensureFolder(segments)
 
     if (/^(?:\d+[-_. ]*)?overview\.md$/i.test(fileName) && parent !== root) {
       parent.noteId = note.id

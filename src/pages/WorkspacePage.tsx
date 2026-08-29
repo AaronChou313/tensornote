@@ -1,15 +1,26 @@
-import { ArrowRight, BracketsCurly, FileText, Flask, Tag } from '@phosphor-icons/react'
-import { Link } from 'react-router-dom'
+import { ArrowRight, BracketsCurly, FilePlus, FileText, Flask, Tag } from '@phosphor-icons/react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
+import { createDocumentTemplate } from '../content/document'
+import { joinWorkspacePath } from '../workspace/path'
+import { Button } from '../components/ui/Button'
 
 export function WorkspacePage() {
+  const navigate = useNavigate()
   const session = useWorkspaceStore((state) => state.session)
+  const createNote = useWorkspaceStore((state) => state.createNote)
   if (!session) return null
 
   const labCount = session.documents.reduce((total, note) => total + note.labs.length, 0)
   const cellCount = session.documents.reduce((total, note) => total + note.labs.reduce((sum, lab) => sum + lab.cells.length, 0), 0)
   const tagCount = new Set(session.documents.flatMap((note) => note.frontmatter.tags)).size
   const recentDocuments = session.documents.slice(0, 8)
+
+  const createFirstNote = async () => {
+    const path = joinWorkspacePath(session.manifest.content.root, 'welcome.md')
+    const note = await createNote(path, createDocumentTemplate('welcome', 'Welcome'))
+    navigate(`/notes/${note.id}`)
+  }
 
   return (
     <main className="workspace-overview">
@@ -35,13 +46,13 @@ export function WorkspacePage() {
         <section className="workspace-documents">
           <div className="section-heading"><h2>Start reading</h2><span>{session.manifest.content.root || 'Workspace root'}</span></div>
           <div className="document-list">
-            {recentDocuments.map((note) => (
+            {recentDocuments.length ? recentDocuments.map((note) => (
               <Link key={note.id} to={`/notes/${note.id}`}>
                 <span className="document-icon"><FileText size={17} /></span>
                 <span><strong>{note.frontmatter.title}</strong><small>{note.frontmatter.summary || note.frontmatter.section}</small></span>
                 <ArrowRight size={16} />
               </Link>
-            ))}
+            )) : <div className="workspace-empty-state"><span><FilePlus size={22} /></span><div><strong>This workspace is empty</strong><p>创建第一篇 Markdown 笔记，内容仍会直接保存在所选文件夹中。</p></div>{session.capabilities.write && <Button variant="primary" size="sm" onClick={() => void createFirstNote()}>New note</Button>}</div>}
           </div>
         </section>
       </div>

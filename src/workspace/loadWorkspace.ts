@@ -29,14 +29,10 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     if (entry.kind !== 'file' || !entry.path.toLowerCase().endsWith('.md')) return false
     return !contentRoot || entry.path.startsWith(`${contentRoot}/`) || entry.path === contentRoot
   })
-  const documents = (await Promise.all(markdownEntries.map(async (entry) =>
-    parseDocument(entry.path, await provider.readText(entry.path)),
-  ))).sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'))
-
-  if (!documents.length) {
-    await provider.close()
-    throw new Error(`Workspace 中没有找到 Markdown 文档（content.root: ${contentRoot || '/'}）`)
-  }
+  const documents = (await Promise.all(markdownEntries.map(async (entry) => {
+    const [raw, stat] = await Promise.all([provider.readText(entry.path), provider.stat(entry.path)])
+    return parseDocument(entry.path, raw, stat)
+  }))).sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'))
 
   const documentById = new Map<string, (typeof documents)[number]>()
   for (const document of documents) {
@@ -60,7 +56,11 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     manifest,
     documents,
     documentById,
-    navigation: buildNoteTree(documents, contentRoot),
+    navigation: buildNoteTree(
+      documents,
+      contentRoot,
+      allEntries.filter((entry) => entry.kind === 'directory').map((entry) => entry.path),
+    ),
     trusted,
     openedAt: Date.now(),
   }

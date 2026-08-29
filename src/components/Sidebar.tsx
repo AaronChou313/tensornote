@@ -1,16 +1,23 @@
 import { useState } from 'react'
-import { CaretDown, FileText, House, X } from '@phosphor-icons/react'
+import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, House, PencilSimple, Trash, X } from '@phosphor-icons/react'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
 import { cn } from '../lib/cn'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
+import { WorkspaceFileDialog, type FileDialogRequest } from './WorkspaceFileDialog'
+import { joinWorkspacePath } from '../workspace/path'
 
-function TreeItem({ item, depth = 0 }: { item: NoteTreeItem; depth?: number }) {
+function TreeItem({ item, depth = 0, onAction }: { item: NoteTreeItem; depth?: number; onAction: (request: FileDialogRequest) => void }) {
   const [expanded, setExpanded] = useState(depth < 2)
+  const [menuOpen, setMenuOpen] = useState(false)
   const closeSidebar = useAppStore((state) => state.setSidebarOpen)
+  const session = useWorkspaceStore((state) => state.session)
   const hasChildren = Boolean(item.children?.length)
+  const notePath = item.noteId ? session?.documentById.get(item.noteId)?.path : undefined
+  const workspacePath = notePath ?? (item.path ? joinWorkspacePath(session?.manifest.content.root || '', item.path) : '')
+  const kind = item.noteId ? 'file' as const : 'directory' as const
 
   return (
     <div>
@@ -33,8 +40,21 @@ function TreeItem({ item, depth = 0 }: { item: NoteTreeItem; depth?: number }) {
         ) : (
           <button className="tree-folder" onClick={() => hasChildren && setExpanded((value) => !value)}>{item.label}</button>
         )}
+        {session?.capabilities.write && workspacePath && (
+          <div className="tree-actions">
+            <button onClick={() => setMenuOpen((value) => !value)} aria-label={`${item.label} 文件操作`}><DotsThree size={15} weight="bold" /></button>
+            {menuOpen && (
+              <div className="tree-action-menu">
+                <button onClick={() => { onAction({ action: 'rename', path: workspacePath, kind, noteId: item.noteId }); setMenuOpen(false) }}><PencilSimple size={14} />Rename</button>
+                <button onClick={() => { onAction({ action: 'move', path: workspacePath, kind, noteId: item.noteId }); setMenuOpen(false) }}><ArrowsOutLineHorizontal size={14} />Move</button>
+                {kind === 'file' && <button onClick={() => { onAction({ action: 'duplicate', path: workspacePath, kind, noteId: item.noteId }); setMenuOpen(false) }}><Copy size={14} />Duplicate</button>}
+                <button className="is-danger" onClick={() => { onAction({ action: 'delete', path: workspacePath, kind, noteId: item.noteId }); setMenuOpen(false) }}><Trash size={14} />Delete</button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      {hasChildren && expanded && <div>{item.children?.map((child) => <TreeItem key={`${item.path || item.label}-${child.path || child.label}`} item={child} depth={depth + 1} />)}</div>}
+      {hasChildren && expanded && <div>{item.children?.map((child) => <TreeItem key={`${item.path || item.label}-${child.path || child.label}`} item={child} depth={depth + 1} onAction={onAction} />)}</div>}
     </div>
   )
 }
@@ -43,6 +63,7 @@ export function Sidebar() {
   const sidebarOpen = useAppStore((state) => state.sidebarOpen)
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
   const session = useWorkspaceStore((state) => state.session)
+  const [fileDialog, setFileDialog] = useState<FileDialogRequest | null>(null)
   if (!session) return null
 
   return (
@@ -68,9 +89,12 @@ export function Sidebar() {
           </NavLink>
         </div>
 
-        <div className="sidebar-section-label">Files</div>
+        <div className="sidebar-section-label">
+          <span>Files</span>
+          {session.capabilities.write && <div><button onClick={() => setFileDialog({ action: 'new-note' })} aria-label="新建笔记"><FilePlus size={14} /></button><button onClick={() => setFileDialog({ action: 'new-folder' })} aria-label="新建文件夹"><FolderPlus size={14} /></button></div>}
+        </div>
         <nav className="workspace-tree" aria-label="Workspace 文件">
-          {session.navigation.map((item) => <TreeItem key={item.path || item.label} item={item} />)}
+          {session.navigation.map((item) => <TreeItem key={item.path || item.label} item={item} onAction={setFileDialog} />)}
         </nav>
 
         <div className="sidebar-source">
@@ -78,6 +102,7 @@ export function Sidebar() {
           <div><strong>{session.descriptor.sourceLabel}</strong><small>{session.descriptor.detail || 'Workspace Provider'}</small></div>
         </div>
       </aside>
+      <WorkspaceFileDialog key={fileDialog ? `${fileDialog.action}:${fileDialog.path || ''}` : 'closed'} request={fileDialog} onClose={() => setFileDialog(null)} />
     </>
   )
 }

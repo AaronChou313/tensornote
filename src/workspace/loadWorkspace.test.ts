@@ -57,6 +57,14 @@ tags: [start]
 `
 
 describe('loadWorkspace', () => {
+  it('opens an empty local folder so the first note can be authored', async () => {
+    const session = await loadWorkspace(createProvider('local', {}), [])
+
+    expect(session.documents).toEqual([])
+    expect(session.navigation).toEqual([])
+    expect(session.manifest.features.executable).toBe(false)
+  })
+
   it('opens a plain Markdown folder without granting execution', async () => {
     const session = await loadWorkspace(createProvider('local', { 'hello.md': note }), [])
 

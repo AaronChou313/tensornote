@@ -92,9 +92,9 @@ export function HomePage() {
       <div className="workspace-home__content">
         <section className="workspace-hero">
           <div className="workspace-hero__eyebrow"><Leaf size={15} weight="fill" /> Markdown-first workspace</div>
-          <div className="workspace-hero__logo"><img src={logoWide} alt="TensorNote — Executable Notes for Learning AI" /></div>
-          <h1>让知识、代码与计算环境，<br />安静地待在同一个地方。</h1>
-          <p>打开任意 Markdown Workspace，保持文件自由可读；需要验证想法时，再连接自己的 Jupyter。</p>
+          <div className="workspace-hero__logo"><img src={logoWide} alt="TensorNote" /></div>
+          <h1>一触即达，不止是笔记</h1>
+          <p>打开任意 Markdown Workspace，畅读笔记；<br />一键连接 Jupyter，验证精彩想法。</p>
         </section>
 
         {(error || inputError) && (
@@ -117,11 +117,11 @@ export function HomePage() {
             <ArrowRight size={17} />
           </button>
 
-          <div className="workspace-action workspace-action--disabled" aria-disabled="true">
+          <button className="workspace-action" onClick={() => void openLocal()} disabled={busy}>
             <span className="workspace-action__icon"><Plus size={22} /></span>
-            <span><strong>New workspace</strong><small>将在 v0.2 Authoring 中开放</small></span>
-            <span className="version-chip">v0.2</span>
-          </div>
+            <span><strong>New workspace</strong><small>选择一个新建或空文件夹，从第一篇笔记开始</small></span>
+            <ArrowRight size={17} />
+          </button>
         </section>
 
         <section className="github-open">

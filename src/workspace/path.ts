@@ -25,3 +25,13 @@ export function resolveWorkspacePath(fromDocument: string, target: string) {
   if (/^(?:[a-z]+:|\/\/|#)/i.test(target)) return target
   return joinWorkspacePath(dirname(fromDocument), decodeURIComponent(target))
 }
+
+export function relativeWorkspacePath(fromDirectory: string, target: string) {
+  const from = normalizeWorkspacePath(fromDirectory).split('/').filter(Boolean)
+  const to = normalizeWorkspacePath(target).split('/').filter(Boolean)
+  while (from.length && to.length && from[0] === to[0]) {
+    from.shift()
+    to.shift()
+  }
+  return [...from.map(() => '..'), ...to].join('/') || '.'
+}
