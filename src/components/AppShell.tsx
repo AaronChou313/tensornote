@@ -12,6 +12,7 @@ export function AppShell() {
   const theme = useAppStore((state) => state.theme)
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
+  const kernelStatus = useAppStore((state) => state.kernelStatus)
   const location = useLocation()
   const previousPath = useRef(location.pathname)
 
@@ -33,10 +34,12 @@ export function AppShell() {
   useEffect(() => {
     if (previousPath.current !== location.pathname) {
       setActiveLabId(null)
-      void import('../jupyter/JupyterClient').then(({ jupyterClient }) => jupyterClient.shutdown())
+      if (kernelStatus !== 'offline') {
+        void import('../jupyter/JupyterClient').then(({ jupyterClient }) => jupyterClient.shutdown())
+      }
       previousPath.current = location.pathname
     }
-  }, [location.pathname, setActiveLabId])
+  }, [kernelStatus, location.pathname, setActiveLabId])
 
   return (
     <div className="min-h-[100dvh] bg-[var(--surface)] text-[var(--ink)]">
