@@ -6,16 +6,29 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前版本：`v0.7.0 — Structured Knowledge`。
+当前版本：`v0.8.0 — Git & Sync`。
 
 ## 概览与目录
 
+- [Git & Sync](#git--sync)：查看本地仓库状态、差异、历史并创建本地提交。
 - [Structured Knowledge](#structured-knowledge)：从 YAML Frontmatter 建立可筛选的 Markdown 数据库。
 - [Extension Platform](#extension-platform)：通过受权限约束的官方或本地扩展贡献功能。
 - [Workbench](#workbench)：多标签、分栏、侧栏与统一命令系统。
 - [知识系统](#知识系统)：链接、标签、搜索、属性与局部图谱。
 - [Compute Platform](#compute-platform)：按需连接 Jupyter 执行 Python Lab。
 - [快速开始](#快速开始)：安装、启动和 Workspace 打开方式。
+
+## Git & Sync
+
+TensorNote v0.8.0 为 Local Workspace 提供可选的本地 Git 工作台：
+
+- `/git` 显示 Branch、Upstream、Ahead / Behind、Staged 与 Working tree 状态。
+- 支持逐文件 Worktree / Staged Diff、Stage、Unstage、本地 Commit 和最近提交历史。
+- 编辑器存在未保存草稿时会明确提示；只有已经写入磁盘并进入 Git Index 的内容会被提交。
+- 浏览器通过显式启动的 localhost Git Bridge 调用系统 Git；Bridge 固定仓库根目录，不经过 Shell，也不提供任意 Git 命令。
+- v0.8.0 不包含 Clone、Push、Pull、Fetch、Branch 操作、OAuth、私有仓库认证或冲突解决器。
+
+Git 完全可选；不使用版本工作台时仍只需启动 TensorNote，运行 Python Lab 时再启动 Jupyter。安装、第三终端启动命令、安全边界与故障排查见 [Local Git 使用说明](docs/GIT_AND_SYNC.md)。
 
 ## Structured Knowledge
 
@@ -81,6 +94,7 @@ pnpm dev
 - 粘贴图片、拖放文件或通过 Asset 按钮上传到 `assets/`。
 - 可视化 Frontmatter 属性编辑；属性仍保存在 Markdown 中。
 - Python Lab 修改后使用 `Save to note` 写回原始 executable Fence。
+- 对已经初始化为 Git 仓库的目录，可选启动 Local Git Bridge，在应用内检查 Diff、暂存并提交。
 
 内置和 GitHub Workspace 仍保持只读，不显示写入入口。
 
@@ -219,9 +233,11 @@ tensornote/
 │   ├── content/         Markdown、Lab Parser 与 KnowledgeIndex
 │   ├── compute/         ComputeProvider、Profile、Scope 与诊断
 │   ├── extensions/      Extension API、Manifest、权限与生命周期
+│   ├── git/             Local Git Bridge 客户端与协议类型
 │   ├── jupyter/         Jupyter Provider 的底层 Client
 │   ├── workspace/       Schema、统一加载器与 Providers
 │   └── store/           Workspace、界面、进度与连接配置
+├── scripts/             Local Git Bridge 与协议测试
 ├── notes/               唯一知识源，共 35 篇 V1 笔记
 ├── assets/
 │   ├── images/

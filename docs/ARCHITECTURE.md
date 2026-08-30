@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.7.0 — Structured Knowledge` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.0 — Git & Sync` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -33,8 +33,8 @@ UI 读取 `WorkspaceSession.capabilities` 和通用 descriptor，不直接依赖
 | Provider | 读取 | 写入 | Binary | Git | 说明 |
 | --- | --- | --- | --- | --- | --- |
 | Bundled | 是 | 否 | 是 | 否 | 内置 AI Learning Notes 示例 |
-| Local | 是 | 是 | 是 | 否 | File System Access API，提供日常创作与文件操作 |
-| GitHub | 是 | 否 | 是 | 是 | 公开 Repository，内容固定到解析出的 commit SHA |
+| Local | 是 | 是 | 是 | 可选 | File System Access API；v0.8 可连接显式启动的 Local Git Bridge |
+| GitHub | 是 | 否 | 是 | 只读元数据 | 公开 Repository，内容固定到解析出的 commit SHA，不连接 Local Git |
 
 `WorkspaceProvider` 统一暴露读取方法。写入 Provider 通过 `writeText`、`writeBinary`、`createDirectory`、`removeEntry`、`copyEntry`、`moveEntry` 和 `watch` 扩展；UI 只读取 capability，不绕过 Provider。
 
@@ -208,6 +208,33 @@ PropertyIndex (WorkspaceSession, runtime only)
 - `/database` 是纯读取 UI。Table 展示比较列，Card 展示摘要和非空属性，List 用于紧凑扫描；`q` 与 `view` 存在 URL 中，便于书签和分享。
 - 查询执行在浏览器运行时索引中，不执行 SQL、YAML、Markdown 或用户脚本。当前不提供 `OR`、范围、排序、聚合、保存视图或写回编辑。
 - 完整用户语法与限制见 [Structured Knowledge 使用指南](STRUCTURED_KNOWLEDGE.md)。
+
+## v0.8 Local Git Layer
+
+```text
+Local Workspace capability
+        │
+        ▼
+/git + LocalGitClient
+        │ HTTP / JSON, loopback only
+        ▼
+Git Bridge (fixed repository root)
+        │ execFile('git', args), no shell
+        ├── status --porcelain=v2
+        ├── diff / diff --cached
+        ├── log
+        ├── add / restore --staged
+        └── commit
+```
+
+- 浏览器的 File System Access API 不暴露绝对路径，也不能执行系统 Git；因此 Git 不进入 `LocalWorkspaceProvider` 的文件 I/O 实现，而由独立、可选的 localhost Bridge 适配。
+- `WorkspaceCapabilities.git` 表示来源具有 Git 语义。只有 `type === local` 的 Workspace 注册 `/git` 入口；GitHub Provider 的 Git 能力仍是固定 Revision 的只读元数据。
+- `scripts/git-bridge.mjs` 启动时要求一个仓库根目录，绑定 `127.0.0.1`，并通过 Origin 白名单限制浏览器调用。浏览器客户端进一步拒绝非 Loopback URL。
+- Bridge 只暴露结构化 Status、Diff、History、Stage、Unstage 和 Commit API。所有 Git 调用使用 `execFile` 参数数组，不经过 Shell；路径必须是仓库内相对路径。Diff 禁止 external diff/textconv，Bridge Commit 禁用 Repository Hook 与自动 GPG 签名。
+- Stage 与 Commit 是明确用户操作。Commit 只提交 Git Index 中已有内容；页面不会自动 Stage 全仓库，也不会执行 Push。
+- Git Store 只持有 Bridge URL、当前状态、History 与选中 Diff，不保存 Markdown 内容、凭据或 Git 对象。
+- v0.8 不实现 Git 协议、Clone、Push、Pull、Fetch、Branch 写操作、远程认证、冲突编辑器、Merge、Rebase 或 Reset。
+- 完整配置与安全说明见 [Local Git 使用说明](GIT_AND_SYNC.md)。
 
 ## 版本更新规则
 

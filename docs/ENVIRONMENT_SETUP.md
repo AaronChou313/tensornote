@@ -7,23 +7,24 @@
 
 ## 1. 运行结构
 
-TensorNote 运行时由两个本地进程组成：
+TensorNote 日常阅读由前端进程组成；运行 Python Lab 时增加 Jupyter，使用 v0.8 Local Git 工作台时再增加可选 Git Bridge：
 
 ```text
 浏览器中的 TensorNote（http://localhost:5173）
+        ├── Jupyter REST + WebSocket（可选，运行 Python）
+        │       ▼
+        │   Jupyter Server → tensornote Kernel
         │
-        │ Jupyter REST API + WebSocket，携带 Token
-        ▼
-本机 Jupyter Server（http://127.0.0.1:8888）
-        │
-        ▼
-名为 tensornote 的 Python Kernel
+        └── HTTP / JSON（可选，本地版本管理）
+                ▼
+            Git Bridge → 系统 Git
 ```
 
 - 前端进程负责 Markdown 阅读、目录、搜索、公式、图表和 Lab 界面。
 - Jupyter Server 负责启动 Kernel、执行 Python 和返回输出。
 - Python 环境提供 PyTorch、NumPy、Matplotlib、Transformers 等课程依赖。
 - 普通阅读不需要 Jupyter；只有运行带 `exec` 的 Python Cell 时才需要它。
+- 普通阅读和编辑不需要 Git Bridge；只有使用 `/git` 的 Status、Diff、History、Stage 或 Commit 时才需要它。
 - 笔记正文保存在 `notes/**/*.md`，不依赖数据库。
 
 ## 2. 首次安装公共工具
@@ -459,9 +460,27 @@ Compute 设置会显示这些文件是否存在，也会发现根目录中的常
 
 顶部 `Scratch` 打开临时计算区。代码只存在内存中，点击 `Insert into note` 后才会追加到当前本地可写笔记；刷新或关闭前请先插入或手动复制需要保留的代码。
 
-## 9. 以后每天启动什么
+## 9. 可选：启动 Local Git Bridge
 
-首次配置完成后，每次使用只需启动两个进程。
+只有当前 Workspace 是本地 Git 仓库、并且你想使用 TensorNote 的 Git 工作台时才需要这一步。打开终端 C，在 TensorNote 软件目录运行：
+
+```bash
+cd /path/to/tensornote
+pnpm git:bridge -- --workspace "/absolute/path/to/markdown-workspace"
+```
+
+`--workspace` 必须是浏览器中 `Open local workspace` 选择的同一个目录，并且必须是 Git 仓库根目录。默认监听 `http://127.0.0.1:4318`；保持终端 C 运行，然后在 TensorNote 左侧打开 `Git`。
+
+Git Bridge 不需要激活 Conda、venv 或 uv 环境，也不依赖 Jupyter。完整的 Git 身份配置、端口/Origin、安全边界、暂存与提交说明见 [Local Git 使用说明](GIT_AND_SYNC.md)。
+
+## 10. 以后每天启动什么
+
+首次配置完成后，按使用场景启动：
+
+- 只阅读或编辑 Markdown：只启动终端 B。
+- 需要运行 Python Lab：启动终端 A + B。
+- 需要 Git 工作台：启动终端 B + C。
+- 同时需要 Python 与 Git：启动终端 A + B + C。
 
 ### 终端 A：Jupyter
 
@@ -480,16 +499,24 @@ cd /path/to/tensornote
 pnpm dev --host localhost --port 5173 --strictPort
 ```
 
+### 终端 C：Git Bridge（可选）
+
+```bash
+cd /path/to/tensornote
+pnpm git:bridge -- --workspace "/absolute/path/to/markdown-workspace"
+```
+
 ### 浏览器
 
-打开 `http://localhost:5173`。选择正确 Compute Profile；如果 Jupyter 每次生成的新 Token 不同，需要更新 Token。连接异常时先运行内置 diagnostics。仅阅读笔记时，可以只启动终端 B。
+打开 `http://localhost:5173`。选择正确 Compute Profile；如果 Jupyter 每次生成的新 Token 不同，需要更新 Token。连接异常时先运行内置 diagnostics。Git 页面会自动连接默认 Bridge；端口不同则在页面中修改 Bridge URL。
 
-## 10. 正确关闭
+## 11. 正确关闭
 
 1. 先停止运行中的 Cell，在 Compute 设置中点击 Disconnect，或关闭当前 Workspace，让 TensorNote 请求关闭当前 Kernel。
-2. 在终端 B 按 `Ctrl+C` 停止 Vite。
-3. 在终端 A 按 `Ctrl+C` 停止 Jupyter；如果要求确认，输入 `y`。
-4. 可选：运行 `conda deactivate` 或 `deactivate` 退出 Python 环境。
+2. 如果启动了 Git Bridge，在终端 C 按 `Ctrl+C` 停止；这不会删除或回滚 Git 数据。
+3. 在终端 B 按 `Ctrl+C` 停止 Vite。
+4. 在终端 A 按 `Ctrl+C` 停止 Jupyter；如果要求确认，输入 `y`。
+5. 可选：运行 `conda deactivate` 或 `deactivate` 退出 Python 环境。
 
 如果终端被异常关闭，可重新启动 Jupyter 后运行以下命令查看是否还有 Server：
 
@@ -497,7 +524,7 @@ pnpm dev --host localhost --port 5173 --strictPort
 jupyter server list
 ```
 
-## 11. 常见问题
+## 12. 常见问题
 
 ### 页面能打开，但连接 Jupyter 失败或出现 403/CORS
 
@@ -556,6 +583,31 @@ jupyter server --ip=127.0.0.1 --port=8889 --no-browser --ServerApp.allow_origin=
 ### 5173 端口被占用
 
 停止占用该端口的旧 Vite 进程。若必须换端口，需要同时修改前端启动端口和 Jupyter 的 `allow_origin`，两处必须完全匹配。
+
+### Git 页面提示无法连接 Bridge
+
+确认终端 C 正在运行，并检查：
+
+```bash
+curl http://127.0.0.1:4318/api/git/health
+```
+
+如果前端不在 `http://localhost:5173` 或 `http://127.0.0.1:5173`，还要通过 `TENSORNOTE_ORIGIN` 把实际 Origin 加入 Bridge 白名单。详细命令见 [Local Git 使用说明](GIT_AND_SYNC.md#8-端口与-origin-配置)。
+
+### Git 页面没有出现在左侧
+
+Git 工作台只对 `Open local workspace` 打开的本地目录显示。内置 Workspace 和 GitHub 阅读来源保持只读，不连接本地 Git Bridge。
+
+### Git Commit 失败
+
+先确认至少有一个文件位于 `Staged`，并检查 Git 身份：
+
+```bash
+git -C "/path/to/workspace" config user.name
+git -C "/path/to/workspace" config user.email
+```
+
+编辑器中尚未保存的草稿不会进入 Git；先保存笔记，再刷新 Git 状态。
 
 ### PyTorch 或 Transformers 下载慢
 

@@ -44,7 +44,7 @@ uv 环境也可以运行：
 uv pip install -r requirements-jupyter.txt
 ```
 
-更新完成后，按照[环境配置与使用手册](ENVIRONMENT_SETUP.md#9-以后每天启动什么)重新启动 Jupyter 和前端。
+更新完成后，按照[环境配置与使用手册](ENVIRONMENT_SETUP.md#10-以后每天启动什么)重新启动需要的 TensorNote、Jupyter 与可选 Git Bridge 进程。
 
 ### 1.3 更新到指定 Release
 
@@ -52,7 +52,7 @@ uv pip install -r requirements-jupyter.txt
 
 ```bash
 git fetch origin --tags
-git switch --detach v0.7.0
+git switch --detach v0.8.0
 pnpm install --frozen-lockfile
 ```
 
@@ -92,6 +92,7 @@ git switch -c feat/功能短名称
 - 修改 Markdown 渲染：编辑 `src/components/MarkdownRenderer.tsx` 和 `src/styles.css`。
 - 修改 WikiLink、Tag、Backlink、Search v2 或图谱索引：编辑 `src/content/knowledgeIndex.ts`，并同步更新 `KnowledgePanel` / `KnowledgePage`。
 - 修改 Frontmatter 属性索引或 Database 查询契约：编辑 `src/content/propertyIndex.ts`；Database 页面位于 `src/pages/StructuredKnowledgePage.tsx`，并同步更新 [Structured Knowledge 指南](STRUCTURED_KNOWLEDGE.md)。
+- 修改 Local Git 协议：Bridge 位于 `scripts/git-bridge*.mjs`，浏览器客户端位于 `src/git/`，工作台状态和页面位于 `src/store/useGitStore.ts` 与 `src/pages/GitWorkspacePage.tsx`；同步更新 [Local Git 指南](GIT_AND_SYNC.md)。禁止把任意 Shell、任意仓库路径或远程凭据暴露给浏览器。
 - 修改 Python Lab：编辑 `src/components/LabDrawer.tsx`、`CodeCell.tsx` 或 `src/content/labParser.ts`。
 - 修改 Compute Profile、Scope、Session 生命周期或诊断：编辑 `src/compute/` 与 `src/store/useComputeStore.ts`；Jupyter 协议细节才进入 `src/jupyter/`。
 - 修改主题与界面状态：编辑 `src/store/useAppStore.ts` 和相应组件。
@@ -156,7 +157,7 @@ TensorNote 在 `1.0.0` 前使用以下约定：
 
 ## 4. 发布下一版本
 
-以下示例发布 `v0.7.1`：
+以下示例发布 `v0.8.1`：
 
 ```bash
 git switch main
@@ -171,10 +172,10 @@ git status
 
 ```bash
 git push origin main
-gh release create v0.7.1 \
+gh release create v0.8.1 \
   --target main \
-  --title "TensorNote v0.7.1" \
-  --notes-file docs/releases/v0.7.1.md
+  --title "TensorNote v0.8.1" \
+  --notes-file docs/releases/v0.8.1.md
 ```
 
 验证：
@@ -182,7 +183,7 @@ gh release create v0.7.1 \
 ```bash
 git fetch origin --tags
 git tag --points-at HEAD
-gh release view v0.7.1
+gh release view v0.8.1
 ```
 
 Release 创建后，GitHub 会提供该 Tag 对应的源码压缩包。当前 TensorNote 是本地开发型 Web App，因此 Release 暂不附带独立安装程序。

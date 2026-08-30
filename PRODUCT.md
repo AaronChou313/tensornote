@@ -32,6 +32,8 @@ TensorNote 是一个本地优先、Markdown-first、由 Jupyter 驱动的可执�
 - Extension Platform v0.6.0 允许官方与用户信任的本地扩展注册工作台、Markdown、编辑器与 Provider 贡献；当前不提供公共在线市场。
 - Structured Knowledge v0.7.0 从 Markdown Frontmatter 建立运行时 `PropertyIndex`，在 `/database` 提供 Table、Card、List、可分享 URL 和基础属性查询；不引入 SQL 或专有内容数据库。
 - 当前属性查询支持 `=`、`!=`、`AND`、大小写无关键、字符串/数字/布尔/空值及数组成员匹配；不提供范围、排序、聚合、写回编辑或复杂逻辑查询。
+- Git & Sync v0.8.0 为 Local Workspace 提供 Status、Diff、History、Stage、Unstage、Commit 与 Branch Info；通过用户显式启动、固定仓库根目录的 localhost Bridge 调用系统 Git。
+- Git 同步保持可选；当前不提供 Push、Pull、Fetch、远程认证、Branch 操作或冲突解决器。
 
 ## Brand Commitments
 

@@ -11,6 +11,15 @@
 - `v0.5.0 — Workbench`：已发布；见 [Workbench 使用说明](WORKBENCH.md) 与 [Release notes](releases/v0.5.0.md)。
 - `v0.6.0 — Extension Platform`：已发布；见 [Extension Platform 指南](EXTENSIONS.md) 与 [Release notes](releases/v0.6.0.md)。
 - `v0.7.0 — Structured Knowledge`：已完成；见 [Structured Knowledge 指南](STRUCTURED_KNOWLEDGE.md) 与 [Release notes](releases/v0.7.0.md)。
+- `v0.8.0 — Git & Sync`：已完成；见 [Local Git 指南](GIT_AND_SYNC.md) 与 [Release notes](releases/v0.8.0.md)。
+
+## v0.8.0 — Git & Sync（已完成）
+
+- Local Workspace 通过显式启动的 localhost Git Bridge 连接系统 Git；Bridge 固定仓库根目录，不实现 Git 协议。
+- `/git` 提供 Branch / Upstream / Ahead / Behind、Staged / Working tree Status、逐文件 Diff 与最近提交 History。
+- 支持文件级 Stage / Unstage 与本地 Commit；未保存编辑器草稿不会进入 Git，并在页面中提示。
+- 安全边界包含 Loopback 限制、Origin 白名单、无 Shell `execFile`、仓库相对路径校验与输出大小限制。
+- Sync 保持可选；不包含 Clone、Push、Pull、Fetch、Branch 操作、OAuth、私有仓库认证、远程凭据或冲突解决器。
 
 ## v0.7.0 — Structured Knowledge（已完成）
 
