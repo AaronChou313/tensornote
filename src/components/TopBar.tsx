@@ -38,7 +38,7 @@ export function TopBar() {
   const setExtensionManagerOpen = useExtensionStore((state) => state.setManagerOpen)
   const trail = noteId && session
     ? findTrail(noteId, session.navigation)
-    : location.pathname === '/workspace' ? ['Overview'] : location.pathname === '/knowledge' ? ['Knowledge'] : []
+    : location.pathname === '/workspace' ? ['Overview'] : location.pathname === '/knowledge' ? ['Knowledge'] : location.pathname === '/database' ? ['Database'] : []
 
   if (!session) return null
 

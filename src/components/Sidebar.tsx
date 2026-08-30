@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, House, MagnifyingGlass, PencilSimple, PuzzlePiece, ShareNetwork, Trash, X } from '@phosphor-icons/react'
+import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, Trash, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -103,6 +103,9 @@ export function Sidebar() {
           </NavLink>
           <NavLink to="/knowledge" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <ShareNetwork size={15} />Knowledge
+          </NavLink>
+          <NavLink to="/database" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
+            <Rows size={15} />Database
           </NavLink>
         </div>
 

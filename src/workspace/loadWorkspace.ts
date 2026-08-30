@@ -1,6 +1,7 @@
 import { buildNoteTree } from '../content/noteTree'
 import { parseDocument } from '../content/document'
 import { buildKnowledgeIndex } from '../content/knowledgeIndex'
+import { buildPropertyIndex } from '../content/propertyIndex'
 import { joinWorkspacePath, normalizeWorkspacePath } from './path'
 import { parseWorkspaceManifest } from './schema'
 import type { WorkspaceEntry, WorkspaceProvider, WorkspaceSession } from './types'
@@ -82,6 +83,7 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     documents,
     documentById,
     knowledgeIndex: buildKnowledgeIndex(documents),
+    propertyIndex: buildPropertyIndex(documents),
     environmentFiles: detectEnvironmentFiles(allEntries, manifest.environment.files),
     navigation: buildNoteTree(
       documents,

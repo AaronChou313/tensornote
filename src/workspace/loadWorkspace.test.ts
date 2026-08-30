@@ -73,6 +73,7 @@ describe('loadWorkspace', () => {
     expect(session.manifest.content.root).toBe('')
     expect(session.manifest.features.executable).toBe(false)
     expect(session.trusted).toBe(true)
+    expect(session.propertyIndex.query('section = Guide').rows.map((row) => row.note.id)).toEqual(['hello'])
   })
 
   it('pins trust to the exact GitHub revision', async () => {
