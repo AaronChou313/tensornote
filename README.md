@@ -6,7 +6,18 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前版本：`v0.4.0 — Compute Platform`。
+当前版本：`v0.5.0 — Workbench`。
+
+## Workbench
+
+TensorNote v0.5.0 将阅读器扩展为可组合的 Knowledge IDE：
+
+- 多标签、固定标签、最近文件、前进/后退历史，以及主/次窗格拆分。
+- 左侧 Files 与 Search 入口；右侧可切换 Properties、Outline、Backlinks、Graph 与 Python Lab 上下文。
+- `Ctrl/Cmd + P` Command Palette 统一调用打开笔记、创建笔记、导航、图谱、侧栏、计算和编辑命令；`Ctrl/Cmd + K` 保留全局搜索，在 CodeMirror 编辑器内用于插入链接。
+- 编辑模式新增 Markdown source 工具栏：标题、行内格式、链接、引用、Callout、列表、代码块、表格、分隔线和数学块。工具栏、快捷键与 Command Palette 共用同一命令实现。
+
+详细的布局、命令与快捷键见 [Workbench 使用说明](docs/WORKBENCH.md)。
 
 ## 快速开始
 

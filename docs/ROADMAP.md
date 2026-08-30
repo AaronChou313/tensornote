@@ -8,11 +8,11 @@
 - `v0.2.0 — Authoring`：已发布，具备 CodeMirror 编辑、保存、文件操作、资源管理与 Frontmatter Properties。
 - `v0.3.0 — Knowledge System`：已发布。
 - `v0.4.0 — Compute Platform`：已发布。
-- `v0.5.0 — Workbench`：下一开发阶段。
+- `v0.5.0 — Workbench`：已发布；见 [Workbench 使用说明](WORKBENCH.md) 与 [Release notes](releases/v0.5.0.md)。
 
 ## v0.5.0 — Workbench
 
-目标是把单页 Reader/Editor 提升为适合长期使用的 Knowledge IDE，包含：
+已把单页 Reader/Editor 提升为适合长期使用的 Knowledge IDE，包含：
 
 - 多标签页、固定标签、左右分栏与 Pane。
 - 最近文件、前进/后退历史。
@@ -60,7 +60,7 @@ interface EditorCommand {
 - 有选区时包裹、切换或转换选中内容；再次执行尽可能移除格式。
 - 无选区时插入完整 Markdown 语法，并把光标放在下一步输入位置。
 - 标题、引用和列表支持当前行及多行选区，保留合理缩进。
-- Code Fence 可选择语言；存在选区时把选中文字放入 Fence。
+- Code Fence 默认使用 `python` 语言；存在选区时把选中文字放入 Fence。语言选择器将作为 v0.5.x 的可配置编辑增强继续迭代。
 - 每次命令形成一个 Undo 单元，执行后恢复编辑器焦点和合理选区。
 - 只读 Workspace 中所有写入命令禁用，并说明原因。
 - 产物始终是标准或可降级阅读的 Markdown，不保存私有富文本结构。
@@ -81,6 +81,8 @@ interface EditorCommand {
 - Toolbar、快捷键和 Command Palette 调用相同命令实现。
 - Reading、Editing、Split Mode 切换后草稿和 Dirty State 保持稳定。
 - 通过明暗主题、桌面/窄屏、只读/可写 Workspace 的界面回归检查。
+
+实现与验证记录在 `docs/releases/v0.5.0.md`；v0.5.0 后续小版本将继续补齐 Slash Commands、最近使用命令与可配置工具栏。
 
 ## 后续编辑增强
 

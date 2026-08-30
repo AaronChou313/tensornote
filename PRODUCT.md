@@ -1,0 +1,56 @@
+# Product
+
+<!-- impeccable:product-schema 1 -->
+
+## Platform
+
+web
+
+## Users
+
+面向以 Markdown 记录、阅读和运行技术知识的用户。用户在本地文件夹或远程仓库中维护笔记，并需要在阅读、编辑、知识关联与 Python 实验之间快速切换。
+
+## Product Purpose
+
+TensorNote 是一个本地优先、Markdown-first、由 Jupyter 驱动的可执行知识工作区。它让文档保持可移植的纯文本，同时把文件、知识关系、编辑与计算集中在同一工作台中。
+
+## Positioning
+
+它以 Workspace Provider 读取和保存真实 Markdown 文件，并将可执行 Python Lab 与 Markdown 文档放在同一个知识工作流中；内容不转换为私有富文本格式。
+
+## Operating Context
+
+用户可打开内置、本地或 GitHub Workspace，浏览 Markdown 文件树，编辑并保存文档，使用 WikiLinks、Backlinks、Tags 与局部图谱理解关系，并在可信 Workspace 中通过 Jupyter 运行 Lab 或 Scratch。
+
+## Capabilities and Constraints
+
+- Workspace、Document、Compute 与 Workbench 是稳定的核心边界。
+- 内容、用户工作台状态与计算配置保持分离；Markdown 是内容的 source of truth。
+- Workspace Provider 负责文件和资产 I/O；UI 不绑定某个具体 Provider。
+- GitHub Workspace 的代码执行需要信任当前 revision。
+- Workbench v0.5.0 提供标签页、分栏、Sidebar、命令面板和 Markdown 编辑快捷工具。
+
+## Brand Commitments
+
+TensorNote 保持简约、现代、圆润、柔和的淡绿色身份；明暗主题和可访问键盘交互同等重要。
+
+## Evidence on Hand
+
+- 可运行的 Web 应用与产品实现：`src/`
+- Markdown 示例知识库：`notes/`
+- 产品路线和版本记录：`docs/ROADMAP.md`、`docs/releases/`
+- 品牌图像：`assets/images/TensorNote_logo*.png`
+
+未声明客户、价格、性能基准或商业部署事实。
+
+## Product Principles
+
+1. Markdown 可直接编辑、导出并长期保存。
+2. Workspace 是产品层的一等概念，而不是内置笔记目录的别名。
+3. 所有可见操作应能通过统一命令系统调用。
+4. 计算能力必须受 Provider、Profile 与信任边界约束。
+5. 只为明确的扩展轴抽象，不为假想功能堆叠复杂度。
+
+## Accessibility & Inclusion
+
+界面应保留语义标签、Tooltip、键盘焦点与足够的明暗主题对比度。该要求来自现有产品约束；尚未记录特定合规标准或辅助技术用户研究。

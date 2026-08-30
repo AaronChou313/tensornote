@@ -146,6 +146,24 @@ JupyterComputeProvider ── JupyterClient
 
 v0.4 不提供自动安装 Python 环境、后台常驻 Kernel、全局巨型图、数据库视图、插件市场、AI 辅助或多人协同。Workbench、Extensibility 与 Structured Knowledge 将继续按路线图演进。
 
+## v0.5 Workbench
+
+```text
+AppShell
+  ├── Sidebar (Files / Search)
+  ├── TopBar + WorkbenchTabs
+  ├── Pane main [+ secondary]
+  │     └── NoteEditor / Markdown preview
+  ├── Workbench right sidebar
+  │     └── Properties / Outline / Backlinks / Graph / Lab
+  └── CommandPalette
+```
+
+- `src/workbench/useWorkbenchStore.ts` 保存可替换的用户工作台状态：标签、固定状态、窗格、激活窗格、最近文件、导航历史和侧栏视图。它不保存 Markdown 内容。
+- `src/commands/CommandRegistry.ts` 是 UI 操作的单一注册入口。TopBar、Command Palette 与编辑器将各自的动作注册为 Command；将来扩展只需注册新的 command/view，不需要在 `App.tsx` 增加分支。
+- `src/commands/editor.ts` 提供纯 Markdown transform。工具栏、快捷键和 Command Palette 均调用同一 transform；CodeMirror 使用单次 dispatch，因此每个格式动作是一个 Undo 单元。
+- Workbench 只协调路由、WorkspaceSession 与现有 ComputeRuntime。Provider 的读写能力、保存冲突和 Jupyter 生命周期仍由已有的 Workspace / Compute 层拥有。
+
 ## 版本更新规则
 
 每个版本至少同步更新：
