@@ -109,6 +109,7 @@ export function AppShell() {
       registry.register({ id: 'note.new', label: 'New note', category: 'Workspace', description: 'Open the New note dialog', isAvailable: () => session.capabilities.write, execute: requestNewNote }),
       registry.register({ id: 'view.graph', label: 'Open graph', category: 'View', execute: () => navigate('/knowledge') }),
       registry.register({ id: 'view.database', label: 'Open database', category: 'View', description: 'Browse structured note properties', execute: () => navigate('/database') }),
+      registry.register({ id: 'view.git', label: 'Open Git workspace', category: 'View', description: 'Inspect local changes, diffs, history, and commits', isAvailable: () => session.capabilities.git && session.descriptor.type === 'local', execute: () => navigate('/git') }),
       registry.register({ id: 'view.toggleSidebar', label: 'Toggle sidebar', category: 'View', execute: () => useWorkbenchStore.getState().setSidebar('left', !useWorkbenchStore.getState().leftSidebar) }),
       registry.register({ id: 'navigate.back', label: 'Go back', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goBack(); if (note) navigate(`/notes/${note}`) } }),
       registry.register({ id: 'navigate.forward', label: 'Go forward', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goForward(); if (note) navigate(`/notes/${note}`) } }),
@@ -141,7 +142,7 @@ export function AppShell() {
   }, [location.pathname, profile, session])
 
   if (!session) {
-    if (status === 'idle' && (location.pathname === '/workspace' || location.pathname === '/knowledge' || location.pathname === '/database')) return <Navigate to="/" replace />
+    if (status === 'idle' && (location.pathname === '/workspace' || location.pathname === '/knowledge' || location.pathname === '/database' || location.pathname === '/git')) return <Navigate to="/" replace />
     return (
       <main className="route-status-page">
         <span className="workspace-spinner" />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, Trash, X } from '@phosphor-icons/react'
+import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, Trash, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -107,6 +107,9 @@ export function Sidebar() {
           <NavLink to="/database" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <Rows size={15} />Database
           </NavLink>
+          {session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
+            <GitBranch size={15} />Git
+          </NavLink>}
         </div>
 
         {recent.length > 0 && <div className="sidebar-recent"><span>Recent files</span>{recent.slice(0, 4).map((noteId) => {

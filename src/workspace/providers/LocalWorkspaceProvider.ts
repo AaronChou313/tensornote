@@ -55,7 +55,7 @@ export class LocalWorkspaceProvider implements WorkspaceProvider {
     write: true,
     watch: true,
     binary: true,
-    git: false,
+    git: true,
     authentication: false,
   }
   readonly id: string

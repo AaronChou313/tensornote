@@ -9,6 +9,7 @@ import { NotFoundPage } from './pages/NotFoundPage'
 import { WorkspacePage } from './pages/WorkspacePage'
 import { KnowledgePage } from './pages/KnowledgePage'
 import { StructuredKnowledgePage } from './pages/StructuredKnowledgePage'
+import { GitWorkspacePage } from './pages/GitWorkspacePage'
 
 function RouteScrollReset() {
   const { pathname } = useLocation()
@@ -37,6 +38,7 @@ export function App() {
           <Route path="workspace" element={<WorkspacePage />} />
           <Route path="knowledge" element={<KnowledgePage />} />
           <Route path="database" element={<StructuredKnowledgePage />} />
+          <Route path="git" element={<GitWorkspacePage />} />
           <Route path="notes/:noteId" element={<NotePage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
