@@ -6,7 +6,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前源码版本：`v0.8.4 — Distribution & Performance`。它是通向 v0.9.0 的最后一个阶段提交，不单独创建 GitHub Release 或 Tag。
+当前版本：`v0.9.0 — Distribution & Hardening`。
 
 ## 概览与目录
 
@@ -68,6 +68,8 @@ v0.8.2 为 v0.9.0 建立兼容与迁移边界：持久设置具备显式版本�
 v0.8.3 增加非破坏式恢复层：未保存 Markdown 草稿写入浏览器恢复存储，重新打开时由用户决定恢复或丢弃；保存与外部修改仍受文件基线冲突保护；应用级渲染异常进入可重新加载、返回主页和复制诊断的恢复界面。详见[恢复与故障处理](docs/RECOVERY.md)。
 
 v0.8.4 增加 Static、Local、Self-hosted 三种 Deployment Adapter、可安装 PWA、自托管容器与手动 GitHub Pages 工作流，并为 1,000/10,000 笔记、大 Markdown 和大 Asset 列表建立性能门。详见[分发与部署](docs/DISTRIBUTION.md)。
+
+v0.9.0 汇总兼容迁移、非破坏式恢复、分发适配、依赖安全与大 Workspace 性能硬化；应用路由、Built-in Workspace、编辑器、Jupyter 和重型视图均按需加载。完整验收与限制见[Distribution & Hardening](docs/HARDENING.md)。
 
 详细的布局、命令与快捷键见 [Workbench 使用说明](docs/WORKBENCH.md)。
 

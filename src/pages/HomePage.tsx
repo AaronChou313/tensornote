@@ -15,7 +15,6 @@ import logoWide from '../../assets/images/TensorNote_logo_wide.png'
 import { Button } from '../components/ui/Button'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
-import { BundledWorkspaceProvider } from '../workspace/providers/BundledWorkspaceProvider'
 import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
 import { pickLocalWorkspace } from '../workspace/providers/LocalWorkspaceProvider'
 import type { RecentWorkspace, WorkspaceProvider } from '../workspace/types'
@@ -62,6 +61,11 @@ export function HomePage() {
     }
   }
 
+  const openBundled = async () => {
+    const { BundledWorkspaceProvider } = await import('../workspace/providers/BundledWorkspaceProvider')
+    await open(new BundledWorkspaceProvider())
+  }
+
   const openGitHub = async () => {
     const parsed = parseGitHubRepository(repository)
     if (!parsed) {
@@ -72,7 +76,7 @@ export function HomePage() {
   }
 
   const reopen = async (recent: RecentWorkspace) => {
-    if (recent.type === 'bundled') return open(new BundledWorkspaceProvider())
+    if (recent.type === 'bundled') return openBundled()
     if (recent.type === 'github' && recent.config?.owner && recent.config.repo) {
       return open(new GitHubWorkspaceProvider(recent.config.owner, recent.config.repo, recent.config.ref))
     }
@@ -112,7 +116,7 @@ export function HomePage() {
             <ArrowRight size={17} />
           </button>
 
-          <button className="workspace-action" onClick={() => void open(new BundledWorkspaceProvider())} disabled={busy}>
+          <button className="workspace-action" onClick={() => void openBundled()} disabled={busy}>
             <span className="workspace-action__icon"><BookOpenText size={23} weight="duotone" /></span>
             <span><strong>AI Learning Notes</strong><small>打开随 TensorNote 提供的示例 Workspace</small></span>
             <ArrowRight size={17} />

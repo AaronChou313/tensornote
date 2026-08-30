@@ -16,6 +16,17 @@
 - `v0.8.2 — Compatibility & Migration`：已完成源码阶段；建立 Workspace Schema、Settings 与 Extension API 的版本兼容和迁移边界，不单独创建 Release 或 Tag。
 - `v0.8.3 — Recovery`：已完成源码阶段；提供非破坏式草稿恢复、文件冲突延续保护与应用崩溃恢复界面，不单独创建 Release 或 Tag。
 - `v0.8.4 — Distribution & Performance`：已完成源码阶段；加入三种 Web 分发模式、PWA、自托管容器、缓存与大 Workspace 性能门，不单独创建 Release 或 Tag。
+- `v0.9.0 — Distribution & Hardening`：已完成；汇总兼容、恢复、分发、安全、性能与测试硬化，作为正式 Release。
+
+## v0.9.0 — Distribution & Hardening（已完成）
+
+- Workspace Schema、浏览器 Settings 与 Extension API 具备显式版本兼容和迁移策略。
+- 未来 Workspace Schema 保持基础 Markdown 可读，并自动降级为只读、禁用执行。
+- Markdown 草稿、外部文件冲突与 React 渲染崩溃均有非破坏式恢复路径。
+- Static、Local、Self-hosted Web Runtime 共享同一核心；提供可选 PWA、Docker/Nginx 与手动 GitHub Pages Workflow。
+- Provider 加载受限并发、文档指纹缓存、搜索字段预计算、超大目录分页和功能级延迟加载已完成。
+- 自动回归覆盖 10,000 笔记、超过 2MB Markdown 和 1,000 Asset 列表；发布门包含依赖安全与浏览器回归。
+- v0.9.0 不包含 Tauri 安装包、在线插件市场、Server-mounted Workspace、远程 Git Push/Pull 或冲突合并器。
 
 ## v0.8.4 — Distribution & Performance（源码阶段已完成）
 

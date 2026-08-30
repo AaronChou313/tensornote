@@ -2,7 +2,7 @@
   "name": "tensornote",
   "private": true,
   "packageManager": "pnpm@11.24.0",
-  "version": "0.8.4",
+  "version": "0.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:performance": "vitest run src/performance/workspacePerformance.test.ts"
+    "test:performance": "vitest run src/performance/workspacePerformance.test.ts",
+    "check": "pnpm test && pnpm lint && pnpm build"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.0",

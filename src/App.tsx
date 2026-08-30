@@ -1,15 +1,24 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
-import { AppShell } from './components/AppShell'
 import { useAppStore } from './store/useAppStore'
-import { GitHubOpenPage } from './pages/GitHubOpenPage'
 import { HomePage } from './pages/HomePage'
-import { NotePage } from './pages/NotePage'
-import { NotFoundPage } from './pages/NotFoundPage'
-import { WorkspacePage } from './pages/WorkspacePage'
-import { KnowledgePage } from './pages/KnowledgePage'
-import { StructuredKnowledgePage } from './pages/StructuredKnowledgePage'
-import { GitWorkspacePage } from './pages/GitWorkspacePage'
+
+const AppShell = lazy(() => import('./components/AppShell').then((module) => ({ default: module.AppShell })))
+const GitHubOpenPage = lazy(() => import('./pages/GitHubOpenPage').then((module) => ({ default: module.GitHubOpenPage })))
+const NotePage = lazy(() => import('./pages/NotePage').then((module) => ({ default: module.NotePage })))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
+const WorkspacePage = lazy(() => import('./pages/WorkspacePage').then((module) => ({ default: module.WorkspacePage })))
+const KnowledgePage = lazy(() => import('./pages/KnowledgePage').then((module) => ({ default: module.KnowledgePage })))
+const StructuredKnowledgePage = lazy(() => import('./pages/StructuredKnowledgePage').then((module) => ({ default: module.StructuredKnowledgePage })))
+const GitWorkspacePage = lazy(() => import('./pages/GitWorkspacePage').then((module) => ({ default: module.GitWorkspacePage })))
+
+function RouteFallback() {
+  return <main className="route-status-page"><span className="workspace-spinner" /><p>正在载入工作区界面…</p></main>
+}
+
+function deferred(element: ReactNode) {
+  return <Suspense fallback={<RouteFallback />}>{element}</Suspense>
+}
 
 function RouteScrollReset() {
   const { pathname } = useLocation()
@@ -33,15 +42,15 @@ export function App() {
       <RouteScrollReset />
       <Routes>
         <Route index element={<HomePage />} />
-        <Route path="open/github/:owner/:repo" element={<GitHubOpenPage />} />
-        <Route element={<AppShell />}>
-          <Route path="workspace" element={<WorkspacePage />} />
-          <Route path="knowledge" element={<KnowledgePage />} />
-          <Route path="database" element={<StructuredKnowledgePage />} />
-          <Route path="git" element={<GitWorkspacePage />} />
-          <Route path="notes/:noteId" element={<NotePage />} />
+        <Route path="open/github/:owner/:repo" element={deferred(<GitHubOpenPage />)} />
+        <Route element={deferred(<AppShell />)}>
+          <Route path="workspace" element={deferred(<WorkspacePage />)} />
+          <Route path="knowledge" element={deferred(<KnowledgePage />)} />
+          <Route path="database" element={deferred(<StructuredKnowledgePage />)} />
+          <Route path="git" element={deferred(<GitWorkspacePage />)} />
+          <Route path="notes/:noteId" element={deferred(<NotePage />)} />
         </Route>
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={deferred(<NotFoundPage />)} />
       </Routes>
     </>
   )

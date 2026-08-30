@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.4 — Distribution & Performance` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.9.0 — Distribution & Hardening` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -271,6 +271,13 @@ Git Bridge (fixed repository root)
 - Knowledge Search 预计算规范化字段，链接/标签索引避免数组反复复制；Jupyter Provider 延迟加载；超大文件树每批渲染 200 项。
 - 性能门覆盖 1,000 与 10,000 笔记、超过 2MB Markdown 和 1,000 Asset 列表。阈值用于发现数量级回归，不承诺跨设备绝对耗时。
 - v0.8.4 是 v0.9.0 前的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
+
+## v0.9.0 Distribution & Hardening
+
+- v0.8.1–v0.8.4 的兼容、恢复、分发与性能边界在 v0.9.0 成为统一发布面。
+- AppShell、Workspace Views、NotePage、Built-in Workspace、NoteEditor、Jupyter Provider 与 Mermaid/Graph 相关依赖按路由或功能延迟加载；Home 首屏不再同步装载完整知识库和计算栈。
+- 正式支持 Local Web、Static Web 与 Self-hosted Web Runtime；PWA 是可关闭的增强，Tauri 和 Server-mounted Workspace 不属于 v0.9.0 承诺。
+- Release Gate 为全量 Vitest、ESLint、TypeScript/Vite Local Build、Static Base Path Build、PWA 产物、Dependency Audit、性能预算、浏览器明暗/桌面/窄屏/路由回归与 `git diff --check`。
 
 ## 版本更新规则
 

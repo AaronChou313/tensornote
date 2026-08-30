@@ -163,7 +163,7 @@ TensorNote 在 `1.0.0` 前使用以下约定：
 
 ## 4. 发布下一版本
 
-以下示例发布 `v0.8.1`：
+以下示例发布 `v0.9.0`：
 
 ```bash
 git switch main
@@ -178,10 +178,10 @@ git status
 
 ```bash
 git push origin main
-gh release create v0.8.1 \
+gh release create v0.9.0 \
   --target main \
-  --title "TensorNote v0.8.1" \
-  --notes-file docs/releases/v0.8.1.md
+  --title "TensorNote v0.9.0" \
+  --notes-file docs/releases/v0.9.0.md
 ```
 
 验证：
@@ -189,7 +189,7 @@ gh release create v0.8.1 \
 ```bash
 git fetch origin --tags
 git tag --points-at HEAD
-gh release view v0.8.1
+gh release view v0.9.0
 ```
 
 Release 创建后，GitHub 会提供该 Tag 对应的源码压缩包。当前 TensorNote 是本地开发型 Web App，因此 Release 暂不附带独立安装程序。

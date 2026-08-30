@@ -1,6 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { BundledWorkspaceProvider } from '../workspace/providers/BundledWorkspaceProvider'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { SearchDialog } from './SearchDialog'
@@ -90,7 +89,9 @@ export function AppShell() {
   useEffect(() => {
     if (!session && status === 'idle' && location.pathname.startsWith('/notes/') && !legacyOpenAttempted.current) {
       legacyOpenAttempted.current = true
-      void openProvider(new BundledWorkspaceProvider()).catch(() => undefined)
+      void import('../workspace/providers/BundledWorkspaceProvider')
+        .then(({ BundledWorkspaceProvider }) => openProvider(new BundledWorkspaceProvider()))
+        .catch(() => undefined)
     }
   }, [location.pathname, openProvider, session, status])
 

@@ -38,6 +38,7 @@ TensorNote 是一个本地优先、Markdown-first、由 Jupyter 驱动的可执�
 - Compatibility & Migration v0.8.2 为 Workspace Schema、浏览器设置和 Extension API 建立显式版本边界；未来 Schema 以只读兼容模式打开，避免锁住基础 Markdown 阅读。
 - Recovery v0.8.3 将未保存草稿作为可丢弃的用户恢复状态保存在 Workspace 之外；恢复操作永不静默覆盖 Markdown，应用崩溃诊断也不采集文档内容。
 - Distribution & Performance v0.8.4 以同一 Web Runtime 支持 Static、Local 和 Self-hosted 模式，可选安装为 PWA；Workspace 加载使用受限并发与文档指纹缓存，并有 10,000 笔记性能门。
+- Distribution & Hardening v0.9.0 将 Schema/Settings/Extension 兼容、草稿/崩溃恢复、三种 Web 分发模式、PWA、安全检查与大 Workspace 性能门合并为一个可发布的稳定候选。
 
 ## Brand Commitments
 
