@@ -6,7 +6,27 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前版本：`v0.6.0 — Extension Platform`。
+当前版本：`v0.7.0 — Structured Knowledge`。
+
+## 概览与目录
+
+- [Structured Knowledge](#structured-knowledge)：从 YAML Frontmatter 建立可筛选的 Markdown 数据库。
+- [Extension Platform](#extension-platform)：通过受权限约束的官方或本地扩展贡献功能。
+- [Workbench](#workbench)：多标签、分栏、侧栏与统一命令系统。
+- [知识系统](#知识系统)：链接、标签、搜索、属性与局部图谱。
+- [Compute Platform](#compute-platform)：按需连接 Jupyter 执行 Python Lab。
+- [快速开始](#快速开始)：安装、启动和 Workspace 打开方式。
+
+## Structured Knowledge
+
+TensorNote v0.7.0 在 `/database` 提供基于 Markdown Frontmatter 的结构化知识视图：
+
+- `PropertyIndex` 在运行时从当前 Workspace 的属性重建索引；Markdown Frontmatter 是唯一数据源，不引入 SQL 或私有数据库。
+- 支持 `=`、`!=`、大小写无关的属性键，以及用 `AND` 组合字符串、数字、布尔值、`null` 和数组成员条件。
+- 同一查询可在 Table、Card、List 三种视图切换，并可通过 `/database?q=...&view=...` 复制链接或保存书签。
+- 编辑并保存源 Markdown 后刷新 Workspace，即可从源文件重建属性索引。
+
+完整的属性模板、查询引号规则、类型行为、URL 分享、安全边界和已知限制见 [Structured Knowledge 使用指南](docs/STRUCTURED_KNOWLEDGE.md)。
 
 ## Extension Platform
 

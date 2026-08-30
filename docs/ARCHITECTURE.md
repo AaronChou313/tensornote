@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录 `v0.1.0 — Workspace Foundation`、`v0.2.0 — Authoring`、`v0.3.0 — Knowledge System` 与 `v0.4.0 — Compute Platform` 已落地的稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.7.0 — Structured Knowledge` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -19,7 +19,8 @@ loadWorkspace ── tensornote.yaml / safe defaults
         │
         ├── Markdown parse + Lab extraction
         ├── filesystem navigation index
-        └── KnowledgeIndex
+        ├── KnowledgeIndex
+        └── PropertyIndex
         │
         ▼
 WorkspaceSession ── UI / search / reader / lab
@@ -185,6 +186,28 @@ ExtensionRuntime ── load / activate / deactivate / dispose
 - 权限调用同时要求 Manifest 声明和用户授权。`workspace:write`、`network`、`compute` 与 `secret` 在 UI 中标为高风险。
 - 本地脚本在权限确认后才通过 Blob URL 导入，但仍是浏览器同源可信代码；能力门控不构成 JavaScript 沙箱。
 - v0.6 只支持官方和手动选择的本地插件，不包含发现、下载、签名、自动更新或公共市场。
+
+## v0.7 Structured Knowledge
+
+```text
+Markdown Frontmatter
+        │
+        ▼
+PropertyIndex (WorkspaceSession, runtime only)
+        ├── rows: Note + raw properties
+        ├── fields: key / type / document count / display values
+        └── query(expression)
+                │
+                ▼
+/database?q=...&view=table|card|list
+```
+
+- `src/content/propertyIndex.ts` 从 `Note.properties` 建立行和字段索引；它不解析或写入独立数据库，不保存用户内容副本。
+- `WorkspaceSession` 在打开、刷新与保存的现有重建链路中持有 `PropertyIndex`；外部编辑后的结果以重新读取 Markdown Workspace 为准。
+- 查询仅支持 `=`、`!=` 和以空白分隔的 `AND`。属性键比较不区分大小写；值按字符串、数字、布尔值、`null` 精确比较，数组按任一成员匹配。
+- `/database` 是纯读取 UI。Table 展示比较列，Card 展示摘要和非空属性，List 用于紧凑扫描；`q` 与 `view` 存在 URL 中，便于书签和分享。
+- 查询执行在浏览器运行时索引中，不执行 SQL、YAML、Markdown 或用户脚本。当前不提供 `OR`、范围、排序、聚合、保存视图或写回编辑。
+- 完整用户语法与限制见 [Structured Knowledge 使用指南](STRUCTURED_KNOWLEDGE.md)。
 
 ## 版本更新规则
 

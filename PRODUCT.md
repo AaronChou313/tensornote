@@ -30,6 +30,8 @@ TensorNote 是一个本地优先、Markdown-first、由 Jupyter 驱动的可执�
 - GitHub Workspace 的代码执行需要信任当前 revision。
 - Workbench v0.5.0 提供标签页、分栏、Sidebar、命令面板和 Markdown 编辑快捷工具。
 - Extension Platform v0.6.0 允许官方与用户信任的本地扩展注册工作台、Markdown、编辑器与 Provider 贡献；当前不提供公共在线市场。
+- Structured Knowledge v0.7.0 从 Markdown Frontmatter 建立运行时 `PropertyIndex`，在 `/database` 提供 Table、Card、List、可分享 URL 和基础属性查询；不引入 SQL 或专有内容数据库。
+- 当前属性查询支持 `=`、`!=`、`AND`、大小写无关键、字符串/数字/布尔/空值及数组成员匹配；不提供范围、排序、聚合、写回编辑或复杂逻辑查询。
 
 ## Brand Commitments
 

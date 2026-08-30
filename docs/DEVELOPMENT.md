@@ -52,7 +52,7 @@ uv pip install -r requirements-jupyter.txt
 
 ```bash
 git fetch origin --tags
-git switch --detach v0.6.0
+git switch --detach v0.7.0
 pnpm install --frozen-lockfile
 ```
 
@@ -91,6 +91,7 @@ git switch -c feat/功能短名称
 - 修改目录和路由：编辑 `src/content/noteTree.ts`、`src/workspace/loadWorkspace.ts` 与相关页面。
 - 修改 Markdown 渲染：编辑 `src/components/MarkdownRenderer.tsx` 和 `src/styles.css`。
 - 修改 WikiLink、Tag、Backlink、Search v2 或图谱索引：编辑 `src/content/knowledgeIndex.ts`，并同步更新 `KnowledgePanel` / `KnowledgePage`。
+- 修改 Frontmatter 属性索引或 Database 查询契约：编辑 `src/content/propertyIndex.ts`；Database 页面位于 `src/pages/StructuredKnowledgePage.tsx`，并同步更新 [Structured Knowledge 指南](STRUCTURED_KNOWLEDGE.md)。
 - 修改 Python Lab：编辑 `src/components/LabDrawer.tsx`、`CodeCell.tsx` 或 `src/content/labParser.ts`。
 - 修改 Compute Profile、Scope、Session 生命周期或诊断：编辑 `src/compute/` 与 `src/store/useComputeStore.ts`；Jupyter 协议细节才进入 `src/jupyter/`。
 - 修改主题与界面状态：编辑 `src/store/useAppStore.ts` 和相应组件。
@@ -155,7 +156,7 @@ TensorNote 在 `1.0.0` 前使用以下约定：
 
 ## 4. 发布下一版本
 
-以下示例发布 `v0.6.1`：
+以下示例发布 `v0.7.1`：
 
 ```bash
 git switch main
@@ -170,10 +171,10 @@ git status
 
 ```bash
 git push origin main
-gh release create v0.6.1 \
+gh release create v0.7.1 \
   --target main \
-  --title "TensorNote v0.6.1" \
-  --notes-file docs/releases/v0.6.1.md
+  --title "TensorNote v0.7.1" \
+  --notes-file docs/releases/v0.7.1.md
 ```
 
 验证：
@@ -181,7 +182,7 @@ gh release create v0.6.1 \
 ```bash
 git fetch origin --tags
 git tag --points-at HEAD
-gh release view v0.5.1
+gh release view v0.7.1
 ```
 
 Release 创建后，GitHub 会提供该 Tag 对应的源码压缩包。当前 TensorNote 是本地开发型 Web App，因此 Release 暂不附带独立安装程序。

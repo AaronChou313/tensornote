@@ -9,7 +9,16 @@
 - `v0.3.0 — Knowledge System`：已发布。
 - `v0.4.0 — Compute Platform`：已发布。
 - `v0.5.0 — Workbench`：已发布；见 [Workbench 使用说明](WORKBENCH.md) 与 [Release notes](releases/v0.5.0.md)。
-- `v0.6.0 — Extension Platform`：已实现；见 [Extension Platform 指南](EXTENSIONS.md) 与 [Release notes](releases/v0.6.0.md)。
+- `v0.6.0 — Extension Platform`：已发布；见 [Extension Platform 指南](EXTENSIONS.md) 与 [Release notes](releases/v0.6.0.md)。
+- `v0.7.0 — Structured Knowledge`：已完成；见 [Structured Knowledge 指南](STRUCTURED_KNOWLEDGE.md) 与 [Release notes](releases/v0.7.0.md)。
+
+## v0.7.0 — Structured Knowledge（已完成）
+
+- 从每篇 Markdown 的 YAML Frontmatter 建立运行时 `PropertyIndex`，保持 Markdown 为唯一数据源。
+- 新增 `/database`，提供 Table、Card、List 三种共用查询结果的阅读视图。
+- 支持 `=`、`!=`、大小写无关键和 `AND`；查询值覆盖字符串、数字、布尔值、`null` 与数组成员。
+- 查询与视图写入 `q`、`view` URL 参数，便于同一 Workspace 中的书签和链接分享。
+- 明确不建设 SQL/私有数据库、复杂布尔或范围查询、排序聚合、保存视图和数据库写回编辑。
 
 ## v0.6.0 — Extension Platform
 
