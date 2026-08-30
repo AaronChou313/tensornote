@@ -42,7 +42,7 @@ function defaultValue(request: FileDialogRequest, contentRoot: string) {
 export function WorkspaceFileDialog({ request, onClose }: { request: FileDialogRequest | null; onClose: () => void }) {
   const navigate = useNavigate()
   const session = useWorkspaceStore((state) => state.session)
-  const editorDirtyPath = useAppStore((state) => state.editorDirtyPath)
+  const editorDirtyPaths = useAppStore((state) => state.editorDirtyPaths)
   const labDirty = useAppStore((state) => state.labDirty)
   const provider = useWorkspaceStore((state) => state.provider)
   const createNote = useWorkspaceStore((state) => state.createNote)
@@ -67,12 +67,12 @@ export function WorkspaceFileDialog({ request, onClose }: { request: FileDialogR
     setBusy(true)
     setError(null)
     try {
-      const affectsDirtyDocument = editorDirtyPath && (
+      const affectsDirtyDocument = Object.keys(editorDirtyPaths).some((dirtyPath) => (
         request.action === 'new-note'
         || request.action === 'duplicate'
-        || request.path === editorDirtyPath
-        || Boolean(request.path && editorDirtyPath.startsWith(`${request.path}/`))
-      )
+        || request.path === dirtyPath
+        || Boolean(request.path && dirtyPath.startsWith(`${request.path}/`))
+      ))
       if (affectsDirtyDocument) throw new Error('请先保存或撤销当前笔记的未保存修改，再执行此文件操作')
       if (labDirty && (request.action === 'new-note' || request.action === 'duplicate' || request.action === 'delete' || request.action === 'move' || request.action === 'rename')) {
         throw new Error('请先把实验代码保存到 Markdown，或撤销实验修改')

@@ -60,8 +60,8 @@ function GraphView({ graph }: { graph: LocalGraph }) {
   )
 }
 
-export function KnowledgePanel({ noteId }: { noteId: string }) {
-  const [view, setView] = useState<'links' | 'outline'>('links')
+export function KnowledgePanel({ noteId, initialView = 'links' }: { noteId: string; initialView?: 'links' | 'outline' | 'backlinks' | 'graph' }) {
+  const [view, setView] = useState<'links' | 'outline' | 'backlinks' | 'graph'>(initialView)
   const session = useWorkspaceStore((state) => state.session)
   if (!session) return null
   const note = session.documentById.get(noteId)
@@ -74,17 +74,17 @@ export function KnowledgePanel({ noteId }: { noteId: string }) {
 
   return (
     <aside className="knowledge-panel" aria-label="Knowledge context">
-      <section className="knowledge-panel__graph">
+      {view !== 'backlinks' && <section className="knowledge-panel__graph">
         <header><span>Local graph</span><small>{graph.nodes.length - 1} related</small></header>
         <GraphView graph={graph} />
-      </section>
+      </section>}
 
       <div className="knowledge-panel__tabs" role="tablist" aria-label="知识导航">
-        <button role="tab" aria-selected={view === 'links'} className={view === 'links' ? 'is-active' : ''} onClick={() => setView('links')}><LinkSimple size={14} />Links</button>
+        <button role="tab" aria-selected={view === 'links' || view === 'backlinks'} className={view === 'links' || view === 'backlinks' ? 'is-active' : ''} onClick={() => setView('links')}><LinkSimple size={14} />Links</button>
         <button role="tab" aria-selected={view === 'outline'} className={view === 'outline' ? 'is-active' : ''} onClick={() => setView('outline')}><ArrowsInLineVertical size={14} />Outline</button>
       </div>
 
-      {view === 'links' ? (
+      {view === 'graph' ? <div className="knowledge-panel__body"><section><h3>Local graph</h3><GraphView graph={graph} /></section></div> : view === 'backlinks' ? <div className="knowledge-panel__body"><section><h3>Backlinks <span>{backlinks.length}</span></h3>{backlinks.length ? <div className="knowledge-link-list">{backlinks.map((link, indexValue) => { const source = session.documentById.get(link.sourceNoteId); return source ? <Link key={`${source.id}-${indexValue}`} to={`/notes/${source.id}`}><span>{source.frontmatter.title}</span><small>{link.label}</small></Link> : null })}</div> : <p className="knowledge-muted">还没有其他笔记链接到这里。</p>}</section></div> : view === 'links' ? (
         <div className="knowledge-panel__body">
           {tags.length > 0 && <section><h3><Hash size={13} />Tags</h3><div className="knowledge-tags">{tags.map((tag) => <Link key={tag} to={`/knowledge?tag=${encodeURIComponent(tag)}`}>{tag}</Link>)}</div></section>}
           <section>

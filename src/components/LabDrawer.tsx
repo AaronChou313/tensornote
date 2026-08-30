@@ -56,8 +56,10 @@ export function LabDrawer() {
 function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const location = useLocation()
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
+  const pendingLabAction = useAppStore((state) => state.pendingLabAction)
+  const setPendingLabAction = useAppStore((state) => state.setPendingLabAction)
   const setLabDirty = useAppStore((state) => state.setLabDirty)
-  const editorDirtyPath = useAppStore((state) => state.editorDirtyPath)
+  const editorDirtyPaths = useAppStore((state) => state.editorDirtyPaths)
   const updateProgress = useAppStore((state) => state.updateProgress)
   const kernelStatus = useAppStore((state) => state.kernelStatus)
   const theme = useAppStore((state) => state.theme)
@@ -85,6 +87,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const [error, setError] = useState<string | null>(null)
   const cellsRef = useRef(cells)
   const labCellsRef = useRef(labCells)
+  const consumedPendingActionRef = useRef<typeof pendingLabAction>(null)
   const running = Object.values(cells).some((cell) => cell.running)
   const labDirty = lab.scratch
     ? labCells.some((cell) => Boolean(cells[cell.id]?.code.trim()))
@@ -146,11 +149,23 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
     }
   }, [canExecute, context, profile, session, sourceNote, token, updateCell, updateProgress])
 
-  const runRange = async (selected: LabCell[]) => {
+  const runRange = useCallback(async (selected: LabCell[]) => {
     for (const cell of selected) await runCell(cell)
-  }
+  }, [runCell])
 
-  const runAll = () => runRange(labCellsRef.current)
+  const runAll = useCallback(() => runRange(labCellsRef.current), [runRange])
+
+  useEffect(() => {
+    if (!pendingLabAction) {
+      consumedPendingActionRef.current = null
+      return
+    }
+    if (consumedPendingActionRef.current === pendingLabAction) return
+    if (pendingLabAction.labId !== lab.id || pendingLabAction.action !== 'runAll') return
+    consumedPendingActionRef.current = pendingLabAction
+    setPendingLabAction(null)
+    void runAll()
+  }, [lab.id, pendingLabAction, runAll, setPendingLabAction])
 
   const restart = async () => {
     setError(null)
@@ -186,7 +201,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
       setError('请先打开本地可写笔记，再插入 Scratch Lab。')
       return
     }
-    if (editorDirtyPath === sourceNote.path) {
+    if (editorDirtyPaths[sourceNote.path]) {
       setError('当前 Markdown Editor 有未保存修改。请先保存笔记，再插入 Scratch Lab。')
       return
     }

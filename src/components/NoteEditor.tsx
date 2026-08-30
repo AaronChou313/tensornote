@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { markdown } from '@codemirror/lang-markdown'
 import { redo, undo } from '@codemirror/commands'
@@ -25,6 +25,8 @@ import { Button } from './ui/Button'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { NoteProgress } from './NoteProgress'
 import { KnowledgePanel } from './KnowledgePanel'
+import { useCommandRegistry } from '../commands/CommandContext'
+import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../commands/editor'
 
 type EditorMode = 'read' | 'edit' | 'split'
 
@@ -74,9 +76,17 @@ function safeAssetName(name: string) {
   return name.trim().replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^-+|-+$/g, '') || 'asset'
 }
 
-export function NoteEditor({ note, provider }: { note: Note; provider: WorkspaceProvider }) {
+const formattingGroups: { label: string; commands: EditorCommandId[] }[] = [
+  { label: 'Text', commands: ['editor.paragraph', 'editor.heading1', 'editor.heading2', 'editor.heading3', 'editor.heading4', 'editor.heading5', 'editor.heading6'] },
+  { label: 'Inline', commands: ['editor.bold', 'editor.italic', 'editor.strikethrough', 'editor.inlineCode', 'editor.link', 'editor.image'] },
+  { label: 'Blocks', commands: ['editor.blockquote', 'editor.callout', 'editor.bulletList', 'editor.numberedList', 'editor.taskList', 'editor.codeFence', 'editor.table', 'editor.horizontalRule', 'editor.mathBlock'] },
+]
+const primaryFormattingCommands: EditorCommandId[] = ['editor.paragraph', 'editor.heading1', 'editor.bold', 'editor.italic', 'editor.link', 'editor.blockquote', 'editor.bulletList', 'editor.codeFence']
+const codeLanguages = ['python', 'javascript', 'typescript', 'bash', 'json', 'markdown', 'plain']
+
+export function NoteEditor({ note, provider, isActive = true }: { note: Note; provider: WorkspaceProvider; isActive?: boolean }) {
   const theme = useAppStore((state) => state.theme)
-  const setEditorDirtyPath = useAppStore((state) => state.setEditorDirtyPath)
+  const setEditorDirty = useAppStore((state) => state.setEditorDirty)
   const saveDocument = useWorkspaceStore((state) => state.saveDocument)
   const refreshWorkspace = useWorkspaceStore((state) => state.refreshWorkspace)
   const writeAsset = useWorkspaceStore((state) => state.writeAsset)
@@ -87,17 +97,19 @@ export function NoteEditor({ note, provider }: { note: Note; provider: Workspace
   const [propertiesOpen, setPropertiesOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [externalStat, setExternalStat] = useState<WorkspaceFileStat | null>(null)
+  const [codeLanguage, setCodeLanguage] = useState('python')
   const viewRef = useRef<EditorView | null>(null)
   const uploadRef = useRef<HTMLInputElement>(null)
   const baselineRef = useRef({ modifiedAt: note.sourceModifiedAt, size: note.sourceSize })
   const dirtyRef = useRef(dirty)
+  const registry = useCommandRegistry()
 
   useEffect(() => { dirtyRef.current = dirty }, [dirty])
 
   useEffect(() => {
-    setEditorDirtyPath(dirty ? note.path : null)
-    return () => setEditorDirtyPath(null)
-  }, [dirty, note.path, setEditorDirtyPath])
+    setEditorDirty(note.path, dirty)
+    return () => setEditorDirty(note.path, false)
+  }, [dirty, note.path, setEditorDirty])
 
   useEffect(() => {
     if (!dirtyRef.current) setDraft(note.raw)
@@ -141,7 +153,45 @@ export function NoteEditor({ note, provider }: { note: Note; provider: Workspace
     setMessage(null)
   }
 
-  const save = async () => {
+  const executeEditorCommand = useCallback((id: EditorCommandId) => {
+    if (!isActive || mode === 'read') return
+    const view = viewRef.current
+    const selection = view ? { from: view.state.selection.main.from, to: view.state.selection.main.to } : { from: draft.length, to: draft.length }
+    const result = transformEditorCommand(id, draft, selection, { codeLanguage })
+    if (view) {
+      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: result.value }, selection: { anchor: result.selection.from, head: result.selection.to }, userEvent: 'input.format' })
+      view.focus()
+    } else {
+      setDraft(result.value)
+      setDirty(result.value !== note.raw)
+      setMessage(null)
+    }
+  }, [codeLanguage, draft, isActive, mode, note.raw])
+
+  useEffect(() => {
+    if (!isActive) return
+    const remove = (Object.keys(editorCommandLabels) as EditorCommandId[]).map((id) => registry.register({
+      id,
+      label: editorCommandLabels[id],
+      category: 'Editor',
+      shortcut: id === 'editor.bold' ? '⌘B' : id === 'editor.italic' ? '⌘I' : id === 'editor.link' ? '⌘K' : undefined,
+      isAvailable: () => mode !== 'read',
+      execute: () => executeEditorCommand(id),
+    }))
+    return () => remove.forEach((unregister) => unregister())
+  }, [executeEditorCommand, isActive, mode, registry])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!isActive || mode === 'read' || !(event.metaKey || event.ctrlKey)) return
+      const id = event.key.toLowerCase() === 'b' ? 'editor.bold' : event.key.toLowerCase() === 'i' ? 'editor.italic' : event.key.toLowerCase() === 'k' ? 'editor.link' : null
+      if (id) { event.preventDefault(); executeEditorCommand(id) }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [executeEditorCommand, isActive, mode])
+
+  const save = useCallback(async () => {
     if (!dirty || saving) return
     setSaving(true)
     setMessage(null)
@@ -160,18 +210,18 @@ export function NoteEditor({ note, provider }: { note: Note; provider: Workspace
     } finally {
       setSaving(false)
     }
-  }
+  }, [dirty, draft, note.path, saveDocument, saving])
 
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+      if (isActive && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
         event.preventDefault()
         void save()
       }
     }
     window.addEventListener('keydown', shortcut)
     return () => window.removeEventListener('keydown', shortcut)
-  })
+  }, [isActive, save])
 
   const reloadExternal = async () => {
     setDirty(false)
@@ -246,6 +296,10 @@ export function NoteEditor({ note, provider }: { note: Note; provider: Workspace
           <input ref={uploadRef} className="sr-only" type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); event.target.value = '' }} />
         </div>
       </header>
+      {mode !== 'read' && <div className="formatting-toolbar" role="toolbar" aria-label="Markdown formatting">
+        <div className="formatting-toolbar__group"><span>Write</span>{primaryFormattingCommands.map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={`${editorCommandLabels[id]}${id === 'editor.bold' ? ' (⌘B)' : id === 'editor.italic' ? ' (⌘I)' : id === 'editor.link' ? ' (⌘K)' : ''}`}>{id === 'editor.paragraph' ? 'P' : id.startsWith('editor.heading') ? `H${id.slice(-1)}` : editorCommandLabels[id]}</button>)}<label className="formatting-toolbar__language"><span>Fence</span><select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value)} aria-label="代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label></div>
+        <details className="formatting-toolbar__more"><summary aria-label="更多 Markdown 格式工具">More</summary><div>{formattingGroups.flatMap((group) => group.commands).filter((id) => !primaryFormattingCommands.includes(id)).map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={editorCommandLabels[id]}>{id.startsWith('editor.heading') ? `H${id.slice(-1)}` : editorCommandLabels[id]}</button>)}</div></details>
+      </div>}
 
       {externalStat && (
         <div className="external-change-banner" role="alert">

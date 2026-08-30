@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, House, PencilSimple, ShareNetwork, Trash, X } from '@phosphor-icons/react'
+import { useEffect, useState } from 'react'
+import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, House, MagnifyingGlass, PencilSimple, ShareNetwork, Trash, X } from '@phosphor-icons/react'
+import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
 import { cn } from '../lib/cn'
@@ -64,18 +65,27 @@ export function Sidebar() {
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
   const session = useWorkspaceStore((state) => state.session)
   const [fileDialog, setFileDialog] = useState<FileDialogRequest | null>(null)
+  const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
+  const setLeftSidebar = useWorkbenchStore((state) => state.setSidebar)
+  const recent = useWorkbenchStore((state) => state.recent)
+  const setSearchOpen = useAppStore((state) => state.setSearchOpen)
+  useEffect(() => {
+    return useAppStore.subscribe((state, previous) => {
+      if (state.newNoteRequestNonce !== previous.newNoteRequestNonce && session?.capabilities.write) setFileDialog({ action: 'new-note' })
+    })
+  }, [session?.capabilities.write])
   if (!session) return null
 
   return (
     <>
       {sidebarOpen && <button className="sidebar-scrim" onClick={() => setSidebarOpen(false)} aria-label="关闭目录" />}
-      <aside className={cn('workspace-sidebar', sidebarOpen ? 'translate-x-0' : '-translate-x-full')}>
+      <aside className={cn('workspace-sidebar', sidebarOpen ? 'translate-x-0' : '-translate-x-full', !leftSidebar && 'workspace-sidebar--collapsed')}>
         <div className="sidebar-brand">
           <NavLink to="/workspace" onClick={() => setSidebarOpen(false)} aria-label="Workspace 首页">
             <span className="brand-mark">T</span>
             <span><strong>TensorNote</strong><small>Executable workspace</small></span>
           </NavLink>
-          <Button className="lg:hidden" variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} aria-label="关闭目录"><X size={18} /></Button>
+          <div><button className="sidebar-icon-action" onClick={() => setSearchOpen(true)} aria-label="搜索文件" title="Search (⌘K)"><MagnifyingGlass size={16} /></button><button className="sidebar-icon-action" onClick={() => setLeftSidebar('left', !leftSidebar)} aria-label={leftSidebar ? '收起侧栏' : '展开侧栏'} title={leftSidebar ? 'Collapse sidebar' : 'Expand sidebar'}><X size={16} /></button><Button className="lg:hidden" variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} aria-label="关闭目录"><X size={18} /></Button></div>
         </div>
 
         <div className="sidebar-workspace-name">
@@ -91,6 +101,11 @@ export function Sidebar() {
             <ShareNetwork size={15} />Knowledge
           </NavLink>
         </div>
+
+        {recent.length > 0 && <div className="sidebar-recent"><span>Recent files</span>{recent.slice(0, 4).map((noteId) => {
+          const note = session.documentById.get(noteId)
+          return note ? <NavLink key={noteId} to={`/notes/${noteId}`} onClick={() => setSidebarOpen(false)}><FileText size={13} />{note.frontmatter.title}</NavLink> : null
+        })}</div>}
 
         <div className="sidebar-section-label">
           <span>Files</span>
