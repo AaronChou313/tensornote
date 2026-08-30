@@ -11,6 +11,18 @@ import { WorkspaceFileDialog, type FileDialogRequest } from './WorkspaceFileDial
 import { joinWorkspacePath } from '../workspace/path'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 import { useCommandRegistry } from '../commands/CommandContext'
+import { deploymentAdapter } from '../deployment/config'
+
+const treePageSize = 200
+
+function TreeChildren({ items, depth = 0, onAction }: { items: NoteTreeItem[]; depth?: number; onAction: (request: FileDialogRequest) => void }) {
+  const [visible, setVisible] = useState(treePageSize)
+  const shown = items.slice(0, visible)
+  return <>
+    {shown.map((child) => <TreeItem key={`${child.path || child.label}:${child.noteId || 'folder'}`} item={child} depth={depth} onAction={onAction} />)}
+    {shown.length < items.length && <button className="workspace-tree__more" onClick={() => setVisible((count) => count + treePageSize)}>显示更多 <span>{items.length - shown.length}</span></button>}
+  </>
+}
 
 function TreeItem({ item, depth = 0, onAction }: { item: NoteTreeItem; depth?: number; onAction: (request: FileDialogRequest) => void }) {
   const [expanded, setExpanded] = useState(depth < 2)
@@ -57,7 +69,7 @@ function TreeItem({ item, depth = 0, onAction }: { item: NoteTreeItem; depth?: n
           </div>
         )}
       </div>
-      {hasChildren && expanded && <div>{item.children?.map((child) => <TreeItem key={`${item.path || item.label}-${child.path || child.label}`} item={child} depth={depth + 1} onAction={onAction} />)}</div>}
+      {hasChildren && expanded && <div><TreeChildren items={item.children ?? []} depth={depth + 1} onAction={onAction} /></div>}
     </div>
   )
 }
@@ -156,7 +168,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           <NavLink to="/database" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <Rows size={15} />Database
           </NavLink>
-          {session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
+          {deploymentAdapter.capabilities.gitBridge && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <GitBranch size={15} />Git
           </NavLink>}
         </div>
@@ -171,7 +183,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           {session.capabilities.write && <div><button onClick={() => setFileDialog({ action: 'new-note' })} aria-label="新建笔记"><FilePlus size={14} /></button><button onClick={() => setFileDialog({ action: 'new-folder' })} aria-label="新建文件夹"><FolderPlus size={14} /></button></div>}
         </div>
         <nav className="workspace-tree" aria-label="Workspace 文件">
-          {session.navigation.map((item) => <TreeItem key={item.path || item.label} item={item} onAction={setFileDialog} />)}
+          <TreeChildren items={session.navigation} onAction={setFileDialog} />
         </nav>
 
         {extensionItems.length > 0 && <div className="sidebar-extension-items"><span>Extensions</span>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div>}

@@ -1,5 +1,4 @@
 import type { KernelStatus } from '../types'
-import { JupyterComputeProvider } from './JupyterComputeProvider'
 import type {
   ComputeConnectionConfig,
   ComputeContext,
@@ -11,10 +10,13 @@ import type {
   ExecutionHandlers,
 } from './types'
 
-type ProviderFactory = (kind: ComputeProviderKind) => ComputeProvider
+type ProviderFactory = (kind: ComputeProviderKind) => ComputeProvider | Promise<ComputeProvider>
 
-function defaultProviderFactory(kind: ComputeProviderKind) {
-  if (kind === 'jupyter') return new JupyterComputeProvider()
+async function defaultProviderFactory(kind: ComputeProviderKind) {
+  if (kind === 'jupyter') {
+    const { JupyterComputeProvider } = await import('./JupyterComputeProvider')
+    return new JupyterComputeProvider()
+  }
   throw new Error(`Unsupported Compute Provider: ${kind}`)
 }
 
@@ -62,7 +64,7 @@ export class ComputeRuntime {
     if (this.session && this.activeScopeKey === scopeKey && this.configSignature === signature) return this.session
 
     await this.shutdown()
-    const provider = this.providerFactory(profile.kind)
+    const provider = await this.providerFactory(profile.kind)
     provider.onStatus(this.statusHandler)
     this.provider = provider
     this.activeProfile = profile
@@ -131,7 +133,7 @@ export class ComputeRuntime {
   }
 
   async diagnose(profile: ComputeProfile, token: string): Promise<DiagnosticCheck[]> {
-    const provider = this.providerFactory(profile.kind)
+    const provider = await this.providerFactory(profile.kind)
     try {
       return await provider.diagnose(connectionConfig(profile, token))
     } finally {
@@ -140,7 +142,7 @@ export class ComputeRuntime {
   }
 
   async listKernels(profile: ComputeProfile, token: string) {
-    const provider = this.providerFactory(profile.kind)
+    const provider = await this.providerFactory(profile.kind)
     try {
       return await provider.listKernels(connectionConfig(profile, token))
     } finally {

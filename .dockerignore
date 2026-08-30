@@ -1,0 +1,7 @@
+.git
+.github
+.pnpm-store
+node_modules
+dist
+coverage
+*.log

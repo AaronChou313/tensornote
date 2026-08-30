@@ -212,8 +212,14 @@ export function buildKnowledgeIndex(documents: Note[]): KnowledgeIndex {
   const linksBySource = new Map<string, KnowledgeLink[]>()
   const backlinksByTarget = new Map<string, KnowledgeLink[]>()
   for (const link of links) {
-    linksBySource.set(link.sourceNoteId, [...(linksBySource.get(link.sourceNoteId) ?? []), link])
-    if (link.targetNoteId) backlinksByTarget.set(link.targetNoteId, [...(backlinksByTarget.get(link.targetNoteId) ?? []), link])
+    const outgoing = linksBySource.get(link.sourceNoteId) ?? []
+    outgoing.push(link)
+    linksBySource.set(link.sourceNoteId, outgoing)
+    if (link.targetNoteId) {
+      const incoming = backlinksByTarget.get(link.targetNoteId) ?? []
+      incoming.push(link)
+      backlinksByTarget.set(link.targetNoteId, incoming)
+    }
   }
 
   const tagsByDocument = new Map<string, string[]>()
@@ -223,29 +229,33 @@ export function buildKnowledgeIndex(documents: Note[]): KnowledgeIndex {
     tagsByDocument.set(note.id, tags)
     for (const tag of tags) {
       const key = tag.toLocaleLowerCase()
-      tagDocuments.set(key, new Set([...(tagDocuments.get(key) ?? []), note.id]))
+      const documentIds = tagDocuments.get(key) ?? new Set<string>()
+      documentIds.add(note.id)
+      tagDocuments.set(key, documentIds)
     }
   }
   const tags = [...tagDocuments.entries()]
     .map(([name, ids]) => ({ name, documentIds: [...ids] }))
     .sort((a, b) => b.documentIds.length - a.documentIds.length || a.name.localeCompare(b.name))
 
+  const searchFields = new Map(documents.map((note) => [note.id, [
+    { label: 'Title', value: note.frontmatter.title.toLocaleLowerCase(), weight: 12 },
+    { label: 'Alias', value: note.frontmatter.aliases.join(' ').toLocaleLowerCase(), weight: 11 },
+    { label: 'Tag', value: (tagsByDocument.get(note.id)?.join(' ') ?? '').toLocaleLowerCase(), weight: 9 },
+    { label: 'Heading', value: note.headings.map((heading) => heading.text).join(' ').toLocaleLowerCase(), weight: 7 },
+    { label: 'Path', value: note.path.toLocaleLowerCase(), weight: 6 },
+    { label: 'Property', value: propertyText(note.properties).toLocaleLowerCase(), weight: 4 },
+    { label: 'Body', value: plainText(note.content).toLocaleLowerCase(), weight: 1 },
+  ]]))
+
   const search = (query: string): KnowledgeSearchResult[] => {
     const terms = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean)
     if (!terms.length) return []
     return documents.flatMap((note) => {
-      const fields = [
-        { label: 'Title', value: note.frontmatter.title, weight: 12 },
-        { label: 'Alias', value: note.frontmatter.aliases.join(' '), weight: 11 },
-        { label: 'Tag', value: tagsByDocument.get(note.id)?.join(' ') ?? '', weight: 9 },
-        { label: 'Heading', value: note.headings.map((heading) => heading.text).join(' '), weight: 7 },
-        { label: 'Path', value: note.path, weight: 6 },
-        { label: 'Property', value: propertyText(note.properties), weight: 4 },
-        { label: 'Body', value: plainText(note.content), weight: 1 },
-      ]
-      const termScores = terms.map((term) => fields.reduce((score, field) => field.value.toLocaleLowerCase().includes(term) ? score + field.weight : score, 0))
+      const fields = searchFields.get(note.id) ?? []
+      const termScores = terms.map((term) => fields.reduce((score, field) => field.value.includes(term) ? score + field.weight : score, 0))
       if (termScores.some((score) => score === 0)) return []
-      const matches = fields.filter((field) => terms.some((term) => field.value.toLocaleLowerCase().includes(term))).map((field) => field.label)
+      const matches = fields.filter((field) => terms.some((term) => field.value.includes(term))).map((field) => field.label)
       return [{ note, score: termScores.reduce((sum, value) => sum + value, 0), matches, snippet: searchSnippet(note, terms) }]
     }).sort((a, b) => b.score - a.score || a.note.frontmatter.title.localeCompare(b.note.frontmatter.title))
   }

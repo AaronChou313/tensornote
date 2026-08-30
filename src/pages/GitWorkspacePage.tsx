@@ -18,6 +18,7 @@ import {
 } from '@phosphor-icons/react'
 import { useAppStore } from '../store/useAppStore'
 import { useGitStore } from '../store/useGitStore'
+import { deploymentAdapter } from '../deployment/config'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import type { GitChange, GitChangeKind } from '../git/types'
 
@@ -116,7 +117,7 @@ export function GitWorkspacePage() {
   const autoConnectKey = useRef('')
 
   const workspaceName = provider?.descriptor.detail || provider?.descriptor.name || ''
-  const supported = Boolean(session?.capabilities.git && session.descriptor.type === 'local')
+  const supported = Boolean(deploymentAdapter.capabilities.gitBridge && session?.capabilities.git && session.descriptor.type === 'local')
   useEffect(() => {
     if (!supported || !workspaceName || autoConnectKey.current === `${workspaceName}:${bridgeUrl}`) return
     autoConnectKey.current = `${workspaceName}:${bridgeUrl}`
@@ -146,7 +147,7 @@ export function GitWorkspacePage() {
         {status && <div className="git-branch-badge"><GitBranch size={15} /><span><strong>{status.branch || 'No branch'}</strong><small>{status.detached ? 'Detached HEAD' : status.upstream || 'Local branch'}</small></span></div>}
       </header>
 
-      {!supported ? <section className="git-unavailable-state"><LinkBreak size={21} /><strong>Local Git is not available for this source.</strong><p>请先把 Workspace 作为本地目录打开。Bundled 与 GitHub 阅读来源保持只读，也不会连接本地仓库。</p></section>
+      {!supported ? <section className="git-unavailable-state"><LinkBreak size={21} /><strong>Local Git is not available in this runtime.</strong><p>{deploymentAdapter.capabilities.gitBridge ? '请先把 Workspace 作为本地目录打开。Bundled 与 GitHub 阅读来源保持只读，也不会连接本地仓库。' : `${deploymentAdapter.label} 不连接 localhost Git Bridge；请使用 Local Web Runtime 完成本地 Git 操作。`}</p></section>
         : connection !== 'ready' || !status || !health ? <SetupState bridgeDraft={bridgeDraft} busy={busy} error={error} onDraft={setBridgeDraft} onConnect={submitConnect} />
           : <>
             <section className="git-repository-bar" aria-label="Repository summary">

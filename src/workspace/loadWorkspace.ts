@@ -5,6 +5,7 @@ import { buildPropertyIndex } from '../content/propertyIndex'
 import { joinWorkspacePath, normalizeWorkspacePath } from './path'
 import { parseWorkspaceManifestWithCompatibility } from './schema'
 import type { WorkspaceEntry, WorkspaceProvider, WorkspaceSession } from './types'
+import { mapConcurrent } from './concurrency'
 
 const conventionalEnvironmentFiles = ['requirements.txt', 'pyproject.toml', 'environment.yml', 'environment.yaml']
 
@@ -32,10 +33,23 @@ export function detectEnvironmentFiles(entries: WorkspaceEntry[], declaredFiles:
 
 async function collectEntries(provider: WorkspaceProvider, path = ''): Promise<WorkspaceEntry[]> {
   const direct = await provider.list(path)
-  const nested = await Promise.all(
-    direct.filter((entry) => entry.kind === 'directory').map((entry) => collectEntries(provider, entry.path)),
-  )
+  const nested = await mapConcurrent(direct.filter((entry) => entry.kind === 'directory'), 8, (entry) => collectEntries(provider, entry.path))
   return [...direct, ...nested.flat()]
+}
+
+const documentCache = new WeakMap<WorkspaceProvider, Map<string, { fingerprint: string; document: ReturnType<typeof parseDocument> }>>()
+
+async function loadDocument(provider: WorkspaceProvider, entry: WorkspaceEntry) {
+  const stat = await provider.stat(entry.path)
+  const fingerprint = `${provider.descriptor.revision ?? ''}:${stat.modifiedAt ?? ''}:${stat.size ?? ''}`
+  const cacheable = provider.type === 'bundled' || Boolean(provider.descriptor.revision) || stat.modifiedAt !== undefined || stat.size !== undefined
+  const cache = documentCache.get(provider) ?? new Map()
+  documentCache.set(provider, cache)
+  const cached = cacheable ? cache.get(entry.path) : undefined
+  if (cached?.fingerprint === fingerprint) return cached.document
+  const document = parseDocument(entry.path, await provider.readText(entry.path), stat)
+  if (cacheable) cache.set(entry.path, { fingerprint, document })
+  return document
 }
 
 export async function loadWorkspace(provider: WorkspaceProvider, trustedRevisions: string[]): Promise<WorkspaceSession> {
@@ -55,10 +69,11 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     if (entry.kind !== 'file' || !entry.path.toLowerCase().endsWith('.md')) return false
     return !contentRoot || entry.path.startsWith(`${contentRoot}/`) || entry.path === contentRoot
   })
-  const documents = (await Promise.all(markdownEntries.map(async (entry) => {
-    const [raw, stat] = await Promise.all([provider.readText(entry.path), provider.stat(entry.path)])
-    return parseDocument(entry.path, raw, stat)
-  }))).sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'))
+  const documents = (await mapConcurrent(markdownEntries, 16, (entry) => loadDocument(provider, entry)))
+    .sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'))
+  const activePaths = new Set(markdownEntries.map((entry) => entry.path))
+  const cache = documentCache.get(provider)
+  if (cache) for (const path of cache.keys()) if (!activePaths.has(path)) cache.delete(path)
 
   const documentById = new Map<string, (typeof documents)[number]>()
   for (const document of documents) {

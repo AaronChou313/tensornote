@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.3 — Recovery` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.4 — Distribution & Performance` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -260,6 +260,17 @@ Git Bridge (fixed repository root)
 - 快照携带编辑开始时的 `modifiedAt/size` 基线。恢复后保存继续使用 `WorkspaceConflictError`，不会绕过外部修改保护。
 - `RecoveryBoundary` 捕获 React 渲染错误，提供重新加载、返回启动页和复制诊断；诊断只包含错误、路由、时间、组件栈和 User Agent，不包含 Markdown 内容或 Secret。
 - v0.8.3 是 v0.9.0 前的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
+
+## v0.8.4 Distribution & Performance
+
+- `DeploymentAdapter` 选择 Static、Local 或 Self-hosted 能力与 Router；Static 使用 Hash Router，避免托管平台必须支持任意 SPA Rewrite。
+- PWA Service Worker 只缓存同源 GET 和应用 Shell，更新时清除旧 TensorNote Cache；GitHub/HTTP/Jupyter 数据继续遵守各自网络和安全边界。
+- Local Web 可使用 Local Workspace 与 localhost Git Bridge；Static 和 Self-hosted 前端不声称具备未实现的 Server-mounted Workspace。
+- Self-hosted 产物使用同一 Vite build、Nginx SPA fallback 和 Docker 镜像；Desktop/Tauri 仍只是未来可选 Runtime Adapter，不复制业务逻辑。
+- Workspace 目录递归和文档加载有并发上限；刷新按 Provider 对象、路径、Revision、mtime 与 size 复用解析文档。
+- Knowledge Search 预计算规范化字段，链接/标签索引避免数组反复复制；Jupyter Provider 延迟加载；超大文件树每批渲染 200 项。
+- 性能门覆盖 1,000 与 10,000 笔记、超过 2MB Markdown 和 1,000 Asset 列表。阈值用于发现数量级回归，不承诺跨设备绝对耗时。
+- v0.8.4 是 v0.9.0 前的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
 
 ## 版本更新规则
 

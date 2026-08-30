@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="TensorNote">
+  <rect width="512" height="512" rx="116" fill="#dcecdf"/>
+  <path d="M128 139c0-22 18-40 40-40h176c22 0 40 18 40 40v35c0 11-9 20-20 20h-68v199c0 11-9 20-20 20h-40c-11 0-20-9-20-20V194h-68c-11 0-20-9-20-20v-35Z" fill="#4c8060"/>
+  <circle cx="355" cy="357" r="45" fill="#fcfdfb"/>
+  <path d="m334 357 14 14 29-31" fill="none" stroke="#4c8060" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

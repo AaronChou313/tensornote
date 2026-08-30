@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { detectEnvironmentFiles, loadWorkspace } from './loadWorkspace'
 import type { WorkspaceEntry, WorkspaceProvider } from './types'
 
@@ -114,5 +114,33 @@ describe('loadWorkspace', () => {
       { path: 'missing.toml', kind: 'unknown', exists: false, declared: true },
       { path: 'requirements.txt', kind: 'requirements', exists: true, declared: false },
     ])
+  })
+
+  it('reuses parsed documents when a refresh reports the same file fingerprint', async () => {
+    const provider = createProvider('local', { 'hello.md': note })
+    const readText = provider.readText.bind(provider)
+    let reads = 0
+    provider.readText = async (path) => { reads += 1; return readText(path) }
+    provider.stat = async (path) => ({ path, kind: 'file', size: note.length, modifiedAt: 123 })
+
+    await loadWorkspace(provider, [])
+    await loadWorkspace(provider, [])
+
+    expect(reads).toBe(1)
+  })
+
+  it('indexes large asset listings without reading binary payloads', async () => {
+    const files = Object.fromEntries([
+      ['notes/hello.md', note],
+      ...Array.from({ length: 1_000 }, (_, index) => [`assets/image-${index}.bin`, 'binary-placeholder']),
+    ])
+    const provider = createProvider('local', files)
+    provider.readBinary = vi.fn(async () => new ArrayBuffer(0))
+
+    const session = await loadWorkspace(provider, [])
+
+    expect(session.documents).toHaveLength(1)
+    expect(session.navigation.length).toBeGreaterThan(0)
+    expect(provider.readBinary).not.toHaveBeenCalled()
   })
 })

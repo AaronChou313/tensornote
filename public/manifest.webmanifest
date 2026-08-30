@@ -1,0 +1,13 @@
+{
+  "name": "TensorNote",
+  "short_name": "TensorNote",
+  "description": "Markdown-first executable knowledge workspace",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f8f3",
+  "theme_color": "#4c8060",
+  "icons": [
+    { "src": "./tensornote-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

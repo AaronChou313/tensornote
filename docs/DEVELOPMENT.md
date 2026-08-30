@@ -114,6 +114,12 @@ pnpm lint
 pnpm build
 ```
 
+涉及 Workspace 索引、Markdown 解析、目录树或 Provider 加载策略时，还必须运行：
+
+```bash
+pnpm test:performance
+```
+
 涉及界面时，还应在浏览器中至少检查：
 
 - 明亮和暗色主题

@@ -15,6 +15,17 @@
 - `v0.8.1 — Workbench & Authoring Polish`：已完成源码阶段；修复导航、侧栏、Workspace 切换、编辑命令与 Frontmatter 编辑体验，不单独创建 Release 或 Tag。
 - `v0.8.2 — Compatibility & Migration`：已完成源码阶段；建立 Workspace Schema、Settings 与 Extension API 的版本兼容和迁移边界，不单独创建 Release 或 Tag。
 - `v0.8.3 — Recovery`：已完成源码阶段；提供非破坏式草稿恢复、文件冲突延续保护与应用崩溃恢复界面，不单独创建 Release 或 Tag。
+- `v0.8.4 — Distribution & Performance`：已完成源码阶段；加入三种 Web 分发模式、PWA、自托管容器、缓存与大 Workspace 性能门，不单独创建 Release 或 Tag。
+
+## v0.8.4 — Distribution & Performance（源码阶段已完成）
+
+- Static Web 使用 Hash Router、相对 PWA Manifest 与 Service Worker，可部署到 GitHub Pages、Cloudflare Pages、Netlify 或同类静态平台。
+- Local Web 保留 Local Workspace、Jupyter 与可选 localhost Git Bridge；Static/Self-hosted 不展示不可用的 Git Bridge 入口。
+- Self-hosted 提供 Docker、Compose 与 Nginx SPA fallback；仍复用同一 Web Runtime，不形成第二套业务逻辑。
+- Workspace 文件读取限制并发，刷新按文件指纹复用解析结果；Jupyter Provider 延迟加载。
+- Knowledge Index 缓存搜索字段，文件树每次最多渲染 200 个同级项目。
+- 性能回归覆盖 1,000/10,000 笔记、超过 2MB Markdown 和 1,000 Asset 列表。
+- 阶段成果提交并推送到 `main`，但不创建 GitHub Release 或 Tag。
 
 ## v0.8.3 — Recovery（源码阶段已完成）
 

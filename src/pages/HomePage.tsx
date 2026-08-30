@@ -19,6 +19,7 @@ import { BundledWorkspaceProvider } from '../workspace/providers/BundledWorkspac
 import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
 import { pickLocalWorkspace } from '../workspace/providers/LocalWorkspaceProvider'
 import type { RecentWorkspace, WorkspaceProvider } from '../workspace/types'
+import { deploymentAdapter } from '../deployment/config'
 
 function parseGitHubRepository(value: string) {
   const normalized = value.trim().replace(/\.git$/, '').replace(/\/$/, '')
@@ -84,9 +85,9 @@ export function HomePage() {
     <main className="workspace-home">
       <header className="landing-nav">
         <div className="brand-compact"><span>T</span><strong>TensorNote</strong></div>
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === 'light' ? '切换深色模式' : '切换浅色模式'}>
+        <div className="landing-nav__runtime"><span>{deploymentAdapter.label}</span><Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === 'light' ? '切换深色模式' : '切换浅色模式'}>
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-        </Button>
+        </Button></div>
       </header>
 
       <div className="workspace-home__content">

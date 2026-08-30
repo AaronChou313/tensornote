@@ -1,0 +1,9 @@
+services:
+  tensornote:
+    build:
+      context: .
+      args:
+        VITE_BASE_PATH: /
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

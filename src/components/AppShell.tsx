@@ -22,6 +22,7 @@ import { ExtensionManagerDialog } from './extensions/ExtensionManagerDialog'
 import { ExtensionStatusBar } from './extensions/ExtensionStatusBar'
 import { ExtensionViewDialog } from './extensions/ExtensionViewDialog'
 import { useGitStore } from '../store/useGitStore'
+import { deploymentAdapter } from '../deployment/config'
 
 const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: module.LabDrawer })))
 
@@ -132,7 +133,7 @@ export function AppShell() {
       registry.register({ id: 'workspace.switch', label: 'Switch workspace', category: 'Workspace', description: 'Close the current workspace and return to the start page', execute: async () => { await switchWorkspace() } }),
       registry.register({ id: 'view.graph', label: 'Open graph', category: 'View', execute: () => navigate('/knowledge') }),
       registry.register({ id: 'view.database', label: 'Open database', category: 'View', description: 'Browse structured note properties', execute: () => navigate('/database') }),
-      registry.register({ id: 'view.git', label: 'Open Git workspace', category: 'View', description: 'Inspect local changes, diffs, history, and commits', isAvailable: () => session.capabilities.git && session.descriptor.type === 'local', execute: () => navigate('/git') }),
+      registry.register({ id: 'view.git', label: 'Open Git workspace', category: 'View', description: 'Inspect local changes, diffs, history, and commits', isAvailable: () => deploymentAdapter.capabilities.gitBridge && session.capabilities.git && session.descriptor.type === 'local', execute: () => navigate('/git') }),
       registry.register({ id: 'view.toggleSidebar', label: 'Toggle sidebar', category: 'View', execute: () => useWorkbenchStore.getState().setSidebar('left', !useWorkbenchStore.getState().leftSidebar) }),
       registry.register({ id: 'navigate.back', label: 'Go back', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goBack(); if (note) navigate(`/notes/${note}`) } }),
       registry.register({ id: 'navigate.forward', label: 'Go forward', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goForward(); if (note) navigate(`/notes/${note}`) } }),
