@@ -417,18 +417,47 @@ TensorNote v0.2 的本地编辑功能依赖 File System Access API，建议使�
 
 如果浏览器没有提供目录选择 API，仍可读取内置或 GitHub Workspace，但首页会提示改用支持该能力的浏览器。TensorNote 不会自动访问未由你选择的目录。
 
-## 8. 在 TensorNote 中填写连接信息
+## 8. 在 TensorNote 中配置 Compute Profile
 
 1. 在首页打开本地 Workspace，或打开内置的 AI Learning Notes。
 2. 打开任意带 Python Lab 的笔记，例如 Self-Attention。
-3. 展开 Python Lab，点击右上角设置。
+3. 点击顶部 Kernel 状态，或展开 Python Lab 后点击齿轮。
 4. 填写：
+   - Profile name：`Local Python`
    - Server URL：`http://127.0.0.1:8888`
    - Token：Jupyter 输出中 `token=` 后的随机字符串
    - Kernel Name：`tensornote`
-5. 保存后运行一个 Cell。
+   - Session Scope：初次使用建议 `Per note`
+5. 点击 `Run diagnostics`，确认 Browser、Server、Authentication、CORS、Kernel 与 WebSocket。
+6. 关闭设置后运行一个 Cell。
 
-Token 只保存在当前浏览器会话的 `sessionStorage` 中，关闭浏览器会话后即清除，也不会写入 Markdown 或 Git。Server URL 与 Kernel Name 会保存在本地，方便下次复用。第一次运行 Cell 时才创建 Kernel；同一篇笔记的 Lab 共享 Kernel，切换笔记会关闭当前 Kernel。
+Token 只保存在当前浏览器会话的 `sessionStorage` 中，关闭浏览器会话后即清除，也不会写入 Markdown 或 Git。Profile 的名称、Server URL、Kernel Name 和 Scope 会保存在浏览器本地，方便下次复用。第一次运行 Cell 时才创建 Kernel。
+
+Session Scope 决定 Kernel 生命周期：
+
+- `Per note`：同一篇笔记的 Lab 共享 Kernel，切换笔记时关闭。
+- `Per workspace`：同一 Workspace 内切换笔记仍复用 Kernel。
+- `Manual`：在 Workspace 内持续复用，直到点击 Disconnect；关闭 Workspace 时仍会关闭。
+
+可以为本机 CPU、笔记本 GPU、实验室服务器、远程服务器和 Jetson 分别创建 Profile。完整说明见 [Compute Platform 使用说明](COMPUTE_PLATFORM.md)。
+
+### 8.1 声明 Workspace 环境文件
+
+可在 Workspace 根目录的 `tensornote.yaml` 中声明环境入口：
+
+```yaml
+environment:
+  files:
+    - requirements.txt
+    - pyproject.toml
+    - environment.yml
+```
+
+Compute 设置会显示这些文件是否存在，也会发现根目录中的常见环境文件。TensorNote 只检测和提示，绝不会静默运行 `pip install`、`conda env create` 或 `uv sync`。
+
+### 8.2 使用 Scratch Lab
+
+顶部 `Scratch` 打开临时计算区。代码只存在内存中，点击 `Insert into note` 后才会追加到当前本地可写笔记；刷新或关闭前请先插入或手动复制需要保留的代码。
 
 ## 9. 以后每天启动什么
 
@@ -453,11 +482,11 @@ pnpm dev --host localhost --port 5173 --strictPort
 
 ### 浏览器
 
-打开 `http://localhost:5173`。如果 Jupyter 每次生成的新 Token 不同，需要在 TensorNote 设置中更新 Token。仅阅读笔记时，可以只启动终端 B。
+打开 `http://localhost:5173`。选择正确 Compute Profile；如果 Jupyter 每次生成的新 Token 不同，需要更新 Token。连接异常时先运行内置 diagnostics。仅阅读笔记时，可以只启动终端 B。
 
 ## 10. 正确关闭
 
-1. 先停止运行中的 Cell，离开当前笔记，让 TensorNote 请求关闭当前 Kernel。
+1. 先停止运行中的 Cell，在 Compute 设置中点击 Disconnect，或关闭当前 Workspace，让 TensorNote 请求关闭当前 Kernel。
 2. 在终端 B 按 `Ctrl+C` 停止 Vite。
 3. 在终端 A 按 `Ctrl+C` 停止 Jupyter；如果要求确认，输入 `y`。
 4. 可选：运行 `conda deactivate` 或 `deactivate` 退出 Python 环境。
@@ -472,6 +501,7 @@ jupyter server list
 
 ### 页面能打开，但连接 Jupyter 失败或出现 403/CORS
 
+- 先打开 Compute 设置运行 `Connection diagnostics`，查看失败发生在 Browser、Server、Authentication、CORS、Kernel 还是 WebSocket。
 - 确认前端地址严格为 `http://localhost:5173`。
 - 确认 Jupyter 启动参数包含完全相同的 `--ServerApp.allow_origin=http://localhost:5173`。
 - 如果你改用 `http://127.0.0.1:5173` 打开前端，Jupyter 的 `allow_origin` 也必须同步改为该地址。

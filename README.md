@@ -6,7 +6,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前版本：`v0.3.0 — Knowledge System`。
+当前版本：`v0.4.0 — Compute Platform`。
 
 ## 快速开始
 
@@ -72,6 +72,19 @@ status: growing
 
 完整语法、链接解析规则和重命名注意事项见[知识系统使用说明](docs/KNOWLEDGE_SYSTEM.md)。
 
+## Compute Platform
+
+原有单一 Jupyter 连接已升级为通用 Compute Layer：
+
+- 保存多个 Compute Profile，例如 Local Python、Laptop GPU、Lab RTX4090、Remote Server 和 Jetson。
+- 每个 Profile 可选择 Per note、Per workspace 或 Manual Session Scope。
+- Lab 支持 Run、Run All、Run Above、Run Below、Interrupt、Restart、Restart & Run All 和 Clear Outputs。
+- Scratch Lab 中的临时代码不会自动写入 Markdown；确认后才使用 `Insert into note` 生成可移植的 executable Fence。
+- 自动检测 Workspace 声明或根目录中的 `requirements.txt`、`pyproject.toml` 与 `environment.yml`，只提示、不静默安装。
+- 内置连接诊断依次检查 Browser、Server、Authentication、CORS、Kernel 与 WebSocket。
+
+完整配置、生命周期与故障排查见 [Compute Platform 使用说明](docs/COMPUTE_PLATFORM.md)。
+
 生产检查：
 
 ```bash
@@ -80,7 +93,7 @@ pnpm lint
 pnpm build
 ```
 
-## 连接 Jupyter
+## 配置 Compute Profile
 
 先激活需要使用的 Conda 或 venv 环境，并确保该环境已安装 Jupyter Server：
 
@@ -95,13 +108,13 @@ jupyter server --ServerApp.allow_origin=http://localhost:5173
 jupyter server list
 ```
 
-在任意笔记中打开 Python Lab，点击右上角设置，填写：
+点击顶部 Kernel 状态，或在任意 Lab 中点击齿轮，打开 Compute 设置。默认 `Local Python` Profile 填写：
 
 - Server URL，默认 `http://127.0.0.1:8888`
 - Token
 - Kernel Name；按完整手册注册后填写 `tensornote`
 
-第一次运行 Cell 时才会创建 Kernel。同一篇笔记内的所有 Lab 共享 Kernel。切换笔记会关闭当前 Kernel，防止变量污染。
+先运行 `Connection diagnostics`，全部关键检查通过后再执行 Cell。第一次运行时才会创建 Kernel；何时关闭由 Profile 的 Session Scope 决定。
 
 ## 可执行 Markdown 语法
 
@@ -120,6 +133,9 @@ navigation:
   mode: filesystem
 features:
   executable: true
+environment:
+  files:
+    - requirements.txt
 ```
 
 没有配置文件时，TensorNote 仍会尝试把目录作为普通 Markdown Workspace 打开，但默认不授予可执行能力。
@@ -159,7 +175,8 @@ tensornote/
 ├── src/                 React 应用
 │   ├── components/      阅读与 Lab UI
 │   ├── content/         Markdown、Lab Parser 与 KnowledgeIndex
-│   ├── jupyter/         Jupyter 执行层
+│   ├── compute/         ComputeProvider、Profile、Scope 与诊断
+│   ├── jupyter/         Jupyter Provider 的底层 Client
 │   ├── workspace/       Schema、统一加载器与 Providers
 │   └── store/           Workspace、界面、进度与连接配置
 ├── notes/               唯一知识源，共 35 篇 V1 笔记

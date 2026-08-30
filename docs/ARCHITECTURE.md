@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录 `v0.1.0 — Workspace Foundation`、`v0.2.0 — Authoring` 与 `v0.3.0 — Knowledge System` 已落地的稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录 `v0.1.0 — Workspace Foundation`、`v0.2.0 — Authoring`、`v0.3.0 — Knowledge System` 与 `v0.4.0 — Compute Platform` 已落地的稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -99,12 +99,40 @@ navigation:
   mode: filesystem
 features:
   executable: false
+environment:
+  files:
+    - requirements.txt
 ```
 
 - 未提供配置时仍可打开普通 Markdown 文件夹。
 - 无配置的 Workspace 默认 `executable: false`。
 - 未知顶层字段被忽略；扩展元数据放在 `extensions`。
 - 文档 `id` 必须在 Workspace 内唯一。
+- `environment.files` 是环境入口提示；缺失或存在都会展示，但 TensorNote 不自动安装。
+
+## v0.4 Compute Layer
+
+```text
+Lab UI / Scratch Lab
+        │
+        ▼
+ComputeRuntime ── profile + context + scope key
+        │
+        ▼
+ComputeProvider ── connect / session / kernels / diagnose
+        │
+        ▼
+JupyterComputeProvider ── JupyterClient
+```
+
+- UI 依赖 `ComputeRuntime` 与通用类型，不再直接持有全局 `JupyterClient`。
+- `ComputeProfile` 保存 Provider 类型、Server URL、Kernel Name 与 Scope；Token 单独进入 `sessionStorage`。
+- `Per note` 的 scope key 包含 Workspace 和 Note；`Per workspace` 与 `Manual` 在笔记导航间复用 Session。
+- Profile、连接配置、Workspace 或 Per-note 上下文不兼容时，Runtime 先关闭旧 Session，再按需创建新 Session。
+- `JupyterComputeProvider` 负责 REST、Kernel 与 WebSocket 适配；未来 Provider 需要实现同一连接、执行、控制和诊断契约。
+- Scratch Lab 只维护内存 Cell；`Insert into note` 通过 Lab Parser 生成 executable Fence，且写入仍经过 Provider 的冲突保护。
+- Environment detection 合并 manifest 声明与根目录常用文件，仅输出存在状态，不触发包管理器。
+- Diagnostics 使用临时 Provider；WebSocket 检查创建并立即关闭探测 Kernel，不复用活动 Session。
 
 ## 信任与凭据边界
 
@@ -112,10 +140,11 @@ features:
 - 只有 `features.executable: true` 且当前 Revision 已受信任时，远程 Workspace 才能触发 Jupyter 执行。
 - Jupyter Token 只写入 `sessionStorage`，关闭浏览器会话后清除；长期配置只保存 Server URL 与 Kernel Name。
 - Workspace 配置不得包含 Token、密码或云端密钥。
+- 诊断错误在显示前对当前 Token 脱敏；环境声明不会被当作安装授权。
 
-## v0.3 当前明确不做
+## v0.4 当前明确不做
 
-v0.3 不提供全局巨型图、数据库视图、插件市场、AI 辅助或多人协同。Compute Platform、Workbench、Extensibility 与 Structured Knowledge 将继续按路线图演进。
+v0.4 不提供自动安装 Python 环境、后台常驻 Kernel、全局巨型图、数据库视图、插件市场、AI 辅助或多人协同。Workbench、Extensibility 与 Structured Knowledge 将继续按路线图演进。
 
 ## 版本更新规则
 
