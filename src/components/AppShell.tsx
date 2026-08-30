@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BundledWorkspaceProvider } from '../workspace/providers/BundledWorkspaceProvider'
 import { Sidebar } from './Sidebar'
@@ -21,6 +21,7 @@ import { useExtensionStore } from '../store/useExtensionStore'
 import { ExtensionManagerDialog } from './extensions/ExtensionManagerDialog'
 import { ExtensionStatusBar } from './extensions/ExtensionStatusBar'
 import { ExtensionViewDialog } from './extensions/ExtensionViewDialog'
+import { useGitStore } from '../store/useGitStore'
 
 const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: module.LabDrawer })))
 
@@ -42,6 +43,7 @@ export function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
+  const activeView = useWorkbenchStore((state) => state.activeView)
   const previousPath = useRef(location.pathname)
   const legacyOpenAttempted = useRef(false)
   const extensionsInitialised = useRef(false)
@@ -53,6 +55,24 @@ export function AppShell() {
     getSetting: (extensionId, key) => useExtensionStore.getState().settings[extensionId]?.[key],
     setSetting: (extensionId, key, value) => useExtensionStore.getState().setSetting(extensionId, key, value),
   }))
+
+  const switchWorkspace = useCallback(async () => {
+    const appState = useAppStore.getState()
+    const dirtyNotes = Object.keys(appState.editorDirtyPaths).length
+    if ((dirtyNotes > 0 || appState.labDirty) && !window.confirm(
+      `${dirtyNotes > 0 ? `${dirtyNotes} 篇笔记有未保存修改` : ''}${dirtyNotes > 0 && appState.labDirty ? '，并且 ' : ''}${appState.labDirty ? 'Python Lab 有未保存修改' : ''}。确定关闭当前 Workspace 吗？`,
+    )) return false
+
+    await computeRuntime.shutdown()
+    await useWorkspaceStore.getState().closeWorkspace()
+    useWorkbenchStore.getState().resetWorkspace()
+    useAppStore.getState().resetWorkspaceUi()
+    useComputeStore.getState().setScratchOpen(false)
+    useComputeStore.getState().setSettingsOpen(false)
+    useGitStore.getState().disconnect()
+    navigate('/', { replace: true })
+    return true
+  }, [navigate])
 
   useEffect(() => {
     if (extensionsInitialised.current) return
@@ -107,6 +127,9 @@ export function AppShell() {
     const unregister = [
       ...session.documents.map((note) => registry.register({ id: `note.open.${note.id}`, label: `Open note: ${note.frontmatter.title}`, category: 'Navigation' as const, description: note.path, execute: () => open(note.id) })),
       registry.register({ id: 'note.new', label: 'New note', category: 'Workspace', description: 'Open the New note dialog', isAvailable: () => session.capabilities.write, execute: requestNewNote }),
+      registry.register({ id: 'workspace.overview', label: 'Open workspace overview', category: 'Workspace', execute: () => navigate('/workspace') }),
+      registry.register({ id: 'workspace.refresh', label: 'Refresh workspace files', category: 'Workspace', execute: () => useWorkspaceStore.getState().refreshWorkspace().then(() => undefined) }),
+      registry.register({ id: 'workspace.switch', label: 'Switch workspace', category: 'Workspace', description: 'Close the current workspace and return to the start page', execute: async () => { await switchWorkspace() } }),
       registry.register({ id: 'view.graph', label: 'Open graph', category: 'View', execute: () => navigate('/knowledge') }),
       registry.register({ id: 'view.database', label: 'Open database', category: 'View', description: 'Browse structured note properties', execute: () => navigate('/database') }),
       registry.register({ id: 'view.git', label: 'Open Git workspace', category: 'View', description: 'Inspect local changes, diffs, history, and commits', isAvailable: () => session.capabilities.git && session.descriptor.type === 'local', execute: () => navigate('/git') }),
@@ -116,7 +139,7 @@ export function AppShell() {
       registry.register({ id: 'compute.runAll', label: 'Run all labs in current note', category: 'Compute', description: 'Open the note Lab and queue Run all', isAvailable: () => Boolean(activeNote()?.labs[0]), execute: () => { const lab = activeNote()?.labs[0]; if (!lab) return; setScratchOpen(false); setActiveLabId(lab.id); setPendingLabAction({ labId: lab.id, action: 'runAll' }) } }),
     ]
     return () => unregister.forEach((remove) => remove())
-  }, [navigate, registry, requestNewNote, session, setActiveLabId, setPendingLabAction, setScratchOpen])
+  }, [navigate, registry, requestNewNote, session, setActiveLabId, setPendingLabAction, setScratchOpen, switchWorkspace])
 
   useEffect(() => {
     computeRuntime.onStatus(setKernelStatus)
@@ -141,6 +164,20 @@ export function AppShell() {
     })
   }, [location.pathname, profile, session])
 
+  useEffect(() => {
+    if (!session) return
+    const noteId = location.pathname.match(/^\/notes\/([^/]+)/)?.[1]
+    if (noteId) {
+      const note = session.documentById.get(decodeURIComponent(noteId))
+      const state = useWorkbenchStore.getState()
+      if (note && (state.activeView || state.panes[state.activePane] !== note.id)) state.openNote(note.id, note.frontmatter.title)
+      return
+    }
+    const viewByPath = { '/workspace': 'workspace', '/knowledge': 'knowledge', '/database': 'database', '/git': 'git' } as const
+    const view = viewByPath[location.pathname as keyof typeof viewByPath]
+    if (view && useWorkbenchStore.getState().activeView !== view) useWorkbenchStore.getState().openView(view)
+  }, [location.pathname, session])
+
   if (!session) {
     if (status === 'idle' && (location.pathname === '/workspace' || location.pathname === '/knowledge' || location.pathname === '/database' || location.pathname === '/git')) return <Navigate to="/" replace />
     return (
@@ -156,10 +193,10 @@ export function AppShell() {
   return <CommandRegistryContext.Provider value={registry}>
     <ExtensionRuntimeContext.Provider value={extensionRuntime}>
       <div className={`app-workbench ${leftSidebar ? '' : 'app-workbench--sidebar-collapsed'}`}>
-        <Sidebar />
+        <Sidebar onSwitchWorkspace={switchWorkspace} />
         <div className="workbench-main">
           <TopBar />
-          <WorkbenchTabs />
+          {!activeView && <WorkbenchTabs />}
           <Outlet />
           <ExtensionStatusBar />
         </div>

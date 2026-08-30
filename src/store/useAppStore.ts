@@ -29,6 +29,7 @@ interface AppState {
   setEditorDirtyPath: (path: string | null) => void
   setEditorDirty: (path: string, dirty: boolean) => void
   setLabDirty: (dirty: boolean) => void
+  resetWorkspaceUi: () => void
   updateProgress: (noteId: string, patch: Partial<NoteProgress>) => void
 }
 
@@ -65,6 +66,17 @@ export const useAppStore = create<AppState>()(
         return { editorDirtyPaths, editorDirtyPath: Object.keys(editorDirtyPaths)[0] ?? null }
       }),
       setLabDirty: (labDirty) => set({ labDirty }),
+      resetWorkspaceUi: () => set({
+        sidebarOpen: false,
+        searchOpen: false,
+        commandPaletteOpen: false,
+        activeLabId: null,
+        pendingLabAction: null,
+        kernelStatus: 'offline',
+        editorDirtyPath: null,
+        editorDirtyPaths: {},
+        labDirty: false,
+      }),
       updateProgress: (noteId, patch) =>
         set((state) => ({
           progress: {

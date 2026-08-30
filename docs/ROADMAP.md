@@ -12,6 +12,16 @@
 - `v0.6.0 — Extension Platform`：已发布；见 [Extension Platform 指南](EXTENSIONS.md) 与 [Release notes](releases/v0.6.0.md)。
 - `v0.7.0 — Structured Knowledge`：已完成；见 [Structured Knowledge 指南](STRUCTURED_KNOWLEDGE.md) 与 [Release notes](releases/v0.7.0.md)。
 - `v0.8.0 — Git & Sync`：已完成；见 [Local Git 指南](GIT_AND_SYNC.md) 与 [Release notes](releases/v0.8.0.md)。
+- `v0.8.1 — Workbench & Authoring Polish`：已完成源码阶段；修复导航、侧栏、Workspace 切换、编辑命令与 Frontmatter 编辑体验，不单独创建 Release 或 Tag。
+
+## v0.8.1 — Workbench & Authoring Polish（源码阶段已完成）
+
+- 统一侧栏开关，桌面收起后始终显示恢复入口，移动端保持单一目录抽屉控制。
+- Workspace View 与笔记 Tab、Pane 和历史分离；Workspace 卡片提供概览、刷新和受 Dirty State 保护的切换入口。
+- 切换时关闭 Provider、Compute 与 Git 会话，并清理 Workspace 范围的工作台和临时 UI 状态。
+- 普通 CodeMirror 只编辑 Markdown Body；独立可折叠 Properties 面板读写 YAML Frontmatter 并保留未知字段。
+- 格式工具使用统一图标，修复空行和多行 Heading 的内容与光标映射。
+- 阶段成果提交并推送到 `main`，但不创建 GitHub Release 或 Tag；正式 Release 保留给完整 `v0.9.0`。
 
 ## v0.8.0 — Git & Sync（已完成）
 

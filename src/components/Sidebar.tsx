@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, Trash, X } from '@phosphor-icons/react'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowClockwise, ArrowsOutLineHorizontal, CaretDown, CaretUpDown, Copy, DotsThree, FilePlus, FileText, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, Trash, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -62,7 +62,7 @@ function TreeItem({ item, depth = 0, onAction }: { item: NoteTreeItem; depth?: n
   )
 }
 
-export function Sidebar() {
+export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promise<boolean> }) {
   const sidebarOpen = useAppStore((state) => state.sidebarOpen)
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
   const session = useWorkspaceStore((state) => state.session)
@@ -73,29 +73,78 @@ export function Sidebar() {
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
   const registry = useCommandRegistry()
   const extensionItems = useExtensionSnapshot().sidebarItems
+  const workspaceMenu = useRef<HTMLDetailsElement>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [workspaceActionError, setWorkspaceActionError] = useState<string | null>(null)
   useEffect(() => {
     return useAppStore.subscribe((state, previous) => {
       if (state.newNoteRequestNonce !== previous.newNoteRequestNonce && session?.capabilities.write) setFileDialog({ action: 'new-note' })
     })
   }, [session?.capabilities.write])
+  useEffect(() => {
+    const dismiss = (event: PointerEvent) => {
+      if (workspaceMenu.current?.open && !workspaceMenu.current.contains(event.target as Node)) workspaceMenu.current.removeAttribute('open')
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') workspaceMenu.current?.removeAttribute('open')
+    }
+    document.addEventListener('pointerdown', dismiss)
+    window.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', dismiss)
+      window.removeEventListener('keydown', escape)
+    }
+  }, [])
   if (!session) return null
+
+  const refreshWorkspace = async () => {
+    if (refreshing) return
+    setRefreshing(true)
+    setWorkspaceActionError(null)
+    try {
+      await useWorkspaceStore.getState().refreshWorkspace()
+      workspaceMenu.current?.removeAttribute('open')
+    } catch (reason) {
+      setWorkspaceActionError(reason instanceof Error ? reason.message : '无法刷新 Workspace')
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
+  const switchWorkspace = async () => {
+    setWorkspaceActionError(null)
+    try {
+      if (await onSwitchWorkspace()) workspaceMenu.current?.removeAttribute('open')
+    } catch (reason) {
+      setWorkspaceActionError(reason instanceof Error ? reason.message : '无法关闭当前 Workspace')
+    }
+  }
 
   return (
     <>
       {sidebarOpen && <button className="sidebar-scrim" onClick={() => setSidebarOpen(false)} aria-label="关闭目录" />}
-      <aside className={cn('workspace-sidebar', sidebarOpen ? 'translate-x-0' : '-translate-x-full', !leftSidebar && 'workspace-sidebar--collapsed')}>
+      <aside className={cn('workspace-sidebar', sidebarOpen ? 'translate-x-0' : '-translate-x-full', !leftSidebar && !sidebarOpen && 'workspace-sidebar--collapsed')}>
         <div className="sidebar-brand">
           <NavLink to="/workspace" onClick={() => setSidebarOpen(false)} aria-label="Workspace 首页">
             <span className="brand-mark">T</span>
             <span><strong>TensorNote</strong><small>Executable workspace</small></span>
           </NavLink>
-          <div><button className="sidebar-icon-action" onClick={() => setSearchOpen(true)} aria-label="搜索文件" title="Search (⌘K)"><MagnifyingGlass size={16} /></button><button className="sidebar-icon-action" onClick={() => setLeftSidebar('left', !leftSidebar)} aria-label={leftSidebar ? '收起侧栏' : '展开侧栏'} title={leftSidebar ? 'Collapse sidebar' : 'Expand sidebar'}><X size={16} /></button><Button className="lg:hidden" variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} aria-label="关闭目录"><X size={18} /></Button></div>
+          <div><button className="sidebar-icon-action" onClick={() => setSearchOpen(true)} aria-label="搜索文件" title="Search (⌘K)"><MagnifyingGlass size={16} /></button><button className="sidebar-icon-action sidebar-icon-action--collapse" onClick={() => setLeftSidebar('left', false)} aria-label="收起侧栏" title="Collapse sidebar"><SidebarSimple size={16} /></button><Button className="lg:hidden" variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} aria-label="关闭目录"><X size={18} /></Button></div>
         </div>
 
-        <div className="sidebar-workspace-name">
-          <span>{session.manifest.workspace.name.slice(0, 1).toUpperCase()}</span>
-          <div><strong>{session.manifest.workspace.name}</strong><small>{session.documents.length} Markdown files</small></div>
-        </div>
+        <details className="sidebar-workspace-menu" ref={workspaceMenu}>
+          <summary className="sidebar-workspace-name" aria-label="Workspace 菜单">
+            <span>{session.manifest.workspace.name.slice(0, 1).toUpperCase()}</span>
+            <div><strong>{session.manifest.workspace.name}</strong><small>{session.documents.length} Markdown files</small></div>
+            <CaretUpDown size={14} weight="bold" />
+          </summary>
+          <div className="sidebar-workspace-menu__popover">
+            <NavLink to="/workspace" onClick={() => { workspaceMenu.current?.removeAttribute('open'); setSidebarOpen(false) }}><House size={15} />工作区概览</NavLink>
+            <button type="button" onClick={() => void refreshWorkspace()} disabled={refreshing}><ArrowClockwise size={15} className={refreshing ? 'is-spinning' : ''} />{refreshing ? '正在刷新…' : '刷新文件'}</button>
+            <button type="button" onClick={() => void switchWorkspace()}><FolderOpen size={15} />切换工作区</button>
+            {workspaceActionError && <p role="alert">{workspaceActionError}</p>}
+          </div>
+        </details>
 
         <div className="sidebar-overview-link">
           <NavLink to="/workspace" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>

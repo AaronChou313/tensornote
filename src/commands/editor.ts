@@ -87,5 +87,23 @@ export function transformEditorCommand(id: EditorCommandId, value: string, selec
     const content = line.slice(indent.length).replace(/^#{1,6}\s+/, '')
     return level ? `${indent}${'#'.repeat(level)} ${content}` : `${indent}${content}`
   }).join('\n')
-  return replace(value, range, next, selection.from - range.from, selection.to - range.from + next.length - text.length)
+  const mapOffset = (offset: number) => {
+    let sourceOffset = 0
+    let destinationOffset = 0
+    for (const line of text.split('\n')) {
+      const indent = line.match(/^\s*/)?.[0] ?? ''
+      const oldPrefix = line.slice(indent.length).match(/^#{1,6}\s+/)?.[0] ?? ''
+      const newPrefix = level ? `${'#'.repeat(level)} ` : ''
+      const lineEnd = sourceOffset + line.length
+      if (offset <= lineEnd) {
+        const withinLine = offset - sourceOffset
+        if (withinLine <= indent.length + oldPrefix.length) return destinationOffset + indent.length + newPrefix.length
+        return destinationOffset + withinLine + newPrefix.length - oldPrefix.length
+      }
+      sourceOffset = lineEnd + 1
+      destinationOffset += indent.length + newPrefix.length + line.slice(indent.length + oldPrefix.length).length + 1
+    }
+    return destinationOffset
+  }
+  return replace(value, range, next, mapOffset(selection.from - range.from), mapOffset(selection.to - range.from))
 }

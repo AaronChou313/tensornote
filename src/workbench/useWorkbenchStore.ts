@@ -1,12 +1,14 @@
 import { create } from 'zustand'
 
 export type PaneId = 'main' | 'secondary'
+export type WorkbenchView = 'workspace' | 'knowledge' | 'database' | 'git'
 export interface WorkbenchTab { noteId: string; title: string; pinned: boolean }
 
 interface WorkbenchState {
   tabs: WorkbenchTab[]
   panes: Record<PaneId, string | null>
   activePane: PaneId
+  activeView: WorkbenchView | null
   secondaryOpen: boolean
   secondaryPosition: 'left' | 'right'
   leftSidebar: boolean
@@ -16,6 +18,8 @@ interface WorkbenchState {
   history: string[]
   historyIndex: number
   openNote: (noteId: string, title: string, pane?: PaneId) => void
+  openView: (view: WorkbenchView) => void
+  resetWorkspace: () => void
   closeTab: (noteId: string) => string | null
   togglePin: (noteId: string) => void
   split: (side: 'left' | 'right') => void
@@ -28,18 +32,33 @@ interface WorkbenchState {
 }
 
 export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
-  tabs: [], panes: { main: null, secondary: null }, activePane: 'main', secondaryOpen: false, secondaryPosition: 'right',
+  tabs: [], panes: { main: null, secondary: null }, activePane: 'main', activeView: null, secondaryOpen: false, secondaryPosition: 'right',
   leftSidebar: true, rightSidebar: false, rightView: 'outline', recent: [], history: [], historyIndex: -1,
   openNote: (noteId, title, pane = get().activePane) => set((state) => {
     const existing = state.tabs.some((tab) => tab.noteId === noteId)
     const history = state.history.slice(0, state.historyIndex + 1)
     return {
       tabs: existing ? state.tabs : [...state.tabs, { noteId, title, pinned: false }],
-      panes: { ...state.panes, [pane]: noteId }, activePane: pane,
+      panes: { ...state.panes, [pane]: noteId }, activePane: pane, activeView: null,
       recent: [noteId, ...state.recent.filter((id) => id !== noteId)].slice(0, 12),
       history: history[history.length - 1] === noteId ? history : [...history, noteId],
       historyIndex: history[history.length - 1] === noteId ? state.historyIndex : history.length,
     }
+  }),
+  openView: (activeView) => set({ activeView }),
+  resetWorkspace: () => set({
+    tabs: [],
+    panes: { main: null, secondary: null },
+    activePane: 'main',
+    activeView: null,
+    secondaryOpen: false,
+    secondaryPosition: 'right',
+    leftSidebar: true,
+    rightSidebar: false,
+    rightView: 'outline',
+    recent: [],
+    history: [],
+    historyIndex: -1,
   }),
   closeTab: (noteId) => {
     const state = get()

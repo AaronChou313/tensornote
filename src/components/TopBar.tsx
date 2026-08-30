@@ -62,7 +62,7 @@ export function TopBar() {
         </Button>
         <Button variant="ghost" className="command-trigger" onClick={() => setCommandPaletteOpen(true)} aria-label="打开命令面板"><Command size={15} /><span>Command</span><kbd>⌘P</kbd></Button>
         <Button variant="ghost" size="icon" onClick={() => setExtensionManagerOpen(true)} aria-label="管理扩展" title="Extensions"><PuzzlePiece size={17} /></Button>
-        <Button variant="ghost" size="icon" onClick={() => setLeftSidebar('left', !leftSidebar)} aria-label={leftSidebar ? '收起文件侧栏' : '展开文件侧栏'}><SidebarSimple size={17} /></Button>
+        {!leftSidebar && <Button className="sidebar-reopen-trigger" variant="ghost" size="icon" onClick={() => setLeftSidebar('left', true)} aria-label="展开文件侧栏" title="Expand sidebar"><SidebarSimple size={17} /></Button>}
         <Button variant="ghost" className="scratch-trigger" onClick={() => { setActiveLabId(null); setScratchOpen(true) }}><Flask size={15} />Scratch</Button>
         <button className="kernel-status" title={`${profile.name} · ${profile.scope}`} onClick={() => setSettingsOpen(true)}><span className={`kernel-dot kernel-dot--${kernelStatus}`} /><span>{statusLabels[kernelStatus]}</span><small>{profile.name}</small></button>
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === 'light' ? '切换深色模式' : '切换浅色模式'}>

@@ -34,6 +34,7 @@ TensorNote 是一个本地优先、Markdown-first、由 Jupyter 驱动的可执�
 - 当前属性查询支持 `=`、`!=`、`AND`、大小写无关键、字符串/数字/布尔/空值及数组成员匹配；不提供范围、排序、聚合、写回编辑或复杂逻辑查询。
 - Git & Sync v0.8.0 为 Local Workspace 提供 Status、Diff、History、Stage、Unstage、Commit 与 Branch Info；通过用户显式启动、固定仓库根目录的 localhost Bridge 调用系统 Git。
 - Git 同步保持可选；当前不提供 Push、Pull、Fetch、远程认证、Branch 操作或冲突解决器。
+- Workbench & Authoring Polish v0.8.1 统一桌面与移动侧栏入口，提供受未保存状态保护的 Workspace 切换，并将普通正文编辑与可折叠 Frontmatter Properties 分离；阶段版本只提交源码，不单独发布 Release。
 
 ## Brand Commitments
 

@@ -117,6 +117,18 @@ export interface DocumentProperties {
   summary: string
 }
 
+/** Returns the Markdown body that belongs in the normal editor, not its YAML. */
+export function getDocumentBody(raw: string) {
+  const match = raw.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/)
+  return match ? raw.slice(match[0].length) : raw
+}
+
+/** Replaces only the visible Markdown body while leaving the original YAML intact. */
+export function replaceDocumentBody(raw: string, body: string) {
+  const match = raw.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/)
+  return match ? `${match[0]}${body}` : body
+}
+
 export function getDocumentProperties(raw: string): DocumentProperties {
   const data = matter(raw).data
   return {

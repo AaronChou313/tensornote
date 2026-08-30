@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.0 — Git & Sync` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.1 — Workbench & Authoring Polish` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -235,6 +235,15 @@ Git Bridge (fixed repository root)
 - Git Store 只持有 Bridge URL、当前状态、History 与选中 Diff，不保存 Markdown 内容、凭据或 Git 对象。
 - v0.8 不实现 Git 协议、Clone、Push、Pull、Fetch、Branch 写操作、远程认证、冲突编辑器、Merge、Rebase 或 Reset。
 - 完整配置与安全说明见 [Local Git 使用说明](GIT_AND_SYNC.md)。
+
+## v0.8.1 Workbench & Authoring Reliability
+
+- `/workspace`、`/knowledge`、`/database` 与 `/git` 是 Workspace View，不进入笔记 Tab 或笔记前进/后退历史；笔记路由重新激活对应 Pane。
+- `resetWorkspace()` 清理 Tab、Pane、View、最近笔记、历史和侧栏布局；切换 Workspace 时同时关闭 Compute、Git 与 Provider，并清理 Dirty、Lab 和临时对话框状态。
+- 切换前统一检查所有编辑器 Dirty Path 和 Lab Dirty State；用户取消确认时不关闭当前 Workspace。
+- 普通 CodeMirror 只接收 Markdown Body。`getDocumentBody` / `replaceDocumentBody` 在显示正文与保存完整文件之间保持原始 YAML Frontmatter，包括未知字段。
+- 格式工具栏、快捷键与 Command Palette 继续调用同一 Editor Transform；标题转换使用逐行偏移映射保持空行、多行选区和光标位置稳定。
+- v0.8.1 是 v0.9.0 前的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
 
 ## 版本更新规则
 

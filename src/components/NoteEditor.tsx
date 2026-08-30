@@ -6,17 +6,40 @@ import type { EditorView } from '@codemirror/view'
 import {
   ArrowCounterClockwise,
   ArrowClockwise,
+  CheckSquare,
+  Code,
+  CodeBlock,
   Columns,
+  DotsThree,
   Eye,
   FloppyDisk,
+  Image,
+  LinkSimple,
+  ListBullets,
+  ListNumbers,
+  MathOperations,
+  Minus,
   NotePencil,
+  Paragraph,
+  Quotes,
   SlidersHorizontal,
+  Table,
+  TextB,
+  TextHFive,
+  TextHFour,
+  TextHOne,
+  TextHSix,
+  TextHThree,
+  TextHTwo,
+  TextItalic,
+  TextStrikethrough,
+  TextT,
   UploadSimple,
   WarningCircle,
   X,
 } from '@phosphor-icons/react'
 import type { Note } from '../types'
-import { getDocumentProperties, parseDocument, updateDocumentProperties, type DocumentProperties } from '../content/document'
+import { getDocumentBody, getDocumentProperties, parseDocument, replaceDocumentBody, updateDocumentProperties, type DocumentProperties } from '../content/document'
 import { dirname, joinWorkspacePath, relativeWorkspacePath } from '../workspace/path'
 import { WorkspaceConflictError, type WorkspaceFileStat, type WorkspaceProvider } from '../workspace/types'
 import { useAppStore } from '../store/useAppStore'
@@ -85,6 +108,32 @@ const formattingGroups: { label: string; commands: EditorCommandId[] }[] = [
 const primaryFormattingCommands: EditorCommandId[] = ['editor.paragraph', 'editor.heading1', 'editor.bold', 'editor.italic', 'editor.link', 'editor.blockquote', 'editor.bulletList', 'editor.codeFence']
 const codeLanguages = ['python', 'javascript', 'typescript', 'bash', 'json', 'markdown', 'plain']
 
+function FormattingIcon({ id }: { id: EditorCommandId }) {
+  const props = { size: 16, weight: 'bold' as const }
+  if (id === 'editor.paragraph') return <Paragraph {...props} />
+  if (id === 'editor.heading1') return <TextHOne {...props} />
+  if (id === 'editor.heading2') return <TextHTwo {...props} />
+  if (id === 'editor.heading3') return <TextHThree {...props} />
+  if (id === 'editor.heading4') return <TextHFour {...props} />
+  if (id === 'editor.heading5') return <TextHFive {...props} />
+  if (id === 'editor.heading6') return <TextHSix {...props} />
+  if (id === 'editor.bold') return <TextB {...props} />
+  if (id === 'editor.italic') return <TextItalic {...props} />
+  if (id === 'editor.strikethrough') return <TextStrikethrough {...props} />
+  if (id === 'editor.inlineCode') return <Code {...props} />
+  if (id === 'editor.link') return <LinkSimple {...props} />
+  if (id === 'editor.image') return <Image {...props} />
+  if (id === 'editor.blockquote' || id === 'editor.callout') return <Quotes {...props} />
+  if (id === 'editor.bulletList') return <ListBullets {...props} />
+  if (id === 'editor.numberedList') return <ListNumbers {...props} />
+  if (id === 'editor.taskList') return <CheckSquare {...props} />
+  if (id === 'editor.codeFence') return <CodeBlock {...props} />
+  if (id === 'editor.table') return <Table {...props} />
+  if (id === 'editor.horizontalRule') return <Minus {...props} />
+  if (id === 'editor.mathBlock') return <MathOperations {...props} />
+  return <TextT {...props} />
+}
+
 export function NoteEditor({ note, provider, isActive = true }: { note: Note; provider: WorkspaceProvider; isActive?: boolean }) {
   const theme = useAppStore((state) => state.theme)
   const setEditorDirty = useAppStore((state) => state.setEditorDirty)
@@ -149,26 +198,28 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
     try { return parseDocument(note.path, draft) } catch { return note }
   }, [draft, note])
 
-  const changeDraft = (value: string) => {
+  const editableBody = useMemo(() => getDocumentBody(draft), [draft])
+
+  const changeDraft = useCallback((value: string) => {
     setDraft(value)
     setDirty(value !== note.raw)
     setMessage(null)
-  }
+  }, [note.raw])
+
+  const changeBody = useCallback((value: string) => changeDraft(replaceDocumentBody(draft, value)), [changeDraft, draft])
 
   const executeEditorCommand = useCallback((id: EditorCommandId) => {
     if (!isActive || mode === 'read') return
     const view = viewRef.current
-    const selection = view ? { from: view.state.selection.main.from, to: view.state.selection.main.to } : { from: draft.length, to: draft.length }
-    const result = transformEditorCommand(id, draft, selection, { codeLanguage })
+    const selection = view ? { from: view.state.selection.main.from, to: view.state.selection.main.to } : { from: editableBody.length, to: editableBody.length }
+    const result = transformEditorCommand(id, editableBody, selection, { codeLanguage })
     if (view) {
       view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: result.value }, selection: { anchor: result.selection.from, head: result.selection.to }, userEvent: 'input.format' })
       view.focus()
     } else {
-      setDraft(result.value)
-      setDirty(result.value !== note.raw)
-      setMessage(null)
+      changeBody(result.value)
     }
-  }, [codeLanguage, draft, isActive, mode, note.raw])
+  }, [changeBody, codeLanguage, editableBody, isActive, mode])
 
   useEffect(() => {
     if (!isActive) return
@@ -247,7 +298,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const insertAtCursor = (text: string) => {
     const view = viewRef.current
     if (!view) {
-      changeDraft(`${draft}${draft.endsWith('\n') ? '' : '\n'}${text}`)
+      changeBody(`${editableBody}${editableBody.endsWith('\n') ? '' : '\n'}${text}`)
       return
     }
     const range = view.state.selection.main
@@ -291,7 +342,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
             <Button variant="ghost" size="icon" onClick={() => viewRef.current && undo(viewRef.current)} aria-label="撤销"><ArrowCounterClockwise size={17} /></Button>
             <Button variant="ghost" size="icon" onClick={() => viewRef.current && redo(viewRef.current)} aria-label="重做"><ArrowClockwise size={17} /></Button>
             <Button variant="ghost" size="sm" onClick={() => uploadRef.current?.click()}><UploadSimple size={15} />Asset</Button>
-            <Button variant={propertiesOpen ? 'secondary' : 'ghost'} size="sm" onClick={() => setPropertiesOpen((value) => !value)}><SlidersHorizontal size={15} />Properties</Button>
+            <Button variant={propertiesOpen ? 'secondary' : 'ghost'} size="sm" onClick={() => setPropertiesOpen((value) => !value)} aria-expanded={propertiesOpen} aria-controls="document-properties"><SlidersHorizontal size={15} />Properties</Button>
           </>}
           <span className={`save-state ${dirty ? 'save-state--dirty' : ''}`}>{dirty ? 'Unsaved' : message || 'Saved'}</span>
           <Button variant="primary" size="sm" onClick={() => void save()} disabled={!dirty || saving}><FloppyDisk size={15} />{saving ? 'Saving' : 'Save'}</Button>
@@ -299,8 +350,8 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
         </div>
       </header>
       {mode !== 'read' && <div className="formatting-toolbar" role="toolbar" aria-label="Markdown formatting">
-        <div className="formatting-toolbar__group"><span>Write</span>{primaryFormattingCommands.map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={`${editorCommandLabels[id]}${id === 'editor.bold' ? ' (⌘B)' : id === 'editor.italic' ? ' (⌘I)' : id === 'editor.link' ? ' (⌘K)' : ''}`}>{id === 'editor.paragraph' ? 'P' : id.startsWith('editor.heading') ? `H${id.slice(-1)}` : editorCommandLabels[id]}</button>)}<label className="formatting-toolbar__language"><span>Fence</span><select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value)} aria-label="代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label></div>
-        <details className="formatting-toolbar__more"><summary aria-label="更多 Markdown 格式工具">More</summary><div>{formattingGroups.flatMap((group) => group.commands).filter((id) => !primaryFormattingCommands.includes(id)).map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={editorCommandLabels[id]}>{id.startsWith('editor.heading') ? `H${id.slice(-1)}` : editorCommandLabels[id]}</button>)}</div></details>
+        <div className="formatting-toolbar__group">{primaryFormattingCommands.map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={`${editorCommandLabels[id]}${id === 'editor.bold' ? ' (⌘B)' : id === 'editor.italic' ? ' (⌘I)' : id === 'editor.link' ? ' (⌘K)' : ''}`}><FormattingIcon id={id} /></button>)}<label className="formatting-toolbar__language"><select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value)} aria-label="代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label></div>
+        <details className="formatting-toolbar__more"><summary aria-label="更多 Markdown 格式工具" title="More formatting"><DotsThree size={18} weight="bold" /></summary><div>{formattingGroups.flatMap((group) => group.commands).filter((id) => !primaryFormattingCommands.includes(id)).map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={editorCommandLabels[id]}><FormattingIcon id={id} /></button>)}</div></details>
       </div>}
 
       {externalStat && (
@@ -318,19 +369,19 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
           <section className="markdown-editor-pane" onPasteCapture={handlePaste} onDragOver={(event) => event.preventDefault()} onDropCapture={handleDrop} aria-label="Markdown Editor">
             <div className="editor-file-label"><span>{note.path}</span><small>Markdown source</small></div>
             <CodeMirror
-              value={draft}
+              value={editableBody}
               extensions={[markdown(), ...extensionEditorExtensions.map((item) => item.extension)]}
               theme={theme}
               minHeight="calc(100dvh - 166px)"
               basicSetup={{ lineNumbers: true, foldGutter: true, history: true, autocompletion: true, highlightActiveLine: true }}
               onCreateEditor={(view) => { viewRef.current = view }}
-              onChange={changeDraft}
+              onChange={changeBody}
             />
           </section>
         )}
         {mode !== 'edit' && <section className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} compact={mode === 'split'} /></section>}
         {mode === 'read' && <KnowledgePanel noteId={note.id} />}
-        {propertiesOpen && mode !== 'read' && <PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} />}
+        {propertiesOpen && mode !== 'read' && <div id="document-properties"><PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} /></div>}
       </div>
     </main>
   )

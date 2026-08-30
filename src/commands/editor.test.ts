@@ -8,6 +8,11 @@ describe('editor command transforms', () => {
     expect(transformEditorCommand('editor.bold', first.value, first.selection).value).toBe('hello world')
   })
   it('applies heading prefixes to each selected line', () => expect(transformEditorCommand('editor.heading2', 'one\ntwo', { from: 0, to: 7 }).value).toBe('## one\n## two'))
+  it('applies headings to an empty cursor line and preserves adjacent lines', () => {
+    const result = transformEditorCommand('editor.heading4', 'before\n\nafter', { from: 7, to: 7 })
+    expect(result.value).toBe('before\n#### \nafter')
+    expect(result.selection).toEqual({ from: 12, to: 12 })
+  })
   it('keeps selected content inside code fences', () => expect(transformEditorCommand('editor.codeFence', 'sum(x)', { from: 0, to: 6 }).value).toContain('sum(x)'))
   it('preserves indentation while transforming multiple lines', () => {
     expect(transformEditorCommand('editor.blockquote', '  one\n    two', { from: 0, to: 13 }).value).toBe('  > one\n    > two')

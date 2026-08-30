@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createDocumentTemplate, duplicateDocument, getDocumentProperties, parseDocument, updateDocumentProperties } from './document'
+import { createDocumentTemplate, duplicateDocument, getDocumentBody, getDocumentProperties, parseDocument, replaceDocumentBody, updateDocumentProperties } from './document'
 
 describe('document authoring helpers', () => {
   it('updates editable properties while preserving unknown frontmatter', () => {
@@ -23,5 +23,13 @@ describe('document authoring helpers', () => {
 
     expect(parseDocument('notes/daily.md', created).id).toBe('daily-note')
     expect(parseDocument('notes/daily-copy.md', copied).id).toBe('daily-note-copy')
+  })
+
+  it('keeps YAML out of the editable body and restores it unchanged around body edits', () => {
+    const source = '---\nid: demo\ntitle: Old\ncustom:\n  owner: research\n---\n# Body\n'
+    const body = getDocumentBody(source)
+
+    expect(body).toBe('# Body\n')
+    expect(replaceDocumentBody(source, '## Revised\n')).toBe('---\nid: demo\ntitle: Old\ncustom:\n  owner: research\n---\n## Revised\n')
   })
 })

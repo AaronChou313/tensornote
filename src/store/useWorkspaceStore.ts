@@ -165,8 +165,14 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           await provider.moveEntry(source, destination)
         }),
         closeWorkspace: async () => {
-          await get().provider?.close()
-          set({ status: 'idle', loadingMessage: '', error: null, provider: null, session: null })
+          let closeError: string | null = null
+          try {
+            await get().provider?.close()
+          } catch (reason) {
+            closeError = reason instanceof Error ? `Workspace 已关闭，但 Provider 清理失败：${reason.message}` : 'Workspace 已关闭，但 Provider 清理失败'
+          } finally {
+            set({ status: 'idle', loadingMessage: '', error: closeError, provider: null, session: null })
+          }
         },
         trustActiveWorkspace: () => {
           const session = get().session
