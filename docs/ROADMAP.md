@@ -14,6 +14,16 @@
 - `v0.8.0 — Git & Sync`：已完成；见 [Local Git 指南](GIT_AND_SYNC.md) 与 [Release notes](releases/v0.8.0.md)。
 - `v0.8.1 — Workbench & Authoring Polish`：已完成源码阶段；修复导航、侧栏、Workspace 切换、编辑命令与 Frontmatter 编辑体验，不单独创建 Release 或 Tag。
 - `v0.8.2 — Compatibility & Migration`：已完成源码阶段；建立 Workspace Schema、Settings 与 Extension API 的版本兼容和迁移边界，不单独创建 Release 或 Tag。
+- `v0.8.3 — Recovery`：已完成源码阶段；提供非破坏式草稿恢复、文件冲突延续保护与应用崩溃恢复界面，不单独创建 Release 或 Tag。
+
+## v0.8.3 — Recovery（源码阶段已完成）
+
+- Dirty Markdown 草稿以 Workspace 和路径隔离，防抖写入 IndexedDB，失败时安全降级到 localStorage。
+- 恢复快照不会自动写回文件；重新打开时由用户明确选择恢复或丢弃。
+- 保存、磁盘重新载入与丢弃都会清除快照；30 天未使用的快照自动过期。
+- 恢复草稿保留原文件基线，外部修改仍触发 `WorkspaceConflictError`。
+- React 渲染崩溃进入恢复页，提供重新加载、返回主页和不含文档内容的诊断复制。
+- 阶段成果提交并推送到 `main`，但不创建 GitHub Release 或 Tag。
 
 ## v0.8.2 — Compatibility & Migration（源码阶段已完成）
 

@@ -2742,6 +2742,41 @@ button.trust-status {
 
 .external-change-banner p { margin: 0; font-size: .7rem; line-height: 1.45; }
 
+.recovery-draft-banner {
+  position: sticky;
+  top: 128px;
+  z-index: 23;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 26%, var(--line));
+  background: color-mix(in srgb, var(--accent-pale) 92%, var(--surface-raised));
+  padding: 10px 20px;
+  color: var(--muted);
+}
+.recovery-draft-banner > svg { color: var(--accent); }
+.recovery-draft-banner p { display: grid; min-width: 0; gap: 1px; margin: 0; }
+.recovery-draft-banner strong { color: var(--ink); font-size: .72rem; }
+.recovery-draft-banner span { overflow-wrap: anywhere; font-size: .66rem; line-height: 1.4; }
+
+.crash-recovery {
+  display: grid;
+  width: min(680px, calc(100% - 40px));
+  min-height: 100dvh;
+  align-content: center;
+  margin: 0 auto;
+  padding: 56px 0;
+}
+.crash-recovery__mark { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 15px; background: var(--accent-soft); color: var(--accent); }
+.crash-recovery__kicker { margin: 22px 0 7px; color: var(--accent); font-size: .67rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.crash-recovery h1 { max-width: 16ch; margin: 0; font-size: clamp(2rem, 6vw, 3.6rem); line-height: 1.05; letter-spacing: -.035em; }
+.crash-recovery > p:not(.crash-recovery__kicker) { max-width: 62ch; margin: 18px 0 0; color: var(--muted); line-height: 1.7; }
+.crash-recovery__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.crash-recovery details { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 15px; color: var(--faint); font-size: .7rem; }
+.crash-recovery summary { cursor: pointer; }
+.crash-recovery pre { max-height: 240px; overflow: auto; border-radius: 12px; background: var(--code-surface); padding: 14px; color: var(--code-ink); white-space: pre-wrap; }
+
 .authoring-message {
   position: fixed;
   right: 18px;
@@ -2776,6 +2811,8 @@ button.trust-status {
   .properties-panel { top: 180px; width: 100vw; }
   .external-change-banner { top: 180px; grid-template-columns: auto 1fr; }
   .external-change-banner button { grid-row: 2; }
+  .recovery-draft-banner { top: 180px; grid-template-columns: auto minmax(0, 1fr); }
+  .recovery-draft-banner button { grid-row: 2; }
   .tree-actions { opacity: 1; }
 }
 

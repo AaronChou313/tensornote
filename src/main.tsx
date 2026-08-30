@@ -4,11 +4,14 @@ import { BrowserRouter } from 'react-router-dom'
 import 'katex/dist/katex.min.css'
 import './styles.css'
 import { App } from './App'
+import { RecoveryBoundary } from './recovery/RecoveryBoundary'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <RecoveryBoundary>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </RecoveryBoundary>
   </StrictMode>,
 )

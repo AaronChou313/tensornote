@@ -7,6 +7,7 @@ import {
   ArrowCounterClockwise,
   ArrowClockwise,
   CheckSquare,
+  ClockCounterClockwise,
   Code,
   CodeBlock,
   Columns,
@@ -34,6 +35,7 @@ import {
   TextItalic,
   TextStrikethrough,
   TextT,
+  Trash,
   UploadSimple,
   WarningCircle,
   X,
@@ -51,6 +53,7 @@ import { KnowledgePanel } from './KnowledgePanel'
 import { useCommandRegistry } from '../commands/CommandContext'
 import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../commands/editor'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
+import { draftRecovery, type DraftRecoveryRecord } from '../recovery/draftRecovery'
 
 type EditorMode = 'read' | 'edit' | 'split'
 
@@ -140,6 +143,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const saveDocument = useWorkspaceStore((state) => state.saveDocument)
   const refreshWorkspace = useWorkspaceStore((state) => state.refreshWorkspace)
   const writeAsset = useWorkspaceStore((state) => state.writeAsset)
+  const workspaceId = useWorkspaceStore((state) => state.session?.descriptor.id) ?? provider.id
   const [mode, setMode] = useState<EditorMode>('read')
   const [draft, setDraft] = useState(note.raw)
   const [dirty, setDirty] = useState(false)
@@ -147,15 +151,55 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const [propertiesOpen, setPropertiesOpen] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [externalStat, setExternalStat] = useState<WorkspaceFileStat | null>(null)
+  const [recoveredDraft, setRecoveredDraft] = useState<DraftRecoveryRecord | null>(null)
   const [codeLanguage, setCodeLanguage] = useState('python')
   const viewRef = useRef<EditorView | null>(null)
   const uploadRef = useRef<HTMLInputElement>(null)
   const baselineRef = useRef({ modifiedAt: note.sourceModifiedAt, size: note.sourceSize })
   const dirtyRef = useRef(dirty)
+  const recoveryRef = useRef({ dirty, draft, workspaceId, path: note.path, baseModifiedAt: note.sourceModifiedAt, baseSize: note.sourceSize })
   const registry = useCommandRegistry()
   const extensionEditorExtensions = useExtensionSnapshot().editorExtensions
 
-  useEffect(() => { dirtyRef.current = dirty }, [dirty])
+  useEffect(() => {
+    dirtyRef.current = dirty
+    recoveryRef.current = { dirty, draft, workspaceId, path: note.path, baseModifiedAt: baselineRef.current.modifiedAt, baseSize: baselineRef.current.size }
+  }, [dirty, draft, note.path, workspaceId])
+
+  useEffect(() => {
+    let active = true
+    void draftRecovery.read(workspaceId, note.path).then((record) => {
+      if (!active || !record) return
+      if (record.content === note.raw) void draftRecovery.clear(workspaceId, note.path)
+      else setRecoveredDraft(record)
+    })
+    return () => { active = false }
+  }, [note.path, note.raw, workspaceId])
+
+  useEffect(() => {
+    if (!dirty) return
+    const timer = window.setTimeout(() => {
+      void draftRecovery.write({
+        workspaceId,
+        path: note.path,
+        content: draft,
+        baseModifiedAt: baselineRef.current.modifiedAt,
+        baseSize: baselineRef.current.size,
+      })
+    }, 750)
+    return () => window.clearTimeout(timer)
+  }, [dirty, draft, note.path, workspaceId])
+
+  useEffect(() => () => {
+    const recovery = recoveryRef.current
+    if (recovery.dirty) void draftRecovery.write({
+      workspaceId: recovery.workspaceId,
+      path: recovery.path,
+      content: recovery.draft,
+      baseModifiedAt: recovery.baseModifiedAt,
+      baseSize: recovery.baseSize,
+    })
+  }, [])
 
   useEffect(() => {
     setEditorDirty(note.path, dirty)
@@ -257,13 +301,15 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
       setDraft(saved.raw)
       setDirty(false)
       setExternalStat(null)
+      setRecoveredDraft(null)
+      await draftRecovery.clear(workspaceId, note.path)
       setMessage('Saved')
     } catch (reason) {
       setMessage(reason instanceof WorkspaceConflictError ? '外部文件已变化，请先选择重新载入或保留当前内容。' : reason instanceof Error ? reason.message : '保存失败')
     } finally {
       setSaving(false)
     }
-  }, [dirty, draft, note.path, saveDocument, saving])
+  }, [dirty, draft, note.path, saveDocument, saving, workspaceId])
 
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
@@ -286,6 +332,8 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
       baselineRef.current = { modifiedAt: fresh.sourceModifiedAt, size: fresh.sourceSize }
     }
     setExternalStat(null)
+    setRecoveredDraft(null)
+    await draftRecovery.clear(workspaceId, note.path)
     setMessage('Reloaded from disk')
   }
 
@@ -293,6 +341,22 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
     if (externalStat) baselineRef.current = { modifiedAt: externalStat.modifiedAt, size: externalStat.size }
     setExternalStat(null)
     setMessage('继续编辑；下次保存将覆盖外部版本。')
+  }
+
+  const restoreRecoveredDraft = () => {
+    if (!recoveredDraft) return
+    setDraft(recoveredDraft.content)
+    setDirty(recoveredDraft.content !== note.raw)
+    baselineRef.current = { modifiedAt: recoveredDraft.baseModifiedAt, size: recoveredDraft.baseSize }
+    setRecoveredDraft(null)
+    setMode('edit')
+    setMessage('已恢复本地草稿；确认内容后请手动保存。')
+  }
+
+  const discardRecoveredDraft = async () => {
+    await draftRecovery.clear(workspaceId, note.path)
+    setRecoveredDraft(null)
+    setMessage('已丢弃恢复草稿')
   }
 
   const insertAtCursor = (text: string) => {
@@ -360,6 +424,14 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
           <p>磁盘上的文件已发生变化。重新载入可避免覆盖其他编辑器的修改。</p>
           <Button variant="secondary" size="sm" onClick={() => void reloadExternal()}>Reload</Button>
           <Button variant="ghost" size="sm" onClick={keepEditing}>Keep mine</Button>
+        </div>
+      )}
+      {recoveredDraft && (
+        <div className="recovery-draft-banner" role="status">
+          <ClockCounterClockwise size={18} />
+          <p><strong>发现未保存草稿</strong><span>{new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short' }).format(recoveredDraft.updatedAt)} 的本地恢复快照；不会自动覆盖 Workspace 文件。</span></p>
+          <Button variant="secondary" size="sm" onClick={restoreRecoveredDraft}>恢复</Button>
+          <Button variant="ghost" size="sm" onClick={() => void discardRecoveredDraft()}><Trash size={14} />丢弃</Button>
         </div>
       )}
       {message && message !== 'Saved' && message !== 'Reloaded from disk' && <div className="authoring-message">{message}</div>}

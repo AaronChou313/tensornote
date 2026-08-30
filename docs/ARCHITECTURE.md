@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.2 — Compatibility & Migration` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.3 — Recovery` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -252,6 +252,14 @@ Git Bridge (fixed repository root)
 - App、Workspace、Extension 与 Git 的 Zustand 持久数据声明独立存储版本；迁移函数只保留类型正确、受支持的字段，并兼容早期键名。
 - Extension API 当前主版本为 v1。Manifest 可声明 `apiVersion`；省略时兼容早期扩展并按 v1 处理，高于 Runtime 支持版本时明确拒绝。
 - v0.8.2 是 v0.9.0 前的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
+
+## v0.8.3 Recovery
+
+- `DraftRecoveryRepository` 以 `Workspace descriptor id + document path` 作为隔离键，默认写入 IndexedDB；不可用时降级到 localStorage。快照有版本与 30 天有效期。
+- 草稿只在 Dirty 状态下防抖保存。重新打开笔记时只提示恢复或丢弃，不自动替换文件；正常保存、从磁盘重新载入或丢弃后立即清理。
+- 快照携带编辑开始时的 `modifiedAt/size` 基线。恢复后保存继续使用 `WorkspaceConflictError`，不会绕过外部修改保护。
+- `RecoveryBoundary` 捕获 React 渲染错误，提供重新加载、返回启动页和复制诊断；诊断只包含错误、路由、时间、组件栈和 User Agent，不包含 Markdown 内容或 Secret。
+- v0.8.3 是 v0.9.0 前的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
 
 ## 版本更新规则
 
