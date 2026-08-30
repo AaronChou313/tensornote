@@ -190,4 +190,4 @@ tensornote/
 
 即使 Web App 停止维护，`notes/` 仍可由 VS Code、Obsidian、GitHub 或普通 Markdown 阅读器直接使用。
 
-实现边界与后续演进见 [TensorNote 架构说明](docs/ARCHITECTURE.md)，环境配置见[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)。
+实现边界见 [TensorNote 架构说明](docs/ARCHITECTURE.md)，近期开发范围见[产品路线图](docs/ROADMAP.md)，环境配置见[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)。

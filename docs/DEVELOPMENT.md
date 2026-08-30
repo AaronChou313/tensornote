@@ -65,6 +65,8 @@ git pull --ff-only origin main
 
 ## 2. 开发新功能
 
+开始开发前先核对[近期产品路线图](ROADMAP.md)。编辑器工具栏、快捷键和 Command Palette 必须复用统一的 Editor Command / `CommandRegistry`，不能在各 UI 入口重复实现 Markdown 变换逻辑。
+
 ### 2.1 从最新主分支创建功能分支
 
 ```bash
