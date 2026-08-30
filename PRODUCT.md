@@ -29,6 +29,7 @@ TensorNote 是一个本地优先、Markdown-first、由 Jupyter 驱动的可执�
 - Workspace Provider 负责文件和资产 I/O；UI 不绑定某个具体 Provider。
 - GitHub Workspace 的代码执行需要信任当前 revision。
 - Workbench v0.5.0 提供标签页、分栏、Sidebar、命令面板和 Markdown 编辑快捷工具。
+- Extension Platform v0.6.0 允许官方与用户信任的本地扩展注册工作台、Markdown、编辑器与 Provider 贡献；当前不提供公共在线市场。
 
 ## Brand Commitments
 

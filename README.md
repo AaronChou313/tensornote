@@ -6,7 +6,18 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前版本：`v0.5.0 — Workbench`。
+当前版本：`v0.6.0 — Extension Platform`。
+
+## Extension Platform
+
+TensorNote v0.6.0 支持官方扩展和用户主动选择的本地扩展：
+
+- `Extension API v1` 覆盖 Command、View、Sidebar、Markdown Processor、CodeMirror Editor Extension、Settings、Status Bar Item、Workspace Provider 与 Compute Provider。
+- Manifest 声明版本与权限，Runtime 管理 `load → activate → deactivate → dispose` 生命周期。
+- 本地插件在权限确认前只读取 Manifest，确认后才加载脚本；当前没有公共在线插件市场。
+- 内置官方 `Focus Mode` 扩展，可从侧栏、状态栏或 Command Palette 切换。
+
+本地插件格式、完整 API 与安全边界见 [Extension Platform 使用与开发指南](docs/EXTENSIONS.md)。
 
 ## Workbench
 
@@ -187,6 +198,7 @@ tensornote/
 │   ├── components/      阅读与 Lab UI
 │   ├── content/         Markdown、Lab Parser 与 KnowledgeIndex
 │   ├── compute/         ComputeProvider、Profile、Scope 与诊断
+│   ├── extensions/      Extension API、Manifest、权限与生命周期
 │   ├── jupyter/         Jupyter Provider 的底层 Client
 │   ├── workspace/       Schema、统一加载器与 Providers
 │   └── store/           Workspace、界面、进度与连接配置

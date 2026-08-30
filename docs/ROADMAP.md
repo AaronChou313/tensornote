@@ -9,6 +9,16 @@
 - `v0.3.0 — Knowledge System`：已发布。
 - `v0.4.0 — Compute Platform`：已发布。
 - `v0.5.0 — Workbench`：已发布；见 [Workbench 使用说明](WORKBENCH.md) 与 [Release notes](releases/v0.5.0.md)。
+- `v0.6.0 — Extension Platform`：已实现；见 [Extension Platform 指南](EXTENSIONS.md) 与 [Release notes](releases/v0.6.0.md)。
+
+## v0.6.0 — Extension Platform
+
+- Extension API 支持 Command、View、Sidebar Item、Markdown Processor、Editor Extension、Settings、Status Bar Item、Workspace Provider 与 Compute Provider。
+- Manifest 固定 `id/name/version/minTensorNoteVersion`，本地扩展另声明 `entry` 与权限。
+- Runtime 明确管理 `load/activate/deactivate/dispose`，停用时自动清理贡献。
+- 权限模型包含 `workspace:read`、`workspace:write`、`network`、`compute`、`secret`；高风险能力在本地加载时单独提示。
+- 首期只支持 Official / Local Plugins，不建设公共在线插件市场。
+- 官方 Focus Mode 作为首个 API 使用者，验证命令、视图、侧栏、设置和状态栏路径。
 
 ## v0.5.0 — Workbench
 

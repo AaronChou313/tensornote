@@ -164,6 +164,28 @@ AppShell
 - `src/commands/editor.ts` 提供纯 Markdown transform。工具栏、快捷键和 Command Palette 均调用同一 transform；CodeMirror 使用单次 dispatch，因此每个格式动作是一个 Undo 单元。
 - Workbench 只协调路由、WorkspaceSession 与现有 ComputeRuntime。Provider 的读写能力、保存冲突和 Jupyter 生命周期仍由已有的 Workspace / Compute 层拥有。
 
+## v0.6 Extension Runtime
+
+```text
+Manifest + user grants
+        │
+        ▼
+ExtensionRuntime ── load / activate / deactivate / dispose
+        │
+        ├── CommandRegistry
+        ├── View / Sidebar / Status Bar
+        ├── Markdown Processor / CodeMirror Extension
+        ├── Settings
+        └── Workspace / Compute Provider contributions
+```
+
+- `src/extensions/ExtensionRuntime.ts` 拥有扩展记录和贡献生命周期；每个注册项都归属扩展，停用时统一撤销。
+- Command 直接进入核心 `CommandRegistry`；渲染器和编辑器只消费活动贡献，不感知插件来源。
+- Manifest 先通过格式、版本、权限和 id 验证；贡献 id 必须使用扩展 id 命名空间。
+- 权限调用同时要求 Manifest 声明和用户授权。`workspace:write`、`network`、`compute` 与 `secret` 在 UI 中标为高风险。
+- 本地脚本在权限确认后才通过 Blob URL 导入，但仍是浏览器同源可信代码；能力门控不构成 JavaScript 沙箱。
+- v0.6 只支持官方和手动选择的本地插件，不包含发现、下载、签名、自动更新或公共市场。
+
 ## 版本更新规则
 
 每个版本至少同步更新：
