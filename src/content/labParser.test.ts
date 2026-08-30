@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractLabs, updateLabCells } from './labParser'
+import { extractLabs, insertScratchLab, updateLabCells } from './labParser'
 
 describe('extractLabs', () => {
   it('groups cells, sorts them and emits one card placeholder', () => {
@@ -32,5 +32,23 @@ describe('updateLabCells', () => {
 
     expect(updated).toContain('value = 3\nprint(value)')
     expect(updated).toContain('lab="other" cell="1"\nprint(2)')
+  })
+})
+
+describe('insertScratchLab', () => {
+  it('appends portable executable fences that are parsed as a regular Lab', () => {
+    const updated = insertScratchLab('# Note\n', 'scratch-demo', [
+      { title: 'Prepare', code: 'value = 3' },
+      { title: 'Empty draft', code: '   ' },
+      { title: 'Inspect', code: 'print(value)' },
+    ])
+    const parsed = extractLabs(updated)
+
+    expect(parsed.labs.find((lab) => lab.id === 'scratch-demo')?.cells).toHaveLength(2)
+    expect(updated).toContain('cell="2" title="Inspect"')
+  })
+
+  it('refuses code containing a Markdown fence', () => {
+    expect(() => insertScratchLab('# Note', 'scratch', [{ title: 'Unsafe', code: '```' }])).toThrow('Fence')
   })
 })

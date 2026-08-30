@@ -5,7 +5,7 @@ import {
   ServerConnection,
 } from '@jupyterlab/services'
 import type { KernelStatus } from '../types'
-import type { ExecutionHandlers, JupyterConfig } from './types'
+import type { ComputeConnectionConfig, ExecutionHandlers } from '../compute/types'
 
 type StatusHandler = (status: KernelStatus) => void
 
@@ -27,21 +27,35 @@ export class JupyterClient {
   private kernel: Kernel.IKernelConnection | null = null
   private statusHandler: StatusHandler = () => undefined
   private configKey = ''
+  private currentStatus: KernelStatus = 'offline'
 
   get connected() {
     return Boolean(this.kernel)
+  }
+
+  get status() {
+    return this.currentStatus
+  }
+
+  get sessionId() {
+    return this.kernel?.id ?? 'jupyter-pending'
+  }
+
+  private setStatus(status: KernelStatus) {
+    this.currentStatus = status
+    this.statusHandler(status)
   }
 
   onStatus(handler: StatusHandler) {
     this.statusHandler = handler
   }
 
-  async connect(config: JupyterConfig) {
+  async connect(config: ComputeConnectionConfig) {
     const nextKey = JSON.stringify(config)
     if (this.kernel && this.configKey === nextKey) return this.kernel
     if (this.kernel) await this.shutdown()
 
-    this.statusHandler('starting')
+    this.setStatus('starting')
     try {
       const baseUrl = normalizeBaseUrl(config.serverUrl)
       const serverSettings = ServerConnection.makeSettings({
@@ -55,23 +69,23 @@ export class JupyterClient {
       this.kernel = await this.manager.startNew({ name: config.kernelName.trim() || 'python3' })
       this.configKey = nextKey
       this.kernel.statusChanged.connect((_sender, status) => {
-        if (status === 'busy') this.statusHandler('busy')
-        else if (status === 'idle') this.statusHandler('idle')
-        else if (status === 'starting' || status === 'restarting') this.statusHandler('starting')
-        else if (status === 'dead') this.statusHandler('error')
+        if (status === 'busy') this.setStatus('busy')
+        else if (status === 'idle') this.setStatus('idle')
+        else if (status === 'starting' || status === 'restarting') this.setStatus('starting')
+        else if (status === 'dead') this.setStatus('error')
       })
-      this.statusHandler(this.kernel.status === 'busy' ? 'busy' : 'idle')
+      this.setStatus(this.kernel.status === 'busy' ? 'busy' : 'idle')
       return this.kernel
     } catch (error) {
-      this.statusHandler('error')
+      this.setStatus('error')
       await this.disposeConnections()
       throw error
     }
   }
 
-  async execute(code: string, config: JupyterConfig, handlers: ExecutionHandlers) {
+  async execute(code: string, config: ComputeConnectionConfig, handlers: ExecutionHandlers) {
     const kernel = await this.connect(config)
-    this.statusHandler('busy')
+    this.setStatus('busy')
     const future = kernel.requestExecute({ code, stop_on_error: true, store_history: true })
 
     future.onIOPub = (message) => {
@@ -105,7 +119,7 @@ export class JupyterClient {
     }
 
     await future.done
-    this.statusHandler('idle')
+    this.setStatus('idle')
   }
 
   async interrupt() {
@@ -115,9 +129,9 @@ export class JupyterClient {
 
   async restart() {
     if (!this.kernel) return
-    this.statusHandler('starting')
+    this.setStatus('starting')
     await this.kernel.restart()
-    this.statusHandler('idle')
+    this.setStatus('idle')
   }
 
   async shutdown() {
@@ -129,7 +143,7 @@ export class JupyterClient {
       }
     }
     await this.disposeConnections()
-    this.statusHandler('offline')
+    this.setStatus('offline')
   }
 
   private async disposeConnections() {
@@ -140,5 +154,3 @@ export class JupyterClient {
     this.configKey = ''
   }
 }
-
-export const jupyterClient = new JupyterClient()

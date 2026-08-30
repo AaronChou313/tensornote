@@ -1,4 +1,4 @@
-import type { CellOutput as CellOutputType } from '../jupyter/types'
+import type { CellOutput as CellOutputType } from '../compute/types'
 
 function textValue(value: unknown) {
   if (Array.isArray(value)) return value.join('')

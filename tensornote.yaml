@@ -15,3 +15,7 @@ navigation:
 
 features:
   executable: true
+
+environment:
+  files:
+    - requirements-jupyter.txt

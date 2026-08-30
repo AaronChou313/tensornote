@@ -5,6 +5,30 @@ import { joinWorkspacePath, normalizeWorkspacePath } from './path'
 import { parseWorkspaceManifest } from './schema'
 import type { WorkspaceEntry, WorkspaceProvider, WorkspaceSession } from './types'
 
+const conventionalEnvironmentFiles = ['requirements.txt', 'pyproject.toml', 'environment.yml', 'environment.yaml']
+
+function environmentKind(path: string) {
+  const name = path.split('/').pop()?.toLocaleLowerCase()
+  if (name?.startsWith('requirements') && name.endsWith('.txt')) return 'requirements' as const
+  if (name === 'pyproject.toml') return 'pyproject' as const
+  if (name === 'environment.yml' || name === 'environment.yaml') return 'conda' as const
+  return 'unknown' as const
+}
+
+export function detectEnvironmentFiles(entries: WorkspaceEntry[], declaredFiles: string[]) {
+  const files = new Set(entries.filter((entry) => entry.kind === 'file').map((entry) => normalizeWorkspacePath(entry.path)))
+  const paths = new Set([
+    ...declaredFiles.map(normalizeWorkspacePath),
+    ...conventionalEnvironmentFiles.filter((path) => files.has(path)),
+  ])
+  return [...paths].map((path) => ({
+    path,
+    kind: environmentKind(path),
+    exists: files.has(path),
+    declared: declaredFiles.some((declared) => normalizeWorkspacePath(declared) === path),
+  }))
+}
+
 async function collectEntries(provider: WorkspaceProvider, path = ''): Promise<WorkspaceEntry[]> {
   const direct = await provider.list(path)
   const nested = await Promise.all(
@@ -58,6 +82,7 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     documents,
     documentById,
     knowledgeIndex: buildKnowledgeIndex(documents),
+    environmentFiles: detectEnvironmentFiles(allEntries, manifest.environment.files),
     navigation: buildNoteTree(
       documents,
       contentRoot,

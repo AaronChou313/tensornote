@@ -1,4 +1,5 @@
 import manifestSource from '../../../tensornote.yaml?raw'
+import requirementsSource from '../../../requirements-jupyter.txt?raw'
 import { basename, dirname, joinWorkspacePath, normalizeWorkspacePath, resolveWorkspacePath } from '../path'
 import type { WorkspaceCapabilities, WorkspaceDescriptor, WorkspaceEntry, WorkspaceFileStat, WorkspaceProvider } from '../types'
 
@@ -40,6 +41,7 @@ export class BundledWorkspaceProvider implements WorkspaceProvider {
 
   private readonly textFiles = new Map<string, string>([
     ['tensornote.yaml', manifestSource],
+    ['requirements-jupyter.txt', requirementsSource],
     ...Object.entries(noteModules).map(([path, source]) => [modulePath(path), source] as const),
   ])
   private readonly assetUrls = new Map(

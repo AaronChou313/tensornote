@@ -9,6 +9,7 @@ const defaultManifest: WorkspaceManifest = {
   assets: { root: 'assets' },
   navigation: { mode: 'filesystem' },
   features: { executable: false },
+  environment: { files: [] },
   extensions: {},
 }
 
@@ -30,6 +31,7 @@ export function parseWorkspaceManifest(source?: string, fallbackName?: string): 
   const assets = objectValue(parsed.assets)
   const navigation = objectValue(parsed.navigation)
   const features = objectValue(parsed.features)
+  const environment = objectValue(parsed.environment)
   const schemaVersion = Number(parsed.schemaVersion ?? 1)
 
   if (!Number.isInteger(schemaVersion) || schemaVersion < 1) {
@@ -46,6 +48,11 @@ export function parseWorkspaceManifest(source?: string, fallbackName?: string): 
     assets: { root: normalizeWorkspacePath(String(assets.root ?? defaultManifest.assets.root)) },
     navigation: { mode: navigation.mode === 'filesystem' ? 'filesystem' : 'filesystem' },
     features: { executable: features.executable === true },
+    environment: {
+      files: Array.isArray(environment.files)
+        ? environment.files.map(String).map(normalizeWorkspacePath).filter(Boolean)
+        : [],
+    },
     extensions: objectValue(parsed.extensions),
   }
 }

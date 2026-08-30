@@ -70,3 +70,15 @@ export function updateLabCells(raw: string, labId: string, codeByCellId: Record<
     return `\`\`\`python exec${meta}\n${replacement.trimEnd()}\n\`\`\``
   })
 }
+
+export function insertScratchLab(raw: string, labId: string, cells: Array<{ title: string; code: string }>) {
+  const contentCells = cells.filter((cell) => cell.code.trim())
+  if (!contentCells.length) throw new Error('Scratch Lab 至少需要一个非空 Cell')
+  if (contentCells.some((cell) => cell.code.includes('```'))) throw new Error('Scratch Cell 中包含 Markdown Fence，无法安全写入笔记')
+  const safeLabId = labId.replace(/[^a-zA-Z0-9_-]/g, '-')
+  const fences = contentCells.map((cell, index) => {
+    const title = (cell.title.trim() || `Scratch Cell ${index + 1}`).replaceAll('"', "'")
+    return `\`\`\`python exec lab="${safeLabId}" cell="${index + 1}" title="${title}" difficulty="basic"\n${cell.code.trimEnd()}\n\`\`\``
+  }).join('\n\n')
+  return `${raw.trimEnd()}\n\n${fences}\n`
+}

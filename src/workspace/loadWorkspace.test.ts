@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { loadWorkspace } from './loadWorkspace'
+import { detectEnvironmentFiles, loadWorkspace } from './loadWorkspace'
 import type { WorkspaceEntry, WorkspaceProvider } from './types'
 
 function createProvider(type: 'local' | 'github', files: Record<string, string>): WorkspaceProvider {
@@ -83,5 +83,19 @@ describe('loadWorkspace', () => {
 
     expect((await loadWorkspace(provider, [])).trusted).toBe(false)
     expect((await loadWorkspace(provider, ['github:demo/repo@abc123'])).trusted).toBe(true)
+  })
+
+  it('detects declared and conventional environment files without installing them', () => {
+    const entries: WorkspaceEntry[] = [
+      { path: 'requirements.txt', name: 'requirements.txt', kind: 'file' },
+      { path: 'env/environment.yml', name: 'environment.yml', kind: 'file' },
+      { path: 'notes', name: 'notes', kind: 'directory' },
+    ]
+
+    expect(detectEnvironmentFiles(entries, ['env/environment.yml', 'missing.toml'])).toEqual([
+      { path: 'env/environment.yml', kind: 'conda', exists: true, declared: true },
+      { path: 'missing.toml', kind: 'unknown', exists: false, declared: true },
+      { path: 'requirements.txt', kind: 'requirements', exists: true, declared: false },
+    ])
   })
 })

@@ -1,9 +1,10 @@
-import { List, MagnifyingGlass, Moon, ShieldCheck, ShieldWarning, Sun } from '@phosphor-icons/react'
+import { Flask, List, MagnifyingGlass, Moon, ShieldCheck, ShieldWarning, Sun } from '@phosphor-icons/react'
 import { useLocation, useParams } from 'react-router-dom'
 import { findTrail } from '../content/noteTree'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
+import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
 
 const statusLabels = {
   offline: 'Offline',
@@ -21,6 +22,12 @@ export function TopBar() {
   const kernelStatus = useAppStore((state) => state.kernelStatus)
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
+  const setActiveLabId = useAppStore((state) => state.setActiveLabId)
+  const profiles = useComputeStore((state) => state.profiles)
+  const activeProfileId = useComputeStore((state) => state.activeProfileId)
+  const setSettingsOpen = useComputeStore((state) => state.setSettingsOpen)
+  const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
+  const profile = activeComputeProfile({ profiles, activeProfileId })
   const session = useWorkspaceStore((state) => state.session)
   const trustActiveWorkspace = useWorkspaceStore((state) => state.trustActiveWorkspace)
   const trail = noteId && session
@@ -47,7 +54,8 @@ export function TopBar() {
         <Button variant="ghost" className="search-trigger" onClick={() => setSearchOpen(true)}>
           <span><MagnifyingGlass size={15} />Search</span><kbd>⌘K</kbd>
         </Button>
-        <div className="kernel-status" title="Jupyter Kernel 状态"><span className={`kernel-dot kernel-dot--${kernelStatus}`} />{statusLabels[kernelStatus]}</div>
+        <Button variant="ghost" className="scratch-trigger" onClick={() => { setActiveLabId(null); setScratchOpen(true) }}><Flask size={15} />Scratch</Button>
+        <button className="kernel-status" title={`${profile.name} · ${profile.scope}`} onClick={() => setSettingsOpen(true)}><span className={`kernel-dot kernel-dot--${kernelStatus}`} /><span>{statusLabels[kernelStatus]}</span><small>{profile.name}</small></button>
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === 'light' ? '切换深色模式' : '切换浅色模式'}>
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </Button>

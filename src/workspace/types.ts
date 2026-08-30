@@ -89,7 +89,17 @@ export interface WorkspaceManifest {
   features: {
     executable: boolean
   }
+  environment: {
+    files: string[]
+  }
   extensions: Record<string, unknown>
+}
+
+export interface WorkspaceEnvironmentFile {
+  path: string
+  kind: 'requirements' | 'pyproject' | 'conda' | 'unknown'
+  exists: boolean
+  declared: boolean
 }
 
 export interface WorkspaceSession {
@@ -99,6 +109,7 @@ export interface WorkspaceSession {
   documents: Note[]
   documentById: Map<string, Note>
   knowledgeIndex: KnowledgeIndex
+  environmentFiles: WorkspaceEnvironmentFile[]
   navigation: NoteTreeItem[]
   trusted: boolean
   openedAt: number

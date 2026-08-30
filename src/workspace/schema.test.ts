@@ -22,6 +22,8 @@ assets:
   root: ./media/
 features:
   executable: true
+environment:
+  files: [requirements-dev.txt, ./env/environment.yml]
 futureField:
   enabled: true
 extensions:
@@ -34,6 +36,7 @@ extensions:
       content: { root: 'knowledge' },
       assets: { root: 'media' },
       features: { executable: true },
+      environment: { files: ['requirements-dev.txt', 'env/environment.yml'] },
       extensions: { graph: 'custom' },
     })
     expect(manifest).not.toHaveProperty('futureField')
