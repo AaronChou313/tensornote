@@ -11,6 +11,7 @@ import { extractHeadingSection, transformWikiMarkdown, type KnowledgeIndex } fro
 import { LabCard } from './LabCard'
 import { MermaidDiagram } from './MermaidDiagram'
 import { WorkspaceImage } from './WorkspaceImage'
+import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 
 const calloutLabels: Record<string, string> = {
   intuition: '直觉',
@@ -39,6 +40,7 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, labs, documentPath = '', resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail = [] }: MarkdownRendererProps) {
+  const processors = useExtensionSnapshot().markdownProcessors
   const labMap = new Map(labs.map((lab) => [lab.id, lab]))
   const headingCounts = new Map<string, number>()
   const headingId = (children: ReactNode) => {
@@ -47,9 +49,13 @@ export function MarkdownRenderer({ content, labs, documentPath = '', resolveAsse
     headingCounts.set(baseId, count + 1)
     return count ? `${baseId}-${count}` : baseId
   }
+  const processedContent = processors.reduce((markdown, processor) => {
+    try { return processor.process(markdown, { documentPath, noteId }) }
+    catch (reason) { console.error(`Markdown processor failed: ${processor.id}`, reason); return markdown }
+  }, content)
   const markdown = useMemo(
-    () => knowledgeIndex && noteId ? transformWikiMarkdown(content, knowledgeIndex, noteId) : content,
-    [content, knowledgeIndex, noteId],
+    () => knowledgeIndex && noteId ? transformWikiMarkdown(processedContent, knowledgeIndex, noteId) : processedContent,
+    [knowledgeIndex, noteId, processedContent],
   )
 
   return (

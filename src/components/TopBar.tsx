@@ -1,4 +1,4 @@
-import { Command, Flask, List, MagnifyingGlass, Moon, ShieldCheck, ShieldWarning, SidebarSimple, Sun } from '@phosphor-icons/react'
+import { Command, Flask, List, MagnifyingGlass, Moon, PuzzlePiece, ShieldCheck, ShieldWarning, SidebarSimple, Sun } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { useLocation, useParams } from 'react-router-dom'
 import { findTrail } from '../content/noteTree'
@@ -6,6 +6,7 @@ import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
 import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
+import { useExtensionStore } from '../store/useExtensionStore'
 
 const statusLabels = {
   offline: 'Offline',
@@ -34,6 +35,7 @@ export function TopBar() {
   const profile = activeComputeProfile({ profiles, activeProfileId })
   const session = useWorkspaceStore((state) => state.session)
   const trustActiveWorkspace = useWorkspaceStore((state) => state.trustActiveWorkspace)
+  const setExtensionManagerOpen = useExtensionStore((state) => state.setManagerOpen)
   const trail = noteId && session
     ? findTrail(noteId, session.navigation)
     : location.pathname === '/workspace' ? ['Overview'] : location.pathname === '/knowledge' ? ['Knowledge'] : []
@@ -59,6 +61,7 @@ export function TopBar() {
           <span><MagnifyingGlass size={15} />Search</span><kbd>⌘K</kbd>
         </Button>
         <Button variant="ghost" className="command-trigger" onClick={() => setCommandPaletteOpen(true)} aria-label="打开命令面板"><Command size={15} /><span>Command</span><kbd>⌘P</kbd></Button>
+        <Button variant="ghost" size="icon" onClick={() => setExtensionManagerOpen(true)} aria-label="管理扩展" title="Extensions"><PuzzlePiece size={17} /></Button>
         <Button variant="ghost" size="icon" onClick={() => setLeftSidebar('left', !leftSidebar)} aria-label={leftSidebar ? '收起文件侧栏' : '展开文件侧栏'}><SidebarSimple size={17} /></Button>
         <Button variant="ghost" className="scratch-trigger" onClick={() => { setActiveLabId(null); setScratchOpen(true) }}><Flask size={15} />Scratch</Button>
         <button className="kernel-status" title={`${profile.name} · ${profile.scope}`} onClick={() => setSettingsOpen(true)}><span className={`kernel-dot kernel-dot--${kernelStatus}`} /><span>{statusLabels[kernelStatus]}</span><small>{profile.name}</small></button>

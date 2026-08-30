@@ -5,7 +5,7 @@ export type CellOutput =
   | { type: 'display'; data: Record<string, unknown> }
   | { type: 'error'; name: string; value: string; traceback: string[] }
 
-export type ComputeProviderKind = 'jupyter'
+export type ComputeProviderKind = 'jupyter' | (string & {})
 export type ComputeSessionScope = 'note' | 'workspace' | 'manual'
 
 export interface ComputeProfile {

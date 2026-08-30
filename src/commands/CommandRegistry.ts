@@ -1,4 +1,4 @@
-export type CommandCategory = 'Navigation' | 'Workspace' | 'Editor' | 'Compute' | 'View'
+export type CommandCategory = 'Navigation' | 'Workspace' | 'Editor' | 'Compute' | 'View' | 'Extension'
 
 export interface Command {
   id: string

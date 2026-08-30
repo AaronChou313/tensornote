@@ -14,6 +14,13 @@ import { CommandRegistryContext } from '../commands/CommandContext'
 import { CommandPalette } from './workbench/CommandPalette'
 import { WorkbenchTabs } from './workbench/WorkbenchTabs'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
+import { ExtensionRuntime } from '../extensions/ExtensionRuntime'
+import { ExtensionRuntimeContext } from '../extensions/ExtensionContext'
+import { focusModeExtension, focusModeManifest } from '../extensions/official/focusMode'
+import { useExtensionStore } from '../store/useExtensionStore'
+import { ExtensionManagerDialog } from './extensions/ExtensionManagerDialog'
+import { ExtensionStatusBar } from './extensions/ExtensionStatusBar'
+import { ExtensionViewDialog } from './extensions/ExtensionViewDialog'
 
 const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: module.LabDrawer })))
 
@@ -37,7 +44,27 @@ export function AppShell() {
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
   const previousPath = useRef(location.pathname)
   const legacyOpenAttempted = useRef(false)
+  const extensionsInitialised = useRef(false)
   const [registry] = useState(() => new CommandRegistry())
+  const [extensionRuntime] = useState(() => new ExtensionRuntime({
+    commandRegistry: registry,
+    workspace: () => useWorkspaceStore.getState().provider,
+    hasPermission: (extensionId, permission) => useExtensionStore.getState().grants[extensionId]?.includes(permission) ?? false,
+    getSetting: (extensionId, key) => useExtensionStore.getState().settings[extensionId]?.[key],
+    setSetting: (extensionId, key, value) => useExtensionStore.getState().setSetting(extensionId, key, value),
+  }))
+
+  useEffect(() => {
+    if (extensionsInitialised.current) return
+    extensionsInitialised.current = true
+    void (async () => {
+      await extensionRuntime.install(focusModeManifest, focusModeExtension, 'official')
+      if (useExtensionStore.getState().enabled[focusModeManifest.id] !== false) {
+        await extensionRuntime.activate(focusModeManifest.id)
+        useExtensionStore.getState().setEnabled(focusModeManifest.id, true)
+      }
+    })().catch(() => undefined)
+  }, [extensionRuntime])
 
   useEffect(() => {
     if (!session && status === 'idle' && location.pathname.startsWith('/notes/') && !legacyOpenAttempted.current) {
@@ -125,17 +152,22 @@ export function AppShell() {
   }
 
   return <CommandRegistryContext.Provider value={registry}>
-    <div className={`app-workbench ${leftSidebar ? '' : 'app-workbench--sidebar-collapsed'}`}>
-      <Sidebar />
-      <div className="workbench-main">
-        <TopBar />
-        <WorkbenchTabs />
-        <Outlet />
+    <ExtensionRuntimeContext.Provider value={extensionRuntime}>
+      <div className={`app-workbench ${leftSidebar ? '' : 'app-workbench--sidebar-collapsed'}`}>
+        <Sidebar />
+        <div className="workbench-main">
+          <TopBar />
+          <WorkbenchTabs />
+          <Outlet />
+          <ExtensionStatusBar />
+        </div>
+        <SearchDialog />
+        <CommandPalette />
+        <Suspense fallback={null}><LabDrawer /></Suspense>
+        <ComputeSettingsDialog />
+        <ExtensionManagerDialog />
+        <ExtensionViewDialog />
       </div>
-      <SearchDialog />
-      <CommandPalette />
-      <Suspense fallback={null}><LabDrawer /></Suspense>
-      <ComputeSettingsDialog />
-    </div>
+    </ExtensionRuntimeContext.Provider>
   </CommandRegistryContext.Provider>
 }

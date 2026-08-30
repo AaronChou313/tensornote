@@ -27,6 +27,7 @@ import { NoteProgress } from './NoteProgress'
 import { KnowledgePanel } from './KnowledgePanel'
 import { useCommandRegistry } from '../commands/CommandContext'
 import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../commands/editor'
+import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 
 type EditorMode = 'read' | 'edit' | 'split'
 
@@ -103,6 +104,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const baselineRef = useRef({ modifiedAt: note.sourceModifiedAt, size: note.sourceSize })
   const dirtyRef = useRef(dirty)
   const registry = useCommandRegistry()
+  const extensionEditorExtensions = useExtensionSnapshot().editorExtensions
 
   useEffect(() => { dirtyRef.current = dirty }, [dirty])
 
@@ -317,7 +319,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
             <div className="editor-file-label"><span>{note.path}</span><small>Markdown source</small></div>
             <CodeMirror
               value={draft}
-              extensions={[markdown()]}
+              extensions={[markdown(), ...extensionEditorExtensions.map((item) => item.extension)]}
               theme={theme}
               minHeight="calc(100dvh - 166px)"
               basicSetup={{ lineNumbers: true, foldGutter: true, history: true, autocompletion: true, highlightActiveLine: true }}

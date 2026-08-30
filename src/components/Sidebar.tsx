@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, House, MagnifyingGlass, PencilSimple, ShareNetwork, Trash, X } from '@phosphor-icons/react'
+import { ArrowsOutLineHorizontal, CaretDown, Copy, DotsThree, FilePlus, FileText, FolderPlus, House, MagnifyingGlass, PencilSimple, PuzzlePiece, ShareNetwork, Trash, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -9,6 +9,8 @@ import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
 import { WorkspaceFileDialog, type FileDialogRequest } from './WorkspaceFileDialog'
 import { joinWorkspacePath } from '../workspace/path'
+import { useExtensionSnapshot } from '../extensions/ExtensionContext'
+import { useCommandRegistry } from '../commands/CommandContext'
 
 function TreeItem({ item, depth = 0, onAction }: { item: NoteTreeItem; depth?: number; onAction: (request: FileDialogRequest) => void }) {
   const [expanded, setExpanded] = useState(depth < 2)
@@ -69,6 +71,8 @@ export function Sidebar() {
   const setLeftSidebar = useWorkbenchStore((state) => state.setSidebar)
   const recent = useWorkbenchStore((state) => state.recent)
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
+  const registry = useCommandRegistry()
+  const extensionItems = useExtensionSnapshot().sidebarItems
   useEffect(() => {
     return useAppStore.subscribe((state, previous) => {
       if (state.newNoteRequestNonce !== previous.newNoteRequestNonce && session?.capabilities.write) setFileDialog({ action: 'new-note' })
@@ -114,6 +118,8 @@ export function Sidebar() {
         <nav className="workspace-tree" aria-label="Workspace 文件">
           {session.navigation.map((item) => <TreeItem key={item.path || item.label} item={item} onAction={setFileDialog} />)}
         </nav>
+
+        {extensionItems.length > 0 && <div className="sidebar-extension-items"><span>Extensions</span>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div>}
 
         <div className="sidebar-source">
           <span className={`source-dot source-dot--${session.descriptor.type}`} />

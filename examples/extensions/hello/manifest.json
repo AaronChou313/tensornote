@@ -1,0 +1,10 @@
+{
+  "id": "example.hello",
+  "name": "Hello Extension",
+  "version": "0.1.0",
+  "minTensorNoteVersion": "0.6.0",
+  "description": "Minimal local TensorNote extension example.",
+  "author": "TensorNote",
+  "entry": "index.js",
+  "permissions": []
+}

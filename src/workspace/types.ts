@@ -36,7 +36,7 @@ export class WorkspaceConflictError extends Error {
   }
 }
 
-export type WorkspaceSourceType = 'bundled' | 'local' | 'github'
+export type WorkspaceSourceType = 'bundled' | 'local' | 'github' | (string & {})
 
 export interface WorkspaceDescriptor {
   id: string
