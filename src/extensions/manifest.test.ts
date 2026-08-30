@@ -11,6 +11,7 @@ describe('extension manifest', () => {
       permissions: ['workspace:read', 'workspace:read'],
     }, '0.6.0')
     expect(manifest.permissions).toEqual(['workspace:read'])
+    expect(manifest.apiVersion).toBe(1)
   })
 
   it('rejects invalid ids, unknown permissions, and incompatible versions', () => {
@@ -18,5 +19,6 @@ describe('extension manifest', () => {
     expect(() => validateExtensionManifest({ ...base, id: 'Demo Tools' }, '0.6.0')).toThrow('Manifest id')
     expect(() => validateExtensionManifest({ ...base, permissions: ['camera'] }, '0.6.0')).toThrow('未知权限')
     expect(() => validateExtensionManifest({ ...base, minTensorNoteVersion: '0.7.0' }, '0.6.0')).toThrow('需要 TensorNote 0.7.0')
+    expect(() => validateExtensionManifest({ ...base, apiVersion: 2 }, '0.8.2')).toThrow('Extension API v2')
   })
 })

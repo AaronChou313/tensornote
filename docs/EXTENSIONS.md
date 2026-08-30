@@ -33,6 +33,7 @@ Manifest 最小示例：
   "name": "Hello Extension",
   "version": "0.1.0",
   "minTensorNoteVersion": "0.6.0",
+  "apiVersion": 1,
   "entry": "index.js",
   "permissions": []
 }
@@ -46,6 +47,7 @@ Manifest 最小示例：
 | `name` | 是 | 扩展显示名称 |
 | `version` | 是 | `x.y.z` 语义化版本 |
 | `minTensorNoteVersion` | 是 | 最低兼容 TensorNote 版本 |
+| `apiVersion` | 否 | Extension API 主版本；省略时按 v1 处理 |
 | `entry` | 本地扩展必填 | 入口 `.js` 或 `.mjs` 文件名 |
 | `description` / `author` | 否 | 描述和作者 |
 | `permissions` | 否 | 请求的能力列表 |
@@ -110,6 +112,8 @@ API 调用必须同时满足“Manifest 已声明”和“用户已授权”。�
 这套权限是 TensorNote API 的能力门控，不是 JavaScript 安全沙箱。本地脚本加载后与应用同源运行，理论上仍可直接访问浏览器环境。只加载你能审查并信任的插件源码；不要加载聊天、邮件或陌生网页提供的脚本。
 
 ## 5. Extension API v1
+
+激活时 `api.apiVersion` 返回当前 API 主版本。TensorNote 会拒绝高于当前支持版本的 Manifest，而省略 `apiVersion` 的 v0.6.x 扩展继续按 v1 加载；这让旧扩展保持兼容，同时避免未来 API 被旧 Runtime 静默误用。
 
 ### Command
 

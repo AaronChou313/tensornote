@@ -13,6 +13,7 @@ export interface ExtensionManifest {
   name: string
   version: string
   minTensorNoteVersion: string
+  apiVersion?: number
   description?: string
   author?: string
   entry?: string
@@ -70,6 +71,7 @@ export interface ComputeProviderContribution {
 
 export interface ExtensionAPI {
   readonly extensionId: string
+  readonly apiVersion: number
   commands: { register(command: Command): () => void }
   views: { register(view: ExtensionViewContribution): () => void; open(id: string): void }
   sidebar: { register(item: SidebarItemContribution): () => void }

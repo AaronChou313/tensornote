@@ -9,6 +9,7 @@ import type {
   WorkspaceSession,
   WorkspaceWriteOptions,
 } from '../workspace/types'
+import { migrateWorkspaceSettings } from './migrations'
 
 type WorkspaceStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -71,7 +72,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
 
       const writableProvider = () => {
         const provider = get().provider
-        if (!provider?.capabilities.write) throw new Error('当前 Workspace 为只读来源')
+        if (!provider?.capabilities.write || !get().session?.capabilities.write) throw new Error('当前 Workspace 为只读来源')
         return provider
       }
 
@@ -190,6 +191,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     },
     {
       name: 'tensornote-workspaces',
+      version: 1,
+      migrate: (persisted) => migrateWorkspaceSettings(persisted),
       storage: createJSONStorage(() => localStorage),
       partialize: ({ recentWorkspaces, trustedRevisions }) => ({ recentWorkspaces, trustedRevisions }),
     },

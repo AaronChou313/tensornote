@@ -86,6 +86,22 @@ describe('loadWorkspace', () => {
     expect((await loadWorkspace(provider, ['github:demo/repo@abc123'])).trusted).toBe(true)
   })
 
+  it('keeps future-schema Markdown readable while disabling mutation capabilities', async () => {
+    const provider = createProvider('local', {
+      'tensornote.yaml': 'schemaVersion: 3\ncontent:\n  root: notes\nfeatures:\n  executable: true',
+      'notes/hello.md': note,
+    })
+    provider.capabilities.write = true
+    provider.capabilities.git = true
+
+    const session = await loadWorkspace(provider, [])
+
+    expect(session.documents.map((document) => document.id)).toEqual(['hello'])
+    expect(session.capabilities).toMatchObject({ read: true, write: false, git: false })
+    expect(session.manifest.features.executable).toBe(false)
+    expect(session.compatibility.status).toBe('future')
+  })
+
   it('detects declared and conventional environment files without installing them', () => {
     const entries: WorkspaceEntry[] = [
       { path: 'requirements.txt', name: 'requirements.txt', kind: 'file' },

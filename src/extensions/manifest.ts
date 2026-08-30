@@ -1,4 +1,5 @@
 import { extensionPermissions, type ExtensionManifest } from './types'
+import { EXTENSION_API_VERSION } from './constants'
 
 const semverPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/
 const idPattern = /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/
@@ -23,6 +24,9 @@ export function validateExtensionManifest(value: unknown, tensorNoteVersion: str
   if (compareVersions(tensorNoteVersion, input.minTensorNoteVersion as string) < 0) {
     throw new Error(`该扩展需要 TensorNote ${input.minTensorNoteVersion} 或更高版本`)
   }
+  const apiVersion = input.apiVersion ?? 1
+  if (!Number.isInteger(apiVersion) || Number(apiVersion) < 1) throw new Error('Manifest apiVersion 必须是正整数')
+  if (Number(apiVersion) > EXTENSION_API_VERSION) throw new Error(`该扩展需要 Extension API v${apiVersion}；当前仅支持 v${EXTENSION_API_VERSION}`)
   const permissions = input.permissions ?? []
   if (!Array.isArray(permissions) || permissions.some((permission) => !extensionPermissions.includes(permission as never))) {
     throw new Error('Manifest 包含未知权限')
@@ -35,6 +39,7 @@ export function validateExtensionManifest(value: unknown, tensorNoteVersion: str
     name: input.name as string,
     version: input.version as string,
     minTensorNoteVersion: input.minTensorNoteVersion as string,
+    apiVersion: Number(apiVersion),
     description: input.description as string | undefined,
     author: input.author as string | undefined,
     entry: input.entry as string | undefined,

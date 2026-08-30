@@ -13,6 +13,15 @@
 - `v0.7.0 — Structured Knowledge`：已完成；见 [Structured Knowledge 指南](STRUCTURED_KNOWLEDGE.md) 与 [Release notes](releases/v0.7.0.md)。
 - `v0.8.0 — Git & Sync`：已完成；见 [Local Git 指南](GIT_AND_SYNC.md) 与 [Release notes](releases/v0.8.0.md)。
 - `v0.8.1 — Workbench & Authoring Polish`：已完成源码阶段；修复导航、侧栏、Workspace 切换、编辑命令与 Frontmatter 编辑体验，不单独创建 Release 或 Tag。
+- `v0.8.2 — Compatibility & Migration`：已完成源码阶段；建立 Workspace Schema、Settings 与 Extension API 的版本兼容和迁移边界，不单独创建 Release 或 Tag。
+
+## v0.8.2 — Compatibility & Migration（源码阶段已完成）
+
+- 缺少版本的旧 Workspace Manifest 在内存中迁移为 Schema v1；不自动改写用户文件。
+- 未来 Schema 保持 Markdown 可读，但关闭写入、Git 与执行，并在 Workspace Overview 明示兼容模式。
+- App、Workspace、Extension 与 Git 设置加入版本号、旧键迁移、无效值清洗和安全默认值。
+- Extension Manifest 支持 `apiVersion`；旧扩展默认使用 API v1，未来 API 不会被旧 Runtime 静默加载。
+- 阶段成果提交并推送到 `main`，但不创建 GitHub Release 或 Tag。
 
 ## v0.8.1 — Workbench & Authoring Polish（源码阶段已完成）
 

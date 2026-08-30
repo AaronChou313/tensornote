@@ -96,6 +96,14 @@ export interface WorkspaceManifest {
   extensions: Record<string, unknown>
 }
 
+export interface WorkspaceCompatibility {
+  sourceVersion: number
+  targetVersion: number
+  status: 'supported' | 'migrated' | 'future'
+  readOnly: boolean
+  warnings: string[]
+}
+
 export interface WorkspaceEnvironmentFile {
   path: string
   kind: 'requirements' | 'pyproject' | 'conda' | 'unknown'
@@ -107,6 +115,7 @@ export interface WorkspaceSession {
   descriptor: WorkspaceDescriptor
   capabilities: WorkspaceCapabilities
   manifest: WorkspaceManifest
+  compatibility: WorkspaceCompatibility
   documents: Note[]
   documentById: Map<string, Note>
   knowledgeIndex: KnowledgeIndex

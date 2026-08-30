@@ -1,4 +1,4 @@
-import { ArrowRight, BracketsCurly, FilePlus, FileText, Flask, ShareNetwork, Tag } from '@phosphor-icons/react'
+import { ArrowRight, BracketsCurly, FilePlus, FileText, Flask, ShareNetwork, Tag, WarningCircle } from '@phosphor-icons/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { createDocumentTemplate } from '../content/document'
@@ -35,6 +35,11 @@ export function WorkspacePage() {
             {session.descriptor.detail && <span>· {session.descriptor.detail}</span>}
           </div>
         </header>
+
+        {session.compatibility.warnings.length > 0 && <section className="workspace-compatibility" role="status">
+          <WarningCircle size={19} weight="duotone" />
+          <div><strong>{session.compatibility.status === 'future' ? 'Compatibility mode' : 'Workspace migrated in memory'}</strong>{session.compatibility.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div>
+        </section>}
 
         <section className="workspace-stats" aria-label="Workspace 统计">
           <div><FileText size={19} /><strong>{session.documents.length}</strong><span>Documents</span></div>

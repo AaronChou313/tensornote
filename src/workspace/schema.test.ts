@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseWorkspaceManifest } from './schema'
+import { parseWorkspaceManifest, parseWorkspaceManifestWithCompatibility } from './schema'
 
 describe('parseWorkspaceManifest', () => {
   it('uses safe defaults for a plain Markdown folder', () => {
@@ -44,5 +44,20 @@ extensions:
 
   it('rejects an invalid schema version', () => {
     expect(() => parseWorkspaceManifest('schemaVersion: 0')).toThrow('schemaVersion')
+  })
+
+  it('migrates an unversioned manifest in memory without changing portable fields', () => {
+    const result = parseWorkspaceManifestWithCompatibility('workspace:\n  name: Legacy\ncontent:\n  root: knowledge')
+
+    expect(result.manifest).toMatchObject({ schemaVersion: 1, workspace: { name: 'Legacy' }, content: { root: 'knowledge' } })
+    expect(result.compatibility).toMatchObject({ sourceVersion: 0, targetVersion: 1, status: 'migrated', readOnly: false })
+  })
+
+  it('opens a future manifest through a read-only compatibility projection', () => {
+    const result = parseWorkspaceManifestWithCompatibility('schemaVersion: 9\nworkspace:\n  name: Future\nfeatures:\n  executable: true')
+
+    expect(result.manifest).toMatchObject({ schemaVersion: 1, workspace: { name: 'Future' }, features: { executable: false } })
+    expect(result.compatibility).toMatchObject({ sourceVersion: 9, status: 'future', readOnly: true })
+    expect(result.compatibility.warnings[0]).toContain('Schema v9')
   })
 })

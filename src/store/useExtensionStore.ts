@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ExtensionPermission } from '../extensions/types'
+import { migrateExtensionSettings } from './migrations'
 
 interface ExtensionState {
   managerOpen: boolean
@@ -30,5 +31,7 @@ export const useExtensionStore = create<ExtensionState>()(persist((set) => ({
   }),
 }), {
   name: 'tensornote-extensions',
+  version: 1,
+  migrate: (persisted) => migrateExtensionSettings(persisted),
   partialize: ({ enabled, grants, settings }) => ({ enabled, grants, settings }),
 }))

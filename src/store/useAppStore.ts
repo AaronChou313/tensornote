@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { KernelStatus, NoteProgress } from '../types'
+import { migrateAppPreferences } from './migrations'
 
 type Theme = 'light' | 'dark'
 export type PendingLabAction = { labId: string; action: 'runAll' } | null
@@ -87,6 +88,8 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'tensornote-preferences',
+      version: 1,
+      migrate: (persisted) => migrateAppPreferences(persisted),
       partialize: (state) => ({ theme: state.theme, progress: state.progress }),
     },
   ),

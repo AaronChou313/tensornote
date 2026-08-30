@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.1 — Workbench & Authoring Polish` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.8.2 — Compatibility & Migration` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -244,6 +244,14 @@ Git Bridge (fixed repository root)
 - 普通 CodeMirror 只接收 Markdown Body。`getDocumentBody` / `replaceDocumentBody` 在显示正文与保存完整文件之间保持原始 YAML Frontmatter，包括未知字段。
 - 格式工具栏、快捷键与 Command Palette 继续调用同一 Editor Transform；标题转换使用逐行偏移映射保持空行、多行选区和光标位置稳定。
 - v0.8.1 是 v0.9.0 前的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
+
+## v0.8.2 Compatibility & Migration
+
+- `schemaVersion: 1` 是当前 Workspace Schema。缺少版本的旧 Manifest 在内存中迁移到 v1，不自动改写用户文件。
+- 高于当前版本的 Manifest 仍按已知字段建立基础 Markdown 索引，但 Session 降级为只读并禁用 Git 与执行；兼容状态和警告属于 `WorkspaceSession`。
+- App、Workspace、Extension 与 Git 的 Zustand 持久数据声明独立存储版本；迁移函数只保留类型正确、受支持的字段，并兼容早期键名。
+- Extension API 当前主版本为 v1。Manifest 可声明 `apiVersion`；省略时兼容早期扩展并按 v1 处理，高于 Runtime 支持版本时明确拒绝。
+- v0.8.2 是 v0.9.0 前的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
 
 ## 版本更新规则
 

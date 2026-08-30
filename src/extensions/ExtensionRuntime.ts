@@ -17,7 +17,7 @@ import type {
   ExtensionSetting,
 } from './types'
 import { validateExtensionManifest } from './manifest'
-import { TENSORNOTE_VERSION } from './constants'
+import { EXTENSION_API_VERSION, TENSORNOTE_VERSION } from './constants'
 
 interface ExtensionRuntimeHost {
   commandRegistry: CommandRegistry
@@ -148,6 +148,7 @@ export class ExtensionRuntime {
     }
     return {
       extensionId,
+      apiVersion: EXTENSION_API_VERSION,
       commands: { register: (command) => {
         const remove = this.host.commandRegistry.register(own(command))
         record.disposables.add(remove)

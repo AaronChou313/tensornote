@@ -1788,6 +1788,22 @@ button.trust-status {
   font-size: .67rem;
 }
 
+.workspace-compatibility {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin: 0 0 24px;
+  border: 1px solid color-mix(in srgb, var(--warning) 28%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--warning) 7%, var(--surface-raised));
+  padding: 14px 16px;
+  color: var(--muted);
+}
+
+.workspace-compatibility > svg { flex: none; margin-top: 1px; color: var(--warning); }
+.workspace-compatibility strong { display: block; margin-bottom: 3px; color: var(--ink); font-size: .76rem; }
+.workspace-compatibility p { margin: 0; overflow-wrap: anywhere; font-size: .69rem; line-height: 1.55; }
+
 .workspace-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

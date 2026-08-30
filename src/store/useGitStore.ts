@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { LocalGitClient } from '../git/LocalGitClient'
 import type { GitBridgeHealth, GitDiff, GitHistoryEntry, GitStatus } from '../git/types'
+import { migrateGitSettings } from './migrations'
 
 type GitConnectionState = 'idle' | 'connecting' | 'ready' | 'error'
 
@@ -119,6 +120,6 @@ export const useGitStore = create<GitState>()(
         clearNotice: () => set({ notice: null }),
       }
     },
-    { name: 'tensornote-git', partialize: ({ bridgeUrl }) => ({ bridgeUrl }) },
+    { name: 'tensornote-git', version: 1, migrate: (persisted) => migrateGitSettings(persisted), partialize: ({ bridgeUrl }) => ({ bridgeUrl }) },
   ),
 )

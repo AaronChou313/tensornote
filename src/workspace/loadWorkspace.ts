@@ -3,7 +3,7 @@ import { parseDocument } from '../content/document'
 import { buildKnowledgeIndex } from '../content/knowledgeIndex'
 import { buildPropertyIndex } from '../content/propertyIndex'
 import { joinWorkspacePath, normalizeWorkspacePath } from './path'
-import { parseWorkspaceManifest } from './schema'
+import { parseWorkspaceManifestWithCompatibility } from './schema'
 import type { WorkspaceEntry, WorkspaceProvider, WorkspaceSession } from './types'
 
 const conventionalEnvironmentFiles = ['requirements.txt', 'pyproject.toml', 'environment.yml', 'environment.yaml']
@@ -43,7 +43,7 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
   const rootEntries = await provider.list('')
   const hasManifest = rootEntries.some((entry) => entry.kind === 'file' && entry.name === 'tensornote.yaml')
   const manifestSource = hasManifest ? await provider.readText('tensornote.yaml') : undefined
-  const manifest = parseWorkspaceManifest(manifestSource, provider.descriptor.name)
+  const { manifest, compatibility } = parseWorkspaceManifestWithCompatibility(manifestSource, provider.descriptor.name)
   const allEntries = await collectEntries(provider)
 
   if (!hasManifest && !allEntries.some((entry) => entry.kind === 'directory' && entry.path === manifest.content.root)) {
@@ -78,8 +78,11 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
 
   return {
     descriptor,
-    capabilities: provider.capabilities,
+    capabilities: compatibility.readOnly
+      ? { ...provider.capabilities, write: false, git: false }
+      : provider.capabilities,
     manifest,
+    compatibility,
     documents,
     documentById,
     knowledgeIndex: buildKnowledgeIndex(documents),
