@@ -17,6 +17,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 - [知识系统](#知识系统)：链接、标签、搜索、属性与局部图谱。
 - [Compute Platform](#compute-platform)：按需连接 Jupyter 执行 Python Lab。
 - [Platform Contracts](docs/PLATFORM_CONTRACTS.md)：v1 的 Workspace、Compute、Extension、可执行 Markdown 与设置兼容承诺。
+- [Agent Interface](docs/AGENT_INTEGRATION.md)：供智能体撰写、配置、运行和校验 TensorNote Workspace 的 Skill、模板与工具。
 - [快速开始](#快速开始)：安装、启动和 Workspace 打开方式。
 
 ## Git & Sync
@@ -79,6 +80,8 @@ v0.9.2 进一步把工作台收敛为更少、更明确的操作：Pane 可以�
 v0.9.3 将每个 Pane 重构成完整的阅读编辑区：Pane 自己拥有标签操作栏和独立滚动展示区，焦点决定右侧上下文栏及后续笔记相关命令的对象。拆分与上下文栏操作提升至顶栏；设置改为自动保存、可从空白处或关闭按钮退出的弹窗，命令面板则收敛为无背景虚化的 VS Code 式顶部浮层。Files 与 Extensions 也和 Recent Files 一样可折叠。本阶段只提交源码，不创建 Tag 或 GitHub Release。
 
 v1.0.0 将现有能力收敛为首个稳定平台基线：Workspace Repository Schema、WorkspaceProvider、ComputeProvider、Extension API、Executable Markdown 和 Settings / Secret Model 均固定为 v1，并通过统一的 `src/platform` 入口导出。1.x 会保持这些契约向后兼容；必须破坏兼容的变化进入新的主版本。当前阶段先提交源码候选，最终试用确认后才创建 Tag 与 GitHub Release。
+
+仓库同时提供可安装的 [`$tensornote-knowledge-workspace`](skills/tensornote-knowledge-workspace/SKILL.md) Skill。智能体可以按统一 Frontmatter、链接、Assets 与多 Cell Lab 规格创建知识库，并通过无网络依赖的校验脚本检查 Workspace；安装、调用和兼容智能体接入方式见[智能体接口说明](docs/AGENT_INTEGRATION.md)。
 
 详细的布局、命令与快捷键见 [Workbench 使用说明](docs/WORKBENCH.md)。
 

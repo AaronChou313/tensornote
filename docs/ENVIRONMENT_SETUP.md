@@ -2,6 +2,8 @@
 
 本文从一台尚未配置开发环境的电脑开始，覆盖前端依赖、三种 Python 环境方案、Jupyter Server、Kernel 注册、TensorNote 连接设置，以及以后每天的启动和关闭顺序。
 
+如果希望由智能体完成或检查这些步骤，请安装仓库内的 `$tensornote-knowledge-workspace` Skill，并参阅[智能体接口与 Skill 使用说明](AGENT_INTEGRATION.md)。Skill 会根据 Conda、venv 或 uv 方案选择正确流程，同时保留 Token、CORS 和执行授权的安全边界。
+
 > [!IMPORTANT]
 > Conda、标准 `venv`、`uv` 是三种可替代的 Python 环境方案。选择其中一种即可，不要为同一个 TensorNote 环境同时混用三种方案。
 

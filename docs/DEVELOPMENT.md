@@ -161,6 +161,8 @@ TensorNote 使用语义化版本：
 
 每次 Release 前应同步修改 `package.json` 中的 `version`，并保证 Git Tag 使用带 `v` 的相同版本，例如包版本 `0.0.2` 对应 Tag `v0.0.2`。
 
+如果 Workspace Schema、Provider、Executable Markdown、Settings/Secret 或启动方式发生变化，还必须同步更新 `skills/tensornote-knowledge-workspace/` 的 reference、模板和校验器，并按[智能体接口说明](AGENT_INTEGRATION.md)运行 Skill 验证。
+
 ## 4. 发布下一版本
 
 以下示例发布 `v1.0.0`。先完成源码候选并交付试用；只有最终验收确认后才执行 Tag 与 GitHub Release：

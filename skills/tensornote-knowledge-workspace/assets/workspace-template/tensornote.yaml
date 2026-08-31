@@ -1,0 +1,22 @@
+schemaVersion: 1
+
+workspace:
+  name: My Knowledge Base
+  description: Portable Markdown knowledge workspace
+
+content:
+  root: notes
+
+assets:
+  root: assets
+
+navigation:
+  mode: filesystem
+
+features:
+  executable: false
+
+environment:
+  files: []
+
+extensions: {}

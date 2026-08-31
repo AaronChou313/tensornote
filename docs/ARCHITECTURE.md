@@ -312,6 +312,7 @@ Git Bridge (fixed repository root)
 - WorkspaceProvider API v1 与 ComputeProvider API v1 固定文件/资产/能力、执行/诊断/生命周期边界；UI 继续依赖 capability 与 Runtime，不识别具体实现。
 - Extension API v1 固定 Manifest、权限和贡献点；Executable Markdown Syntax v1 固定可移植 Python Fence 语法。
 - Settings / Secret Model v1 区分 Workspace 内容、持久浏览器偏好、恢复状态与会话 Secret；Token 和 Secret 不进入 Markdown、Manifest 或 Git。
+- Agent Interface 将同一 v1 契约包装为仓库级 `AGENTS.md`、可安装 Skill、按需 reference、输出模板和无网络依赖的 Workspace 校验器；它不创建第二套内容格式或运行时 API。
 - v1.x 允许添加可选字段、可选方法与新贡献点，但不得改变既有字段含义或放宽安全默认值。必须破坏兼容的变化只进入新的主版本。
 - 详细的契约、兼容策略和数据归属见 [Platform Contracts](PLATFORM_CONTRACTS.md)。
 

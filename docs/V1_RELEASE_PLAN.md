@@ -15,6 +15,7 @@ TensorNote v1.0.0 完成时，应当同时满足：
 3. 用户内容仍只保存在 Markdown、Assets 与 Workspace 配置中；浏览器状态和 Secret 不混入知识库。
 4. 版本号、About、PWA 缓存、Git Bridge、README、架构与 Release Notes 一致。
 5. 完整 Release Gate 通过，工作树干净，候选提交已推送到 `origin/main`。
+6. 智能体可以通过仓库内置 Skill 按同一 v1 契约撰写、配置、运行和校验 Workspace。
 
 ## 2. 核心契约清单
 
@@ -46,6 +47,7 @@ TensorNote v1.0.0 完成时，应当同时满足：
 - 发布 Platform Contracts、安装配置、架构、限制和升级承诺。
 - 验证 Local、Static、Self-hosted 构建面和 PWA 更新策略。
 - 准备 `docs/releases/v1.0.0.md`；在源码候选验收前不创建 Tag 或 Release。
+- 提供 Agent Interface、可复制模板与无网络依赖的 Workspace 校验器。
 
 ## 4. 自动化 Release Gate
 
@@ -91,3 +93,4 @@ docker build -t tensornote:v1.0.0 .
 - Static `/tensornote/` Base Path 生产构建与 `git diff --check` 通过。
 - 当前机器未安装 Docker，未执行 Compose 与镜像构建；这不改变 Web 源码候选状态，正式容器发布环境仍应复核。
 - 浏览器已确认 Home、Workspace、双 Pane、Lab、Command Palette、Settings About、浅色与深色主题；About 显示 v1.0.0 和六项稳定契约。
+- `tensornote-knowledge-workspace` Skill 通过结构校验；新 Workspace 模板严格模式零错误零警告；当前内置知识库无阻塞错误。

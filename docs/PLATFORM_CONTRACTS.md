@@ -96,3 +96,9 @@ print(x.mean())
 ## 8. 发布承诺
 
 v1.0.0 Release Gate 包含全量测试、Lint、Local/Static 构建、性能门、生产依赖审计、PWA 版本一致性和关键浏览器流程。源码候选通过后先提交和推送；Git Tag 与 GitHub Release 只在最终试用确认后创建。
+
+## 9. 智能体接口
+
+`skills/tensornote-knowledge-workspace/` 将本页的运行时契约转换为智能体可执行的撰写、配置、运行和校验流程。Skill 不另定义内容格式：它必须继续使用 Workspace Schema v1、Executable Markdown Syntax v1 和 Settings / Secret Model v1。
+
+仓库级 `AGENTS.md` 负责自动路由；Skill 的 references 提供按需规格，assets 提供可复制模板，`validate-workspace.mjs` 提供确定性检查。完整安装与调用方式见[智能体接口与 Skill 使用说明](AGENT_INTEGRATION.md)。

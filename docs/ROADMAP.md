@@ -37,6 +37,7 @@ v1.0.0 不以继续增加功能为目标。它表示 TensorNote 的内容格式�
 - Extension API v1：命令、视图、Markdown、编辑器、设置、状态栏与 Provider 贡献保持权限约束。
 - Executable Markdown Syntax v1：标准 Python Fence 加 `exec/lab/cell/title/difficulty` 元数据，脱离 TensorNote 仍可阅读。
 - Settings / Secret Model v1：内容、持久偏好、临时状态和 Secret 分类明确；Token 与 Secret 不进入 Workspace。
+- Agent Interface v1：仓库内置可安装 Skill、撰写/配置/运行参考、模板和确定性 Workspace 校验器，并绑定上述六项稳定契约。
 
 ### 核心体验
 
@@ -58,6 +59,7 @@ v1.0.0 不以继续增加功能为目标。它表示 TensorNote 的内容格式�
 - `pnpm test:performance`：3 项性能预算全部通过；生产依赖高危漏洞审计无已知漏洞。
 - Static `/tensornote/` Base Path 生产构建与 `git diff --check` 通过；当前验收机器未安装 Docker，因此容器配置留待有 Docker 的发布环境复核。
 - 浏览器确认 Home、Workspace、独立分栏、Lab Drawer、Command Palette、Settings About、明暗主题与 v1.0.0 契约信息。
+- 智能体接口通过 Skill 结构校验、模板严格校验与当前 35 篇内置知识库兼容性校验。
 
 ### v1.0.0 明确不包含
 

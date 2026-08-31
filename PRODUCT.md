@@ -40,6 +40,7 @@ TensorNote 是一个本地优先、Markdown-first、由 Jupyter 驱动的可执�
 - Distribution & Performance v0.8.4 以同一 Web Runtime 支持 Static、Local 和 Self-hosted 模式，可选安装为 PWA；Workspace 加载使用受限并发与文档指纹缓存，并有 10,000 笔记性能门。
 - Distribution & Hardening v0.9.0 将 Schema/Settings/Extension 兼容、草稿/崩溃恢复、三种 Web 分发模式、PWA、安全检查与大 Workspace 性能门合并为一个可发布的稳定候选。
 - Stable Platform v1.0.0 冻结 Workspace Schema、WorkspaceProvider、ComputeProvider、Extension API、Executable Markdown 与 Settings/Secret 六项 v1 契约；后续 1.x 功能必须保持向后兼容或提供显式迁移。
+- Agent Interface v1 随仓库提供可安装 Skill、分层知识撰写/配置/运行规范、输出模板与确定性 Workspace 校验器，使智能体使用同一平台契约而不是发明第二套格式。
 
 ## Brand Commitments
 

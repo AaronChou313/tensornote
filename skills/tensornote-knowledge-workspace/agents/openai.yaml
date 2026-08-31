@@ -1,0 +1,4 @@
+interface:
+  display_name: "TensorNote Knowledge Workspace"
+  short_description: "Write, configure, validate, and run TensorNote workspaces"
+  default_prompt: "Use $tensornote-knowledge-workspace to create or maintain a portable TensorNote knowledge workspace."
