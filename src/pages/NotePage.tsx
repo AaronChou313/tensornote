@@ -5,6 +5,7 @@ import { NoteProgress } from '../components/NoteProgress'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { WorkbenchRightSidebar } from '../components/workbench/WorkbenchRightSidebar'
+import { WorkbenchPaneTabs } from '../components/workbench/WorkbenchTabs'
 import type { Note } from '../types'
 import type { WorkspaceProvider } from '../workspace/types'
 
@@ -32,7 +33,8 @@ export function NotePage() {
     setActivePane(pane)
     if (paneNote) navigate(`/notes/${paneNote.id}`)
   }}>
-    {paneNote ? session.capabilities.write ? <Suspense fallback={<main className="route-status-page"><span className="workspace-spinner" /></main>}><NoteEditor key={`${pane}:${paneNote.path}`} note={paneNote} provider={provider} isActive={activePane === pane} /></Suspense> : <ReadingSurface note={paneNote} provider={provider} /> : <div className="workbench-pane-empty"><p>请选择一个笔记进行阅读或编辑</p></div>}
+    <WorkbenchPaneTabs pane={pane} />
+    <div className="workbench-pane__content">{paneNote ? session.capabilities.write ? <Suspense fallback={<main className="route-status-page"><span className="workspace-spinner" /></main>}><NoteEditor key={`${pane}:${paneNote.path}`} note={paneNote} provider={provider} isActive={activePane === pane} /></Suspense> : <ReadingSurface note={paneNote} provider={provider} /> : <div className="workbench-pane-empty"><p>请选择一个笔记进行阅读或编辑</p></div>}</div>
   </section>
   return <div className={`workbench-panes ${secondaryOpen ? 'workbench-panes--split' : ''} ${secondaryPosition === 'left' ? 'workbench-panes--secondary-left' : ''}`}>
     {secondaryOpen && secondaryPosition === 'left' && showPane('secondary', secondary)}

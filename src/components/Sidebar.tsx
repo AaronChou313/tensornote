@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowClockwise, ArrowsOutLineHorizontal, CaretDown, CaretUpDown, Copy, DotsThree, FilePlus, FileText, FolderOpen, FolderPlus, Gear, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, Trash, X } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowsOutLineHorizontal, CaretDown, CaretUpDown, Copy, DotsThree, FilePlus, FileText, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, Trash, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -170,9 +170,6 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           {deploymentAdapter.capabilities.gitBridge && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <GitBranch size={15} />Git
           </NavLink>}
-          <NavLink to="/settings" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
-            <Gear size={15} />Settings
-          </NavLink>
         </div>
 
         {recent.length > 0 && <details className="sidebar-recent" open><summary><span>Recent files</span><CaretDown size={12} weight="bold" /></summary><div>{recent.slice(0, 4).map((noteId) => {
@@ -180,15 +177,13 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           return note ? <NavLink key={noteId} to={`/notes/${noteId}`} onClick={() => { openNote(note.id); setSidebarOpen(false) }}><FileText size={13} />{note.frontmatter.title}</NavLink> : null
         })}</div></details>}
 
-        <div className="sidebar-section-label">
-          <span>Files</span>
-          {session.capabilities.write && <div><button onClick={() => setFileDialog({ action: 'new-note' })} aria-label="新建笔记"><FilePlus size={14} /></button><button onClick={() => setFileDialog({ action: 'new-folder' })} aria-label="新建文件夹"><FolderPlus size={14} /></button></div>}
-        </div>
-        <nav className="workspace-tree" aria-label="Workspace 文件">
-          <TreeChildren items={session.navigation} onAction={setFileDialog} onOpenNote={openNote} />
-        </nav>
+        <details className="sidebar-collapsible sidebar-files" open>
+          <summary className="sidebar-section-label"><span>Files</span><CaretDown size={12} weight="bold" /></summary>
+          {session.capabilities.write && <div className="sidebar-file-actions"><button onClick={() => setFileDialog({ action: 'new-note' })} aria-label="新建笔记"><FilePlus size={14} /></button><button onClick={() => setFileDialog({ action: 'new-folder' })} aria-label="新建文件夹"><FolderPlus size={14} /></button></div>}
+          <nav className="workspace-tree" aria-label="Workspace 文件"><TreeChildren items={session.navigation} onAction={setFileDialog} onOpenNote={openNote} /></nav>
+        </details>
 
-        {extensionItems.length > 0 && <div className="sidebar-extension-items"><span>Extensions</span>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div>}
+        {extensionItems.length > 0 && <details className="sidebar-collapsible sidebar-extension-items" open><summary><span>Extensions</span><CaretDown size={12} weight="bold" /></summary><div>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div></details>}
 
       </aside>
       <WorkspaceFileDialog key={fileDialog ? `${fileDialog.action}:${fileDialog.path || ''}` : 'closed'} request={fileDialog} onClose={() => setFileDialog(null)} />

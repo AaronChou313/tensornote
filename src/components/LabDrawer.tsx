@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowClockwise, Broom, FloppyDisk, Gear, Play, Plus, ShieldWarning, Stop, X } from '@phosphor-icons/react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { computeRuntime } from '../compute/ComputeRuntime'
 import type { CellOutput } from '../compute/types'
 import { insertScratchLab, updateLabCells } from '../content/labParser'
@@ -38,6 +38,7 @@ function scratchCell(order: number): LabCell {
 export function LabDrawer() {
   const activeLabId = useAppStore((state) => state.activeLabId)
   const activeLabNoteId = useAppStore((state) => state.activeLabNoteId)
+  const labOpenNonce = useAppStore((state) => state.labOpenNonce)
   const scratchOpen = useComputeStore((state) => state.scratchOpen)
   const session = useWorkspaceStore((state) => state.session)
   const allLabs = useMemo(
@@ -54,17 +55,17 @@ export function LabDrawer() {
     return <ComputeLabDrawer key={`${session.descriptor.id}:scratch`} lab={{ id: 'scratch', title: 'Scratch Lab', difficulty: 'basic', cells: [scratchCell(1)], scratch: true }} />
   }
   if (!lab) return null
-  return <ComputeLabDrawer key={`${session.descriptor.id}:${lab.noteId ?? 'unknown'}:${lab.id}`} lab={lab} />
+  return <ComputeLabDrawer key={`${session.descriptor.id}:${lab.noteId ?? 'unknown'}:${lab.id}:${labOpenNonce}`} lab={lab} />
 }
 
 function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const location = useLocation()
-  const navigate = useNavigate()
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
   const openLab = useAppStore((state) => state.openLab)
   const pendingLabAction = useAppStore((state) => state.pendingLabAction)
   const setPendingLabAction = useAppStore((state) => state.setPendingLabAction)
   const setLabDirty = useAppStore((state) => state.setLabDirty)
+  const setSettingsOpen = useAppStore((state) => state.setSettingsOpen)
   const editorDirtyPaths = useAppStore((state) => state.editorDirtyPaths)
   const updateProgress = useAppStore((state) => state.updateProgress)
   const kernelStatus = useAppStore((state) => state.kernelStatus)
@@ -252,7 +253,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
     if (labDirty && !window.confirm(lab.scratch ? 'Scratch Lab 仍有临时代码，确定前往设置吗？' : '实验代码还有未保存到 Markdown 的修改，确定前往设置吗？')) return
     setScratchOpen(false)
     setActiveLabId(null)
-    navigate('/settings?section=compute')
+    setSettingsOpen(true, 'compute')
   }
 
   const startResize = (event: React.PointerEvent) => {

@@ -6,13 +6,11 @@ import { computeProfileTemplates, type ComputeSessionScope, type DiagnosticCheck
 import { deploymentAdapter } from '../deployment/config'
 import { useExtensionRecords, useExtensionRuntime } from '../extensions/ExtensionContext'
 import { TENSORNOTE_VERSION } from '../extensions/constants'
-import { useAppStore, type EditorMode } from '../store/useAppStore'
+import { useAppStore, type EditorMode, type SettingsSection } from '../store/useAppStore'
 import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
 import { useExtensionStore } from '../store/useExtensionStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from '../components/ui/Button'
-
-type SettingsSection = 'appearance' | 'editor' | 'compute' | 'extensions' | 'about'
 
 const settingsNavigation: Array<{ id: SettingsSection; label: string; icon: typeof PaintBrush }> = [
   { id: 'appearance', label: '外观', icon: PaintBrush },
@@ -95,10 +93,14 @@ function AboutSettings() {
   return <section className="settings-panel"><header><span>System</span><h2>关于 TensorNote</h2><p>Markdown-first executable knowledge workspace。</p></header><div className="settings-about-grid">{facts.map(([label, value]) => <div key={label}><small>{label}</small><strong>{value}</strong></div>)}</div><div className="settings-principle"><Gear size={20} /><div><strong>内容始终属于你</strong><p>TensorNote 不会把知识锁进私有数据库。Markdown、图片、代码与 Git Repository 可以脱离应用继续使用。</p></div></div></section>
 }
 
+export function SettingsContent({ section, onSectionChange }: { section: SettingsSection; onSectionChange: (section: SettingsSection) => void }) {
+  const content = section === 'appearance' ? <AppearanceSettings /> : section === 'editor' ? <EditorSettings /> : section === 'compute' ? <ComputeSettings /> : section === 'extensions' ? <ExtensionSettings /> : <AboutSettings />
+  return <><aside className="settings-navigation"><header><span><Gear size={18} /></span><div><strong>设置</strong><small>TensorNote preferences</small></div></header><nav aria-label="设置分类">{settingsNavigation.map((item) => { const Icon = item.icon; return <button key={item.id} className={section === item.id ? 'is-active' : ''} onClick={() => onSectionChange(item.id)}><Icon size={16} />{item.label}</button> })}</nav></aside><div className="settings-content">{content}</div></>
+}
+
 export function SettingsPage() {
   const [params, setParams] = useSearchParams()
   const requested = params.get('section') as SettingsSection | null
   const section = settingsNavigation.some((item) => item.id === requested) ? requested! : 'appearance'
-  const content = section === 'appearance' ? <AppearanceSettings /> : section === 'editor' ? <EditorSettings /> : section === 'compute' ? <ComputeSettings /> : section === 'extensions' ? <ExtensionSettings /> : <AboutSettings />
-  return <main className="settings-page"><aside className="settings-navigation"><header><span><Gear size={18} /></span><div><strong>设置</strong><small>TensorNote preferences</small></div></header><nav aria-label="设置分类">{settingsNavigation.map((item) => { const Icon = item.icon; return <button key={item.id} className={section === item.id ? 'is-active' : ''} onClick={() => setParams({ section: item.id })}><Icon size={16} />{item.label}</button> })}</nav></aside><div className="settings-content">{content}</div></main>
+  return <main className="settings-page"><SettingsContent section={section} onSectionChange={(next) => setParams({ section: next })} /></main>
 }

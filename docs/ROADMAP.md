@@ -19,6 +19,16 @@
 - `v0.9.0 — Distribution & Hardening`：已完成；汇总兼容、恢复、分发、安全、性能与测试硬化，作为正式 Release。
 - `v0.9.1 — Editor Experience & Settings`：已完成源码阶段；重构独立 Pane/Tab、编辑工具栏、标题渲染、Lab 回跳、Workspace 入口和统一设置页，不单独创建 Release 或 Tag。
 - `v0.9.2 — Workbench Interaction Refinement`：已完成源码阶段；完善 Pane 关闭、Lab 打开可靠性、侧栏信息架构和白色主体/淡绿交互视觉，不单独创建 Release 或 Tag。
+- `v0.9.3 — Focused Pane Workspace`：已完成源码阶段；将 Pane 重构为独立展示区、设置改为弹窗、焦点感知上下文和可折叠侧栏区块，不单独创建 Release 或 Tag。
+
+## v0.9.3 — Focused Pane Workspace（源码阶段已完成）
+
+- 每个 Pane 都包含自身的历史、标签、固定和关闭操作栏，以及独立的滚动展示区；左右 Pane 不再共用页面滚动位置。
+- 当前焦点 Pane 决定从文件树打开笔记、右侧上下文栏读取的 Frontmatter/目录/链接/图谱，以及顶栏的拆分目标。
+- Lab 每次显式打开都递增请求 nonce 并重新挂载对应 Workspace、笔记和 Lab 的 Drawer；笔记 Lab 在包含同名实验时不再复用旧实例。
+- 设置移出侧栏和路由主界面，改为点击齿轮显示的自动保存弹窗，可点击关闭按钮或空白遮罩退出；Compute 设置亦复用该弹窗。
+- 命令面板改为无模糊背景的顶部浮层；Files、Extensions 与 Recent Files 使用统一可折叠标题样式；右侧栏移除与独立实验抽屉重复的 Python Lab 入口。
+- 阶段成果提交并推送到 `main`，但不创建 GitHub Release 或 Tag。
 
 ## v0.9.2 — Workbench Interaction Refinement（源码阶段已完成）
 

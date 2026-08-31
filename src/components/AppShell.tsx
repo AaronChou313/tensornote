@@ -10,7 +10,6 @@ import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
 import { CommandRegistry } from '../commands/CommandRegistry'
 import { CommandRegistryContext } from '../commands/CommandContext'
 import { CommandPalette } from './workbench/CommandPalette'
-import { WorkbenchTabs } from './workbench/WorkbenchTabs'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { ExtensionRuntime } from '../extensions/ExtensionRuntime'
 import { ExtensionRuntimeContext } from '../extensions/ExtensionContext'
@@ -19,6 +18,7 @@ import { useExtensionStore } from '../store/useExtensionStore'
 import { ExtensionManagerDialog } from './extensions/ExtensionManagerDialog'
 import { ExtensionStatusBar } from './extensions/ExtensionStatusBar'
 import { ExtensionViewDialog } from './extensions/ExtensionViewDialog'
+import { SettingsDialog } from './workbench/SettingsDialog'
 import { useGitStore } from '../store/useGitStore'
 import { deploymentAdapter } from '../deployment/config'
 
@@ -43,7 +43,6 @@ export function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
-  const activeView = useWorkbenchStore((state) => state.activeView)
   const previousPath = useRef(location.pathname)
   const legacyOpenAttempted = useRef(false)
   const extensionsInitialised = useRef(false)
@@ -133,7 +132,7 @@ export function AppShell() {
       registry.register({ id: 'workspace.switch', label: 'Switch workspace', category: 'Workspace', description: 'Close the current workspace and return to the start page', execute: async () => { await switchWorkspace() } }),
       registry.register({ id: 'view.graph', label: 'Open graph', category: 'View', execute: () => navigate('/knowledge') }),
       registry.register({ id: 'view.database', label: 'Open database', category: 'View', description: 'Browse structured note properties', execute: () => navigate('/database') }),
-      registry.register({ id: 'view.settings', label: 'Open settings', category: 'View', description: 'Appearance, editor, compute and extensions', execute: () => navigate('/settings') }),
+      registry.register({ id: 'view.settings', label: 'Open settings', category: 'View', description: 'Appearance, editor, compute and extensions', execute: () => useAppStore.getState().setSettingsOpen(true) }),
       registry.register({ id: 'view.git', label: 'Open Git workspace', category: 'View', description: 'Inspect local changes, diffs, history, and commits', isAvailable: () => deploymentAdapter.capabilities.gitBridge && session.capabilities.git && session.descriptor.type === 'local', execute: () => navigate('/git') }),
       registry.register({ id: 'view.toggleSidebar', label: 'Toggle sidebar', category: 'View', execute: () => useWorkbenchStore.getState().setSidebar('left', !useWorkbenchStore.getState().leftSidebar) }),
       registry.register({ id: 'navigate.back', label: 'Go back', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goBack(); if (note) navigate(`/notes/${note}`) } }),
@@ -198,12 +197,12 @@ export function AppShell() {
         <Sidebar onSwitchWorkspace={switchWorkspace} />
         <div className="workbench-main">
           <TopBar />
-          {!activeView && <WorkbenchTabs />}
-          <Outlet />
+          <div className="workbench-route"><Outlet /></div>
           <ExtensionStatusBar />
         </div>
         <SearchDialog />
         <CommandPalette />
+        <SettingsDialog />
         <Suspense fallback={null}><LabDrawer /></Suspense>
         <ExtensionManagerDialog />
         <ExtensionViewDialog />

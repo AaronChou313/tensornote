@@ -4,15 +4,15 @@ v0.5.0 将 Workspace 的文件、笔记、知识上下文与计算入口放进�
 
 ## 导航与布局
 
-- 从 Files、搜索结果或 Workspace 页面打开笔记会在当前活动 Pane 创建或激活标签。主、次 Pane 各自保存标签、固定状态与前进/后退历史。
+- 从 Files、搜索结果或 Workspace 页面打开笔记会在当前活动 Pane 创建或激活标签。主、次 Pane 各自保存标签、固定状态与前进/后退历史；每个 Pane 是一个完整阅读编辑区，自己的操作栏紧贴在内容展示区上方，滚动也彼此独立。
 - 使用标签栏的拆分按钮先创建一个空白次 Pane；再从侧栏选择第二篇笔记。拆分不会复制当前笔记，关闭一侧标签也不会影响另一侧。每个 Pane 自己带有关闭按钮：关闭主 Pane 会提升另一侧；关闭最后一个 Pane 后进入空工作台，显示“请选择一个笔记进行阅读或编辑”。
-- 点击正文或标签组会激活对应 Pane；后续从 Files 打开的笔记进入该 Pane。窄屏只显示活动 Pane，避免两个编辑器挤压内容。
+- 点击正文或标签组会激活对应 Pane；后续从 Files 打开的笔记进入该 Pane。右侧 Properties、Outline、Backlinks 和 Graph 也始终读取当前焦点 Pane 的笔记。窄屏只显示活动 Pane，避免两个编辑器挤压内容。
 - Workspace 切换器位于左栏最上方，展开后可刷新或切换 Workspace；Overview 仍由主导航唯一提供。Workspace 来源类型和读写能力以标题下方标签呈现，Recent Files 可折叠。
-- 左栏包含 Files、Overview、Knowledge、Database 和 Settings。右栏继续提供 Properties、Outline、Backlinks、Graph 与 Python Lab 上下文，且不改变 ComputeRuntime 的 Session 边界。打开笔记中的 Python Lab 时会先关闭右栏，避免两个上下文面板争用空间。
+- 左栏包含 Files、Overview、Knowledge、Database；Files、Recent Files 和 Extensions 均可折叠。设置只由右上角齿轮打开，并以自动保存的弹窗呈现。右栏继续提供当前焦点笔记的 Properties、Outline、Backlinks 与 Graph；Python Lab 保持为独立抽屉，打开时会先关闭右栏，避免两个上下文面板争用空间。
 
 ## Command Palette
 
-按 `Ctrl/Cmd + P` 打开命令面板，可搜索并执行已注册命令。每篇可见笔记都有 Open Note 命令，New Note 会打开已有的新建笔记对话框；还提供 Open graph、Toggle sidebar、Back/Forward 和可用的编辑命令。Run all labs 会选择活动 Pane 当前笔记的首个 Lab，LabDrawer 匹配并一次性消费 `pendingLabAction` 后调用既有 Run all。该操作继续遵循 Workspace trust、Compute Profile、Session Scope 和 ComputeRuntime 的既有连接边界；没有可用 Lab 时命令不可执行。
+按 `Ctrl/Cmd + P` 打开命令面板，可搜索并执行已注册命令。它是无背景虚化的顶部浮层，空查询显示推荐命令。每篇可见笔记都有 Open Note 命令，New Note 会打开已有的新建笔记对话框；还提供 Open graph、Toggle sidebar、Back/Forward 和可用的编辑命令。Run all labs 会选择活动 Pane 当前笔记的首个 Lab，LabDrawer 匹配并一次性消费 `pendingLabAction` 后调用既有 Run all。该操作继续遵循 Workspace trust、Compute Profile、Session Scope 和 ComputeRuntime 的既有连接边界；没有可用 Lab 时命令不可执行。
 
 `Ctrl/Cmd + K` 在非编辑器区域打开全局搜索；当 CodeMirror 获得焦点时，它插入 Markdown 链接。`Ctrl/Cmd + S` 继续使用原有保存与冲突保护。
 
@@ -31,7 +31,7 @@ v0.5.0 将 Workspace 的文件、笔记、知识上下文与计算入口放进�
 
 ## Settings
 
-`/settings` 集中管理外观、编辑器、计算与 Jupyter、扩展和版本信息。顶栏只保留一个带运行状态提示的设置入口，避免主题、Kernel Profile 和扩展管理散落在多个按钮或对话框中。
+设置弹窗集中管理外观、编辑器、计算与 Jupyter、扩展和版本信息。顶栏只保留一个带运行状态提示的齿轮入口；点击关闭按钮或弹窗外空白区域即可返回当前笔记，所有设置操作会自动保存。
 
 - 外观：浅色 / 深色主题。
 - 编辑器：默认阅读、编辑或双栏预览模式，行号与长行换行。

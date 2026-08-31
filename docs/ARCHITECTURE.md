@@ -296,6 +296,14 @@ Git Bridge (fixed repository root)
 - 侧栏的 Workspace 标题是来源类型和读写能力的唯一信息面；Workspace popover 不再重复 Overview 路由。顶栏全局搜索入口移除，保留侧栏搜索与 `Cmd/Ctrl + K` 快捷键。
 - v0.9.2 是 v0.9.0 后的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
 
+## v0.9.3 Focused Pane Workspace
+
+- `WorkbenchPaneTabs` 与相同 Pane 的内容被组合到一个 `workbench-pane`；每个 Pane 的内容容器独立管理滚动、overscroll 和焦点，页面级容器不再承载双 Pane 的阅读滚动。
+- `activePane` 是笔记相关上下文的唯一焦点来源：文件树、编辑命令、右侧属性/目录/反链/图谱和顶栏拆分操作都围绕其当前笔记工作。
+- App UI Store 增加短生命周期的 `settingsOpen/settingsSection` 与 `labOpenNonce`。前者驱动自动保存的 Settings Dialog，后者保证重复点击 Lab 也会重建 Drawer，不让隐藏或陈旧实例吞掉请求。
+- Python Lab 不再作为 Workbench 右栏标签；右栏只服务当前焦点笔记的 Properties、Outline、Backlinks 和 Graph。
+- v0.9.3 是 v0.9.0 后的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
+
 ## 版本更新规则
 
 每个版本至少同步更新：

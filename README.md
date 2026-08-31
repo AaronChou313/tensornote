@@ -6,7 +6,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前源码版本：`v0.9.2 — Workbench Interaction Refinement`。最近正式 Release 仍为 `v0.9.0`。
+当前源码版本：`v0.9.3 — Focused Pane Workspace`。最近正式 Release 仍为 `v0.9.0`。
 
 ## 概览与目录
 
@@ -74,6 +74,8 @@ v0.9.0 汇总兼容迁移、非破坏式恢复、分发适配、依赖安全与�
 v0.9.1 把编辑体验提升为首要优化面：主、次 Pane 拥有独立标签与历史，拆分不会再复制当前笔记；Markdown 标题渲染、Scratch Lab 回跳和紧凑双窗格阅读得到修复；常用格式动作保持单行图标工具栏，低频命令进入溢出菜单。Workspace 切换入口移到侧栏左上角，外观、编辑器、Jupyter、扩展与版本信息集中到新的 `/settings` 页面。本阶段只提交源码，不创建 Tag 或 GitHub Release。
 
 v0.9.2 进一步把工作台收敛为更少、更明确的操作：Pane 可以分别关闭，关闭主 Pane 时会提升另一侧，关闭最后一个 Pane 进入可恢复的空工作台；Lab 会排除右栏冲突并按笔记与实验联合重建。侧栏取消重复入口与底部来源卡片，工作区来源和读写能力改为顶部标签，Recent Files 可折叠。浅色主题采用白色内容面，淡绿仅用于组件和交互状态；顶栏仅保留图标化的命令与 Scratch 入口。本阶段只提交源码，不创建 Tag 或 GitHub Release。
+
+v0.9.3 将每个 Pane 重构成完整的阅读编辑区：Pane 自己拥有标签操作栏和独立滚动展示区，焦点决定右侧上下文栏及后续笔记相关命令的对象。拆分与上下文栏操作提升至顶栏；设置改为自动保存、可从空白处或关闭按钮退出的弹窗，命令面板则收敛为无背景虚化的 VS Code 式顶部浮层。Files 与 Extensions 也和 Recent Files 一样可折叠。本阶段只提交源码，不创建 Tag 或 GitHub Release。
 
 详细的布局、命令与快捷键见 [Workbench 使用说明](docs/WORKBENCH.md)。
 
