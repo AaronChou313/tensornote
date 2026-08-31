@@ -1,4 +1,4 @@
-const CACHE = 'tensornote-shell-v0.9.1'
+const CACHE = 'tensornote-shell-v0.9.2'
 const scope = new URL(self.registration.scope)
 const shell = [scope.pathname, `${scope.pathname}index.html`, `${scope.pathname}manifest.webmanifest`, `${scope.pathname}tensornote-icon.svg`]
 

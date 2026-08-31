@@ -145,11 +145,10 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           <details className="sidebar-workspace-menu" ref={workspaceMenu}>
             <summary className="sidebar-workspace-name" aria-label={`切换 Workspace：${session.manifest.workspace.name}`}>
               <span>{session.manifest.workspace.name.slice(0, 1).toUpperCase()}</span>
-              <div><strong>{session.manifest.workspace.name}</strong><small>{session.documents.length} Markdown files</small></div>
+              <div><strong>{session.manifest.workspace.name}</strong><span className="sidebar-workspace-meta"><small>{session.documents.length} Markdown files</small><em>{session.descriptor.type === 'bundled' ? 'Built-in' : session.descriptor.type === 'github' ? 'GitHub' : 'Local'}</em><em>{session.capabilities.write ? 'Editable' : 'Read only'}</em></span></div>
               <CaretUpDown size={14} weight="bold" />
             </summary>
             <div className="sidebar-workspace-menu__popover">
-              <NavLink to="/workspace" onClick={() => { workspaceMenu.current?.removeAttribute('open'); setSidebarOpen(false) }}><House size={15} />工作区概览</NavLink>
               <button type="button" onClick={() => void refreshWorkspace()} disabled={refreshing}><ArrowClockwise size={15} className={refreshing ? 'is-spinning' : ''} />{refreshing ? '正在刷新…' : '刷新文件'}</button>
               <button type="button" onClick={() => void switchWorkspace()}><FolderOpen size={15} />切换工作区</button>
               {workspaceActionError && <p role="alert">{workspaceActionError}</p>}
@@ -176,10 +175,10 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           </NavLink>
         </div>
 
-        {recent.length > 0 && <div className="sidebar-recent"><span>Recent files</span>{recent.slice(0, 4).map((noteId) => {
+        {recent.length > 0 && <details className="sidebar-recent" open><summary><span>Recent files</span><CaretDown size={12} weight="bold" /></summary><div>{recent.slice(0, 4).map((noteId) => {
           const note = session.documentById.get(noteId)
           return note ? <NavLink key={noteId} to={`/notes/${noteId}`} onClick={() => { openNote(note.id); setSidebarOpen(false) }}><FileText size={13} />{note.frontmatter.title}</NavLink> : null
-        })}</div>}
+        })}</div></details>}
 
         <div className="sidebar-section-label">
           <span>Files</span>
@@ -191,10 +190,6 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
 
         {extensionItems.length > 0 && <div className="sidebar-extension-items"><span>Extensions</span>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div>}
 
-        <div className="sidebar-source">
-          <span className={`source-dot source-dot--${session.descriptor.type}`} />
-          <div><strong>{session.descriptor.sourceLabel}</strong><small>{session.descriptor.detail || 'Workspace Provider'}</small></div>
-        </div>
       </aside>
       <WorkspaceFileDialog key={fileDialog ? `${fileDialog.action}:${fileDialog.path || ''}` : 'closed'} request={fileDialog} onClose={() => setFileDialog(null)} />
     </>

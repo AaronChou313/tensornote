@@ -5,10 +5,10 @@ v0.5.0 将 Workspace 的文件、笔记、知识上下文与计算入口放进�
 ## 导航与布局
 
 - 从 Files、搜索结果或 Workspace 页面打开笔记会在当前活动 Pane 创建或激活标签。主、次 Pane 各自保存标签、固定状态与前进/后退历史。
-- 使用标签栏的拆分按钮先创建一个空白次 Pane；再从侧栏选择第二篇笔记。拆分不会复制当前笔记，关闭一侧标签也不会影响另一侧。
+- 使用标签栏的拆分按钮先创建一个空白次 Pane；再从侧栏选择第二篇笔记。拆分不会复制当前笔记，关闭一侧标签也不会影响另一侧。每个 Pane 自己带有关闭按钮：关闭主 Pane 会提升另一侧；关闭最后一个 Pane 后进入空工作台，显示“请选择一个笔记进行阅读或编辑”。
 - 点击正文或标签组会激活对应 Pane；后续从 Files 打开的笔记进入该 Pane。窄屏只显示活动 Pane，避免两个编辑器挤压内容。
-- Workspace 切换器位于左栏最上方，展开后可返回概览、刷新或切换 Workspace；不再显示重复的 Workspace 卡片。
-- 左栏包含 Files、Overview、Knowledge、Database 和 Settings。右栏继续提供 Properties、Outline、Backlinks、Graph 与 Python Lab 上下文，且不改变 ComputeRuntime 的 Session 边界。
+- Workspace 切换器位于左栏最上方，展开后可刷新或切换 Workspace；Overview 仍由主导航唯一提供。Workspace 来源类型和读写能力以标题下方标签呈现，Recent Files 可折叠。
+- 左栏包含 Files、Overview、Knowledge、Database 和 Settings。右栏继续提供 Properties、Outline、Backlinks、Graph 与 Python Lab 上下文，且不改变 ComputeRuntime 的 Session 边界。打开笔记中的 Python Lab 时会先关闭右栏，避免两个上下文面板争用空间。
 
 ## Command Palette
 

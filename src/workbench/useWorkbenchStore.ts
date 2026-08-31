@@ -23,6 +23,7 @@ interface WorkbenchState {
   openView: (view: WorkbenchView) => void
   resetWorkspace: () => void
   closeTab: (noteId: string, pane?: PaneId) => string | null
+  closePane: (pane: PaneId) => string | null
   togglePin: (noteId: string, pane?: PaneId) => void
   split: (side: 'left' | 'right') => void
   closeSecondary: () => void
@@ -91,6 +92,45 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
     set({ tabs: { ...state.tabs, [pane]: paneTabs }, panes })
     return panes[pane]
   },
+  closePane: (pane) => {
+    const state = get()
+    if (pane === 'main' && state.secondaryOpen) {
+      const promoted = state.panes.secondary
+      set({
+        tabs: { main: state.tabs.secondary, secondary: [] },
+        panes: { main: promoted, secondary: null },
+        history: { main: state.history.secondary, secondary: [] },
+        historyIndex: { main: state.historyIndex.secondary, secondary: -1 },
+        activePane: 'main',
+        activeView: null,
+        secondaryOpen: false,
+      })
+      return promoted
+    }
+    if (pane === 'secondary') {
+      const remaining = state.panes.main
+      set({
+        tabs: { ...state.tabs, secondary: [] },
+        panes: { ...state.panes, secondary: null },
+        history: { ...state.history, secondary: [] },
+        historyIndex: { ...state.historyIndex, secondary: -1 },
+        activePane: 'main',
+        activeView: null,
+        secondaryOpen: false,
+      })
+      return remaining
+    }
+    set({
+      tabs: emptyTabs(),
+      panes: emptyPanes(),
+      history: emptyHistory(),
+      historyIndex: emptyHistoryIndex(),
+      activePane: 'main',
+      activeView: null,
+      secondaryOpen: false,
+    })
+    return null
+  },
   togglePin: (noteId, pane = get().activePane) => set((state) => ({
     tabs: {
       ...state.tabs,
@@ -109,14 +149,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
     history: { ...state.history, secondary: [] },
     historyIndex: { ...state.historyIndex, secondary: -1 },
   }),
-  closeSecondary: () => set((state) => ({
-    secondaryOpen: false,
-    activePane: 'main',
-    tabs: { ...state.tabs, secondary: [] },
-    panes: { ...state.panes, secondary: null },
-    history: { ...state.history, secondary: [] },
-    historyIndex: { ...state.historyIndex, secondary: -1 },
-  })),
+  closeSecondary: () => { get().closePane('secondary') },
   setActivePane: (activePane) => set({ activePane }),
   setSidebar: (side, open) => set(side === 'left' ? { leftSidebar: open } : { rightSidebar: open }),
   setRightView: (rightView) => set({ rightView }),

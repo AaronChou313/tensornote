@@ -24,15 +24,15 @@ export function NotePage() {
   const { panes, activePane, secondaryOpen, secondaryPosition, setActivePane } = useWorkbenchStore()
 
   if (!session || !provider) return <Navigate to="/" replace />
-  if (!note) return <Navigate to="/workspace" replace />
+  if (noteId && !note) return <Navigate to="/workspace" replace />
 
-  const main = session.documentById.get(panes.main ?? note.id) ?? note
+  const main = panes.main ? session.documentById.get(panes.main) : note
   const secondary = secondaryOpen && panes.secondary ? session.documentById.get(panes.secondary) : undefined
   const showPane = (pane: 'main' | 'secondary', paneNote?: Note) => <section className="workbench-pane" data-active={activePane === pane} onMouseDown={() => {
     setActivePane(pane)
     if (paneNote) navigate(`/notes/${paneNote.id}`)
   }}>
-    {paneNote ? session.capabilities.write ? <Suspense fallback={<main className="route-status-page"><span className="workspace-spinner" /></main>}><NoteEditor key={`${pane}:${paneNote.path}`} note={paneNote} provider={provider} isActive={activePane === pane} /></Suspense> : <ReadingSurface note={paneNote} provider={provider} /> : <div className="workbench-pane-empty"><span>空白窗格</span><h2>从侧栏选择一篇笔记</h2><p>新笔记会在这个窗格打开，另一侧内容保持不变。</p></div>}
+    {paneNote ? session.capabilities.write ? <Suspense fallback={<main className="route-status-page"><span className="workspace-spinner" /></main>}><NoteEditor key={`${pane}:${paneNote.path}`} note={paneNote} provider={provider} isActive={activePane === pane} /></Suspense> : <ReadingSurface note={paneNote} provider={provider} /> : <div className="workbench-pane-empty"><p>请选择一个笔记进行阅读或编辑</p></div>}
   </section>
   return <div className={`workbench-panes ${secondaryOpen ? 'workbench-panes--split' : ''} ${secondaryPosition === 'left' ? 'workbench-panes--secondary-left' : ''}`}>
     {secondaryOpen && secondaryPosition === 'left' && showPane('secondary', secondary)}

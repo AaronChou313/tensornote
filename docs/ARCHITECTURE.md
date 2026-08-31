@@ -288,6 +288,14 @@ Git Bridge (fixed repository root)
 - `/settings` 是应用设置的唯一主入口；App Store 持久化编辑器默认模式、行号和换行，Compute Store 继续独立管理 Profile 与 Session。
 - v0.9.1 是 v0.9.0 后的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
 
+## v0.9.2 Workbench Interaction Refinement
+
+- `closePane(main)` 在次 Pane 存在时原子提升次 Pane 的标签、活动笔记和历史；否则清空所有 Pane 状态并保持 `/notes` 作为不含文档的工作台路由。
+- `closePane(secondary)` 只销毁次 Pane，主 Pane 的标签和历史不受影响。Pane 关闭不再依赖全局“关闭次窗格”操作。
+- Lab 打开会关闭 Workbench 右侧上下文栏；LabDrawer React key 包含 Workspace、`noteId` 与 `labId`，使相同 Lab ID 在不同笔记中仍获得独立实例。
+- 侧栏的 Workspace 标题是来源类型和读写能力的唯一信息面；Workspace popover 不再重复 Overview 路由。顶栏全局搜索入口移除，保留侧栏搜索与 `Cmd/Ctrl + K` 快捷键。
+- v0.9.2 是 v0.9.0 后的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
+
 ## 版本更新规则
 
 每个版本至少同步更新：

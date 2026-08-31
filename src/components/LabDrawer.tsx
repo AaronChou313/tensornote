@@ -54,7 +54,7 @@ export function LabDrawer() {
     return <ComputeLabDrawer key={`${session.descriptor.id}:scratch`} lab={{ id: 'scratch', title: 'Scratch Lab', difficulty: 'basic', cells: [scratchCell(1)], scratch: true }} />
   }
   if (!lab) return null
-  return <ComputeLabDrawer key={`${session.descriptor.id}:${lab.id}`} lab={lab} />
+  return <ComputeLabDrawer key={`${session.descriptor.id}:${lab.noteId ?? 'unknown'}:${lab.id}`} lab={lab} />
 }
 
 function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {

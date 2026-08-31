@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import type { Lab } from '../types'
 import { useAppStore } from '../store/useAppStore'
 import { useComputeStore } from '../store/useComputeStore'
+import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { LabCard } from './LabCard'
 
 const lab: Lab = {
@@ -17,6 +18,8 @@ describe('LabCard', () => {
   beforeEach(() => {
     useAppStore.setState({ activeLabId: null, activeLabNoteId: null })
     useComputeStore.setState({ scratchOpen: true })
+    useWorkbenchStore.getState().resetWorkspace()
+    useWorkbenchStore.getState().setSidebar('right', true)
   })
 
   it('opens the lab in the note that rendered the card', () => {
@@ -25,5 +28,6 @@ describe('LabCard', () => {
 
     expect(useAppStore.getState()).toMatchObject({ activeLabId: 'demo', activeLabNoteId: 'note-a' })
     expect(useComputeStore.getState().scratchOpen).toBe(false)
+    expect(useWorkbenchStore.getState().rightSidebar).toBe(false)
   })
 })

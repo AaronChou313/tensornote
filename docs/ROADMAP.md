@@ -18,6 +18,17 @@
 - `v0.8.4 — Distribution & Performance`：已完成源码阶段；加入三种 Web 分发模式、PWA、自托管容器、缓存与大 Workspace 性能门，不单独创建 Release 或 Tag。
 - `v0.9.0 — Distribution & Hardening`：已完成；汇总兼容、恢复、分发、安全、性能与测试硬化，作为正式 Release。
 - `v0.9.1 — Editor Experience & Settings`：已完成源码阶段；重构独立 Pane/Tab、编辑工具栏、标题渲染、Lab 回跳、Workspace 入口和统一设置页，不单独创建 Release 或 Tag。
+- `v0.9.2 — Workbench Interaction Refinement`：已完成源码阶段；完善 Pane 关闭、Lab 打开可靠性、侧栏信息架构和白色主体/淡绿交互视觉，不单独创建 Release 或 Tag。
+
+## v0.9.2 — Workbench Interaction Refinement（源码阶段已完成）
+
+- 每个 Pane 具备独立关闭按钮；关闭主 Pane 会提升仍打开的一侧，关闭最后一侧转到 `/notes` 空工作台并显示“请选择一个笔记进行阅读或编辑”。
+- Split Left / Right 均先创建独立空 Pane，文件树按当前活动 Pane 打开笔记，不复制、也不共享 Tab 状态。
+- 笔记 Lab 打开前收起右侧上下文栏；LabDrawer 的重建键包含 Workspace、笔记与 Lab ID，避免跨笔记同名实验显示旧内容。
+- 顶栏移除重复搜索框，命令与 Scratch 使用图标入口；收起左栏后的恢复按钮位于顶栏最左侧。
+- Workspace 菜单仅保留刷新与切换；来源类型及读写权限以顶部标签呈现，Recent Files 可折叠，移除底部来源卡片和断裂的分段边线。
+- 浅色主题以白色为内容和页面主体，淡绿色仅承担状态、悬浮与组件强调；深色主题同步使用中性深色表面。
+- 阶段成果提交并推送到 `main`，但不创建 GitHub Release 或 Tag。
 
 ## v0.9.1 — Editor Experience & Settings（源码阶段已完成）
 

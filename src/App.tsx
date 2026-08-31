@@ -50,6 +50,7 @@ export function App() {
           <Route path="database" element={deferred(<StructuredKnowledgePage />)} />
           <Route path="git" element={deferred(<GitWorkspacePage />)} />
           <Route path="settings" element={deferred(<SettingsPage />)} />
+          <Route path="notes" element={deferred(<NotePage />)} />
           <Route path="notes/:noteId" element={deferred(<NotePage />)} />
         </Route>
         <Route path="*" element={deferred(<NotFoundPage />)} />

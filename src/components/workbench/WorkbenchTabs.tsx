@@ -1,4 +1,4 @@
-import { ArrowBendDownLeft, ArrowBendUpRight, ArrowLeft, ArrowRight, PushPin, SidebarSimple, X } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowRight, ColumnsPlusLeft, ColumnsPlusRight, PushPin, Sidebar, X } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import { useWorkbenchStore, type PaneId } from '../../workbench/useWorkbenchStore'
 import { useWorkspaceStore } from '../../store/useWorkspaceStore'
@@ -6,8 +6,8 @@ import { useWorkspaceStore } from '../../store/useWorkspaceStore'
 export function WorkbenchTabs() {
   const navigate = useNavigate()
   const session = useWorkspaceStore((state) => state.session)
-  const { tabs, panes, activePane, secondaryOpen, secondaryPosition, closeTab, togglePin, split, closeSecondary, goBack, goForward, setActivePane, setSidebar } = useWorkbenchStore()
-  if (!session || (!tabs.main.length && !secondaryOpen)) return null
+  const { tabs, panes, activePane, secondaryOpen, secondaryPosition, closeTab, closePane, togglePin, split, goBack, goForward, setActivePane, setSidebar } = useWorkbenchStore()
+  if (!session) return null
 
   const open = (noteId: string, pane: PaneId) => {
     const note = session.documentById.get(noteId)
@@ -37,8 +37,12 @@ export function WorkbenchTabs() {
       setActivePane(otherPane)
       navigate(`/notes/${otherNote}`)
     } else {
-      navigate('/workspace')
+      navigate('/notes')
     }
+  }
+  const closePaneView = (pane: PaneId) => {
+    const next = closePane(pane)
+    navigate(next ? `/notes/${next}` : '/notes')
   }
 
   const paneStrip = (pane: PaneId) => (
@@ -53,9 +57,10 @@ export function WorkbenchTabs() {
             <button onClick={(event) => { event.stopPropagation(); open(tab.noteId, pane) }} title={tab.title}>{tab.pinned && <PushPin size={12} weight="fill" />}{tab.title}</button>
             {!tab.pinned && <button onClick={(event) => { event.stopPropagation(); close(tab.noteId, pane) }} aria-label={`关闭 ${tab.title}`} title="关闭标签"><X size={13} /></button>}
           </div>
-        )) : <button className="workbench-tabs__empty" onClick={() => activatePane(pane)}>从侧栏选择一篇笔记</button>}
+        )) : <span className="workbench-tabs__empty" />}
       </div>
       {panes[pane] && <button className="workbench-pane-tabs__pin" onClick={(event) => { event.stopPropagation(); togglePin(panes[pane]!, pane) }} aria-label="固定当前标签" title="固定标签"><PushPin size={15} /></button>}
+      {(secondaryOpen || panes[pane]) && <button className="workbench-pane-tabs__close" onClick={(event) => { event.stopPropagation(); closePaneView(pane) }} aria-label={`关闭${pane === 'main' ? '左侧' : '右侧'}窗格`} title="关闭窗格"><X size={15} /></button>}
     </section>
   )
 
@@ -63,10 +68,9 @@ export function WorkbenchTabs() {
   return <nav className={`workbench-tabs ${secondaryOpen ? 'workbench-tabs--split' : ''}`} aria-label="打开的笔记">
     <div className="workbench-tabs__panes">{orderedPanes.map((pane) => <div key={pane}>{paneStrip(pane)}</div>)}</div>
     <div className="workbench-tabs__tools">
-      <button onClick={() => split('left')} aria-label="向左拆分" title="向左拆分"><SidebarSimple size={15} /></button>
-      <button onClick={() => split('right')} aria-label="向右拆分" title="向右拆分"><SidebarSimple size={15} /></button>
-      {secondaryOpen && <button onClick={closeSecondary} aria-label="关闭次窗格" title="关闭次窗格"><ArrowBendDownLeft size={15} /></button>}
-      <button onClick={() => setSidebar('right', true)} aria-label="打开右侧栏" title="打开右侧栏"><ArrowBendUpRight size={15} /></button>
+      <button onClick={() => split('left')} aria-label="向左拆分" title="向左拆分"><ColumnsPlusLeft size={16} /></button>
+      <button onClick={() => split('right')} aria-label="向右拆分" title="向右拆分"><ColumnsPlusRight size={16} /></button>
+      <button onClick={() => setSidebar('right', true)} aria-label="打开右侧栏" title="打开右侧栏"><Sidebar size={16} /></button>
     </div>
   </nav>
 }

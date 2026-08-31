@@ -49,6 +49,33 @@ describe('workbench store', () => {
       tabs: { main: [{ noteId: 'a', title: 'A', pinned: false }], secondary: [] },
     })
   })
+  it('promotes the remaining pane when the main pane is closed', () => {
+    const store = useWorkbenchStore.getState()
+    store.openNote('a', 'A', 'main')
+    store.split('right')
+    useWorkbenchStore.getState().openNote('b', 'B', 'secondary')
+
+    expect(useWorkbenchStore.getState().closePane('main')).toBe('b')
+    expect(useWorkbenchStore.getState()).toMatchObject({
+      panes: { main: 'b', secondary: null },
+      tabs: { main: [{ noteId: 'b', title: 'B', pinned: false }], secondary: [] },
+      activePane: 'main',
+      secondaryOpen: false,
+    })
+  })
+  it('allows the final pane to close into an empty workbench', () => {
+    const store = useWorkbenchStore.getState()
+    store.openNote('a', 'A')
+
+    expect(store.closePane('main')).toBeNull()
+    expect(useWorkbenchStore.getState()).toMatchObject({
+      panes: { main: null, secondary: null },
+      tabs: { main: [], secondary: [] },
+      activePane: 'main',
+      secondaryOpen: false,
+      history: { main: [], secondary: [] },
+    })
+  })
   it('keeps workspace views out of note tabs and note history', () => {
     const store = useWorkbenchStore.getState()
     store.openNote('a', 'A')

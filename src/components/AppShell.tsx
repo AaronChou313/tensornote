@@ -86,7 +86,7 @@ export function AppShell() {
   }, [extensionRuntime])
 
   useEffect(() => {
-    if (!session && status === 'idle' && location.pathname.startsWith('/notes/') && !legacyOpenAttempted.current) {
+    if (!session && status === 'idle' && (location.pathname === '/notes' || location.pathname.startsWith('/notes/')) && !legacyOpenAttempted.current) {
       legacyOpenAttempted.current = true
       void import('../workspace/providers/BundledWorkspaceProvider')
         .then(({ BundledWorkspaceProvider }) => openProvider(new BundledWorkspaceProvider()))
