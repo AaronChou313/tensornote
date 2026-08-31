@@ -20,6 +20,42 @@
 - `v0.9.1 — Editor Experience & Settings`：已完成源码阶段；重构独立 Pane/Tab、编辑工具栏、标题渲染、Lab 回跳、Workspace 入口和统一设置页，不单独创建 Release 或 Tag。
 - `v0.9.2 — Workbench Interaction Refinement`：已完成源码阶段；完善 Pane 关闭、Lab 打开可靠性、侧栏信息架构和白色主体/淡绿交互视觉，不单独创建 Release 或 Tag。
 - `v0.9.3 — Focused Pane Workspace`：已完成源码阶段；将 Pane 重构为独立展示区、设置改为弹窗、焦点感知上下文和可折叠侧栏区块，不单独创建 Release 或 Tag。
+- `v0.9.4–v0.9.6 — Workbench Visual Polish`：已完成源码阶段；稳定 Lab 回跳、阅读布局、标签与 Pane 操作手感，不单独创建 Release 或 Tag。
+- `v0.9.7 — Executable Lab Authoring`：已完成源码阶段；新增响应式编辑工具栏和多 Cell 实验插入流程，不单独创建 Release 或 Tag。
+- `v0.9.8 — Workspace Execution Permission`：已完成源码阶段；新增按 Workspace 保存的本机执行授权，同时保留 GitHub Revision 与未来 Schema 安全边界，不单独创建 Release 或 Tag。
+- `v1.0.0 — Stable Platform`：进入源码候选收尾；冻结六项核心契约，完成版本一致性、首批主流程、分发、安全、性能与文档验收后再创建正式 Release。
+
+## v1.0.0 — Stable Platform（当前执行）
+
+v1.0.0 不以继续增加功能为目标。它表示 TensorNote 的内容格式、Provider 边界、扩展面和用户配置模型已经形成首个可长期兼容的稳定基线。完整执行清单见 [v1.0.0 发布计划](V1_RELEASE_PLAN.md)。
+
+### 稳定契约
+
+- Workspace Repository Schema v1：`tensornote.yaml`、未知字段忽略、旧 Schema 内存迁移、未来 Schema 降级阅读。
+- WorkspaceProvider API v1：文件、目录、资产、能力检测和冲突保护继续与具体来源解耦。
+- ComputeProvider API v1：连接、Kernel、Session、执行、诊断与生命周期通过统一接口提供。
+- Extension API v1：命令、视图、Markdown、编辑器、设置、状态栏与 Provider 贡献保持权限约束。
+- Executable Markdown Syntax v1：标准 Python Fence 加 `exec/lab/cell/title/difficulty` 元数据，脱离 TensorNote 仍可阅读。
+- Settings / Secret Model v1：内容、持久偏好、临时状态和 Secret 分类明确；Token 与 Secret 不进入 Workspace。
+
+### 核心体验
+
+- 本地创作：打开本地 Workspace → 编辑/保存 Markdown → 运行 Jupyter → 可选本地 Git。
+- Web 阅读：打开 Built-in 或 GitHub Workspace → 搜索、知识关系与结构化视图。
+- Web 可执行阅读：连接 Jupyter → 显式开启执行 → GitHub 来源额外信任当前 Revision → 运行 Lab。
+- Self-hosted：Docker/Nginx 使用同一 Web Runtime，不维护第二套业务逻辑。
+
+### Release Gate
+
+- `pnpm check`、`pnpm test:performance`、生产依赖高危漏洞审计和 Local/Static 生产构建全部通过。
+- 浏览器覆盖 Home、Workspace、笔记、编辑器、分栏、设置、Lab、明暗主题与窄屏关键路径。
+- README、环境配置、平台契约、架构、路线图、版本号、PWA 缓存和 Release Notes 保持一致。
+- 源码候选可以提交并推送；只有上述验收全部完成后才创建 `v1.0.0` Git Tag 与 GitHub Release。
+
+### v1.0.0 明确不包含
+
+- Tauri 安装包、公共插件市场、多人协作、Server-mounted Workspace、远程 Git Push/Pull、冲突合并器和 AI Chat。
+- 这些能力进入 v1.x 独立路线，不得阻塞首个稳定平台版本。
 
 ## v0.9.3 — Focused Pane Workspace（源码阶段已完成）
 
