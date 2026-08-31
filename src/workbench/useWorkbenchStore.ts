@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 export type PaneId = 'main' | 'secondary'
 export type WorkbenchView = 'workspace' | 'knowledge' | 'database' | 'git' | 'settings'
-export interface WorkbenchTab { noteId: string; title: string; pinned: boolean }
+export interface WorkbenchTab { noteId: string; title: string }
 
 type PaneRecord<T> = Record<PaneId, T>
 
@@ -24,7 +24,6 @@ interface WorkbenchState {
   resetWorkspace: () => void
   closeTab: (noteId: string, pane?: PaneId) => string | null
   closePane: (pane: PaneId) => string | null
-  togglePin: (noteId: string, pane?: PaneId) => void
   split: (side: 'left' | 'right') => void
   closeSecondary: () => void
   setActivePane: (pane: PaneId) => void
@@ -53,13 +52,14 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   history: emptyHistory(),
   historyIndex: emptyHistoryIndex(),
   openNote: (noteId, title, pane = get().activePane) => set((state) => {
+    if (state.panes[pane] === noteId && state.activePane === pane && state.activeView === null) return state
     const paneTabs = state.tabs[pane]
     const existing = paneTabs.some((tab) => tab.noteId === noteId)
     const paneHistory = state.history[pane].slice(0, state.historyIndex[pane] + 1)
     const repeated = paneHistory[paneHistory.length - 1] === noteId
     const nextHistory = repeated ? paneHistory : [...paneHistory, noteId]
     return {
-      tabs: { ...state.tabs, [pane]: existing ? paneTabs : [...paneTabs, { noteId, title, pinned: false }] },
+      tabs: { ...state.tabs, [pane]: existing ? paneTabs : [...paneTabs, { noteId, title }] },
       panes: { ...state.panes, [pane]: noteId },
       activePane: pane,
       activeView: null,
@@ -85,7 +85,6 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   }),
   closeTab: (noteId, pane = get().activePane) => {
     const state = get()
-    if (state.tabs[pane].find((tab) => tab.noteId === noteId)?.pinned) return state.panes[pane]
     const paneTabs = state.tabs[pane].filter((tab) => tab.noteId !== noteId)
     const fallback = paneTabs.at(-1)?.noteId ?? null
     const panes = { ...state.panes, [pane]: state.panes[pane] === noteId ? fallback : state.panes[pane] }
@@ -131,12 +130,6 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
     })
     return null
   },
-  togglePin: (noteId, pane = get().activePane) => set((state) => ({
-    tabs: {
-      ...state.tabs,
-      [pane]: state.tabs[pane].map((tab) => tab.noteId === noteId ? { ...tab, pinned: !tab.pinned } : tab),
-    },
-  })),
   split: (side) => set((state) => state.secondaryOpen ? {
     secondaryPosition: side,
     activePane: 'secondary',
@@ -150,7 +143,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
     historyIndex: { ...state.historyIndex, secondary: -1 },
   }),
   closeSecondary: () => { get().closePane('secondary') },
-  setActivePane: (activePane) => set({ activePane }),
+  setActivePane: (activePane) => set((state) => state.activePane === activePane ? state : { activePane }),
   setSidebar: (side, open) => set(side === 'left' ? { leftSidebar: open } : { rightSidebar: open }),
   setRightView: (rightView) => set({ rightView }),
   goBack: (pane = get().activePane) => {

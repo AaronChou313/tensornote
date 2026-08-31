@@ -15,12 +15,12 @@ describe('workbench store', () => {
     const store = useWorkbenchStore.getState(); store.openNote('a', 'A'); store.openNote('b', 'B')
     expect(useWorkbenchStore.getState().goBack()).toBe('a')
   })
-  it('keeps pinned tabs open and returns a fallback when closing the active tab', () => {
-    const store = useWorkbenchStore.getState(); store.openNote('a', 'A'); store.openNote('b', 'B'); store.togglePin('a')
+  it('closes tabs and returns a fallback when closing the active tab', () => {
+    const store = useWorkbenchStore.getState(); store.openNote('a', 'A'); store.openNote('b', 'B')
     expect(useWorkbenchStore.getState().closeTab('a')).toBe('b')
-    expect(useWorkbenchStore.getState().tabs.main.map((tab) => tab.noteId)).toEqual(['a', 'b'])
-    expect(useWorkbenchStore.getState().closeTab('b')).toBe('a')
-    expect(useWorkbenchStore.getState().panes.main).toBe('a')
+    expect(useWorkbenchStore.getState().tabs.main.map((tab) => tab.noteId)).toEqual(['b'])
+    expect(useWorkbenchStore.getState().closeTab('b')).toBeNull()
+    expect(useWorkbenchStore.getState().panes.main).toBeNull()
   })
   it('records split direction without replacing the main pane', () => {
     const store = useWorkbenchStore.getState(); store.openNote('a', 'A'); store.split('left'); useWorkbenchStore.getState().openNote('b', 'B')
@@ -46,7 +46,7 @@ describe('workbench store', () => {
 
     expect(useWorkbenchStore.getState()).toMatchObject({
       panes: { main: 'a', secondary: null },
-      tabs: { main: [{ noteId: 'a', title: 'A', pinned: false }], secondary: [] },
+      tabs: { main: [{ noteId: 'a', title: 'A' }], secondary: [] },
     })
   })
   it('promotes the remaining pane when the main pane is closed', () => {
@@ -58,10 +58,17 @@ describe('workbench store', () => {
     expect(useWorkbenchStore.getState().closePane('main')).toBe('b')
     expect(useWorkbenchStore.getState()).toMatchObject({
       panes: { main: 'b', secondary: null },
-      tabs: { main: [{ noteId: 'b', title: 'B', pinned: false }], secondary: [] },
+      tabs: { main: [{ noteId: 'b', title: 'B' }], secondary: [] },
       activePane: 'main',
       secondaryOpen: false,
     })
+  })
+  it('does not mutate history when the focused pane reopens its current note', () => {
+    const store = useWorkbenchStore.getState()
+    store.openNote('a', 'A')
+    const before = useWorkbenchStore.getState()
+    store.openNote('a', 'A')
+    expect(useWorkbenchStore.getState()).toBe(before)
   })
   it('allows the final pane to close into an empty workbench', () => {
     const store = useWorkbenchStore.getState()

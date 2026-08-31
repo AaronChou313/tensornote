@@ -4549,6 +4549,54 @@ button.trust-status {
 .sidebar-extension-items:not([open]) > summary svg { transform: rotate(-90deg); }
 .sidebar-extension-items > div { display: grid; gap: 2px; }
 
+/* Workbench focus must stay visually quiet: content is white and centered,
+   while the selected controls receive the soft green accent. */
+.note-page--knowledge .note-reading-layout {
+  width: min(100% - 48px, 760px);
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+}
+
+.workbench-panes--split .note-reading-layout {
+  width: min(680px, calc(100% - 48px));
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: center;
+  margin-inline: auto;
+}
+
+.sidebar-recent,
+.sidebar-collapsible,
+.sidebar-extension-items {
+  margin: 2px 12px 6px;
+  padding: 4px 9px;
+}
+
+.sidebar-recent > summary,
+.sidebar-collapsible > summary,
+.sidebar-extension-items > summary {
+  padding: 0 4px;
+}
+
+.workbench-tab {
+  min-width: 146px;
+  max-width: 240px;
+  border-right: 1px solid color-mix(in srgb, var(--line) 84%, transparent);
+}
+
+.workbench-tab > button:first-child {
+  min-height: 41px;
+  padding: 0 10px 0 12px;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1;
+}
+
+.workbench-tab.is-active > button:first-child { color: var(--ink); }
+.workbench-tab > button:last-child { width: 27px; min-height: 41px; margin-right: 2px; }
+.workbench-pane-tabs__close { width: 34px; min-height: 41px; margin: 0 3px 0 4px; }
+
 .command-palette-layer {
   z-index: 90;
   padding-top: 88px;

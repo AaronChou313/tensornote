@@ -1,5 +1,5 @@
-import { ArrowLeft, ArrowRight, ColumnsPlusLeft, ColumnsPlusRight, PushPin, Sidebar, X } from '@phosphor-icons/react'
-import { useNavigate } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, ColumnsPlusLeft, ColumnsPlusRight, Sidebar, X } from '@phosphor-icons/react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useWorkbenchStore, type PaneId } from '../../workbench/useWorkbenchStore'
 import { useWorkspaceStore } from '../../store/useWorkspaceStore'
 
@@ -15,37 +15,39 @@ export function WorkbenchTopTools() {
 
 export function WorkbenchPaneTabs({ pane }: { pane: PaneId }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const session = useWorkspaceStore((state) => state.session)
-  const { tabs, panes, activePane, secondaryOpen, closeTab, closePane, togglePin, goBack, goForward, setActivePane } = useWorkbenchStore()
+  const { tabs, panes, activePane, secondaryOpen, closeTab, closePane, goBack, goForward, setActivePane } = useWorkbenchStore()
   if (!session) return null
 
   const activatePane = () => {
-    setActivePane(pane)
-    const noteId = panes[pane]
-    if (noteId) navigate(`/notes/${noteId}`)
+    if (activePane !== pane) setActivePane(pane)
   }
   const open = (noteId: string) => {
+    if (panes[pane] === noteId) {
+      activatePane()
+      return
+    }
     const note = session.documentById.get(noteId)
     useWorkbenchStore.getState().openNote(noteId, note?.frontmatter.title || noteId, pane)
-    navigate(`/notes/${noteId}`)
+    if (location.pathname !== `/notes/${noteId}`) navigate(`/notes/${noteId}`)
   }
   const navigateHistory = (next: string | null) => {
     if (!next) return
-    setActivePane(pane)
-    navigate(`/notes/${next}`)
+    if (location.pathname !== `/notes/${next}`) navigate(`/notes/${next}`)
   }
   const close = (noteId: string) => {
     const fallback = closeTab(noteId, pane)
     if (fallback) {
       setActivePane(pane)
-      navigate(`/notes/${fallback}`)
+      if (location.pathname !== `/notes/${fallback}`) navigate(`/notes/${fallback}`)
       return
     }
     const otherPane: PaneId = pane === 'main' ? 'secondary' : 'main'
     const otherNote = useWorkbenchStore.getState().panes[otherPane]
     if (otherNote) {
       setActivePane(otherPane)
-      navigate(`/notes/${otherNote}`)
+      if (location.pathname !== `/notes/${otherNote}`) navigate(`/notes/${otherNote}`)
     } else navigate('/notes')
   }
   const closePaneView = () => {
@@ -61,12 +63,11 @@ export function WorkbenchPaneTabs({ pane }: { pane: PaneId }) {
     <div className="workbench-tabs__list">
       {tabs[pane].length ? tabs[pane].map((tab) => (
         <div key={tab.noteId} className={`workbench-tab ${panes[pane] === tab.noteId ? 'is-active' : ''}`}>
-          <button onClick={(event) => { event.stopPropagation(); open(tab.noteId) }} title={session.documentById.get(tab.noteId)?.path || tab.title}>{tab.pinned && <PushPin size={12} weight="fill" />}{tab.title}</button>
-          {!tab.pinned && <button onClick={(event) => { event.stopPropagation(); close(tab.noteId) }} aria-label={`关闭 ${tab.title}`} title="关闭标签"><X size={13} /></button>}
+          <button onClick={(event) => { event.stopPropagation(); open(tab.noteId) }} title={session.documentById.get(tab.noteId)?.path || tab.title}>{tab.title}</button>
+          <button onClick={(event) => { event.stopPropagation(); close(tab.noteId) }} aria-label={`关闭 ${tab.title}`} title="关闭标签"><X size={13} /></button>
         </div>
       )) : <span className="workbench-tabs__empty" />}
     </div>
-    {panes[pane] && <button className="workbench-pane-tabs__pin" onClick={(event) => { event.stopPropagation(); togglePin(panes[pane]!, pane) }} aria-label="固定当前标签" title="固定标签"><PushPin size={15} /></button>}
     {(secondaryOpen || panes[pane]) && <button className="workbench-pane-tabs__close" onClick={(event) => { event.stopPropagation(); closePaneView() }} aria-label={`关闭${pane === 'main' ? '左侧' : '右侧'}窗格`} title="关闭窗格"><X size={15} /></button>}
   </section>
 }

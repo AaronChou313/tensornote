@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { MarkdownRenderer } from '../components/MarkdownRenderer'
 import { NoteProgress } from '../components/NoteProgress'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
@@ -21,7 +21,6 @@ export function NotePage() {
   const session = useWorkspaceStore((state) => state.session)
   const provider = useWorkspaceStore((state) => state.provider)
   const note = noteId ? session?.documentById.get(noteId) : undefined
-  const navigate = useNavigate()
   const { panes, activePane, secondaryOpen, secondaryPosition, setActivePane } = useWorkbenchStore()
 
   if (!session || !provider) return <Navigate to="/" replace />
@@ -29,10 +28,7 @@ export function NotePage() {
 
   const main = panes.main ? session.documentById.get(panes.main) : note
   const secondary = secondaryOpen && panes.secondary ? session.documentById.get(panes.secondary) : undefined
-  const showPane = (pane: 'main' | 'secondary', paneNote?: Note) => <section className="workbench-pane" data-active={activePane === pane} onMouseDown={() => {
-    setActivePane(pane)
-    if (paneNote) navigate(`/notes/${paneNote.id}`)
-  }}>
+  const showPane = (pane: 'main' | 'secondary', paneNote?: Note) => <section className="workbench-pane" data-active={activePane === pane} onMouseDown={() => setActivePane(pane)}>
     <WorkbenchPaneTabs pane={pane} />
     <div className="workbench-pane__content">{paneNote ? session.capabilities.write ? <Suspense fallback={<main className="route-status-page"><span className="workspace-spinner" /></main>}><NoteEditor key={`${pane}:${paneNote.path}`} note={paneNote} provider={provider} isActive={activePane === pane} /></Suspense> : <ReadingSurface note={paneNote} provider={provider} /> : <div className="workbench-pane-empty"><p>请选择一个笔记进行阅读或编辑</p></div>}</div>
   </section>
