@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractLabs, insertScratchLab, updateLabCells } from './labParser'
+import { createExecutableLabMarkdown, extractLabs, insertScratchLab, updateLabCells } from './labParser'
 
 describe('extractLabs', () => {
   it('groups cells, sorts them and emits one card placeholder', () => {
@@ -50,5 +50,19 @@ describe('insertScratchLab', () => {
 
   it('refuses code containing a Markdown fence', () => {
     expect(() => insertScratchLab('# Note', 'scratch', [{ title: 'Unsafe', code: '```' }])).toThrow('Fence')
+  })
+})
+
+describe('createExecutableLabMarkdown', () => {
+  it('builds an approachable multi-cell executable lab template', () => {
+    const markdown = createExecutableLabMarkdown({
+      id: 'loss curves!',
+      difficulty: 'medium',
+      cells: [{ title: 'Prepare data', code: 'x = 1' }, { title: 'Plot', code: '' }],
+    })
+
+    expect(markdown).toContain('lab="loss-curves" cell="1" title="Prepare data" difficulty="medium"')
+    expect(markdown).toContain('lab="loss-curves" cell="2" title="Plot" difficulty="medium"')
+    expect(markdown).toContain('# 在这里编写 Python 代码')
   })
 })

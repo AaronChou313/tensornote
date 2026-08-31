@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { markdown } from '@codemirror/lang-markdown'
 import { redo, undo } from '@codemirror/commands'
@@ -6,13 +6,14 @@ import { EditorView } from '@codemirror/view'
 import {
   ArrowCounterClockwise,
   ArrowClockwise,
+  CaretDown,
   CheckSquare,
   ClockCounterClockwise,
   Code,
   CodeBlock,
   Columns,
-  DotsThree,
   Eye,
+  Flask,
   FloppyDisk,
   Image,
   LinkSimple,
@@ -54,6 +55,7 @@ import { useCommandRegistry } from '../commands/CommandContext'
 import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../commands/editor'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 import { draftRecovery, type DraftRecoveryRecord } from '../recovery/draftRecovery'
+import { LabInsertDialog } from './LabInsertDialog'
 
 function NotePreview({ note, provider, compact = false }: { note: Note; provider: WorkspaceProvider; compact?: boolean }) {
   const session = useWorkspaceStore((state) => state.session)
@@ -108,7 +110,8 @@ const formattingGroups: { label: string; commands: EditorCommandId[] }[] = [
   { label: 'Blocks', commands: ['editor.blockquote', 'editor.callout', 'editor.bulletList', 'editor.numberedList', 'editor.taskList', 'editor.codeFence', 'editor.table', 'editor.horizontalRule', 'editor.mathBlock'] },
 ]
 const textStyleCommands: EditorCommandId[] = ['editor.paragraph', 'editor.heading1', 'editor.heading2', 'editor.heading3', 'editor.heading4', 'editor.heading5', 'editor.heading6']
-const primaryFormattingCommands: EditorCommandId[] = ['editor.bold', 'editor.italic', 'editor.strikethrough', 'editor.link', 'editor.bulletList', 'editor.codeFence']
+const toolbarFormattingCommands = [...new Set(formattingGroups.flatMap((group) => group.commands))]
+  .filter((id) => !textStyleCommands.includes(id) && id !== 'editor.blockquote')
 const codeLanguages = ['python', 'javascript', 'typescript', 'bash', 'json', 'markdown', 'plain']
 
 function FormattingIcon({ id }: { id: EditorCommandId }) {
@@ -137,6 +140,41 @@ function FormattingIcon({ id }: { id: EditorCommandId }) {
   return <TextT {...props} />
 }
 
+function FormattingToolbar({ codeLanguage, onCodeLanguageChange, onCommand, onInsertLab }: { codeLanguage: string; onCodeLanguageChange: (language: string) => void; onCommand: (id: EditorCommandId) => void; onInsertLab: () => void }) {
+  const toolbarRef = useRef<HTMLDivElement>(null)
+  const overflowRef = useRef<HTMLDetailsElement>(null)
+  const [visibleCount, setVisibleCount] = useState(toolbarFormattingCommands.length)
+
+  useLayoutEffect(() => {
+    const toolbar = toolbarRef.current
+    if (!toolbar) return
+    const update = () => {
+      const width = toolbar.clientWidth
+      const fixedWidth = 300
+      const commandWidth = 34
+      const withoutOverflow = Math.max(0, Math.floor((width - fixedWidth) / commandWidth))
+      setVisibleCount(withoutOverflow >= toolbarFormattingCommands.length ? toolbarFormattingCommands.length : Math.max(0, Math.floor((width - fixedWidth - 38) / commandWidth)))
+    }
+    update()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(update)
+    observer.observe(toolbar)
+    return () => observer.disconnect()
+  }, [])
+
+  const visible = toolbarFormattingCommands.slice(0, visibleCount)
+  const overflow = toolbarFormattingCommands.slice(visibleCount)
+  const commandButton = (id: EditorCommandId, overflowItem = false) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { onCommand(id); if (overflowItem && overflowRef.current) overflowRef.current.open = false }} aria-label={editorCommandLabels[id]} title={`${editorCommandLabels[id]}${id === 'editor.bold' ? ' (⌘B)' : id === 'editor.italic' ? ' (⌘I)' : id === 'editor.link' ? ' (⌘K)' : ''}`}><FormattingIcon id={id} /></button>
+
+  return <div ref={toolbarRef} className="formatting-toolbar" role="toolbar" aria-label="Markdown formatting">
+    <label className="formatting-toolbar__style"><span className="sr-only">文本样式</span><select value="" onChange={(event) => { if (event.target.value) onCommand(event.target.value as EditorCommandId) }} aria-label="文本样式"><option value="" disabled>正文 / 标题</option>{textStyleCommands.map((id) => <option key={id} value={id}>{editorCommandLabels[id]}</option>)}</select></label>
+    <div className="formatting-toolbar__commands">{visible.map((id) => commandButton(id))}</div>
+    <label className="formatting-toolbar__language"><span className="sr-only">代码块语言</span><select value={codeLanguage} onChange={(event) => onCodeLanguageChange(event.target.value)} aria-label="代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label>
+    <button className="formatting-toolbar__lab" type="button" onClick={onInsertLab} aria-label="插入可执行实验" title="插入包含一个或多个 Cell 的 Python 实验"><Flask size={16} weight="duotone" /><span>实验</span></button>
+    {overflow.length > 0 && <details ref={overflowRef} className="formatting-toolbar__more"><summary aria-label="显示未容纳的 Markdown 格式工具" title="更多格式"><CaretDown size={17} weight="bold" /></summary><div>{overflow.map((id) => commandButton(id, true))}</div></details>}
+  </div>
+}
+
 export function NoteEditor({ note, provider, isActive = true }: { note: Note; provider: WorkspaceProvider; isActive?: boolean }) {
   const theme = useAppStore((state) => state.theme)
   const editorDefaultMode = useAppStore((state) => state.editorDefaultMode)
@@ -156,6 +194,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const [externalStat, setExternalStat] = useState<WorkspaceFileStat | null>(null)
   const [recoveredDraft, setRecoveredDraft] = useState<DraftRecoveryRecord | null>(null)
   const [codeLanguage, setCodeLanguage] = useState('python')
+  const [labInitialCode, setLabInitialCode] = useState<string | null>(null)
   const viewRef = useRef<EditorView | null>(null)
   const uploadRef = useRef<HTMLInputElement>(null)
   const baselineRef = useRef({ modifiedAt: note.sourceModifiedAt, size: note.sourceSize })
@@ -373,6 +412,22 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
     view.focus()
   }
 
+  const openLabInsert = () => {
+    const selection = viewRef.current?.state.selection.main
+    setLabInitialCode(selection ? editableBody.slice(selection.from, selection.to) : '')
+  }
+
+  const insertLab = (markdown: string) => {
+    const selection = viewRef.current?.state.selection.main ?? { from: editableBody.length, to: editableBody.length }
+    const before = editableBody.slice(0, selection.from)
+    const after = editableBody.slice(selection.to)
+    const prefix = before && !before.endsWith('\n\n') ? before.endsWith('\n') ? '\n' : '\n\n' : ''
+    const suffix = after && !after.startsWith('\n\n') ? after.startsWith('\n') ? '\n' : '\n\n' : '\n'
+    insertAtCursor(`${prefix}${markdown}${suffix}`)
+    setLabInitialCode(null)
+    setMessage('已插入可执行实验；保存后可从预览中的实验卡打开。')
+  }
+
   const upload = async (file: File) => {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
     const assetPath = joinWorkspacePath(useWorkspaceStore.getState().session?.manifest.assets.root || 'assets', `${stamp}-${safeAssetName(file.name)}`)
@@ -416,12 +471,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
           <input ref={uploadRef} className="sr-only" type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); event.target.value = '' }} />
         </div>
       </header>
-      {mode !== 'read' && <div className="formatting-toolbar" role="toolbar" aria-label="Markdown formatting">
-        <label className="formatting-toolbar__style"><span className="sr-only">文本样式</span><select value="" onChange={(event) => { if (event.target.value) executeEditorCommand(event.target.value as EditorCommandId) }} aria-label="文本样式"><option value="" disabled>正文 / 标题</option>{textStyleCommands.map((id) => <option key={id} value={id}>{editorCommandLabels[id]}</option>)}</select></label>
-        <div className="formatting-toolbar__group">{primaryFormattingCommands.map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={`${editorCommandLabels[id]}${id === 'editor.bold' ? ' (⌘B)' : id === 'editor.italic' ? ' (⌘I)' : id === 'editor.link' ? ' (⌘K)' : ''}`}><FormattingIcon id={id} /></button>)}</div>
-        <label className="formatting-toolbar__language"><span className="sr-only">代码块语言</span><select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value)} aria-label="代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label>
-        <details className="formatting-toolbar__more"><summary aria-label="更多 Markdown 格式工具" title="更多格式"><DotsThree size={18} weight="bold" /></summary><div>{formattingGroups.flatMap((group) => group.commands).filter((id) => !primaryFormattingCommands.includes(id) && !textStyleCommands.includes(id)).map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={editorCommandLabels[id]}><FormattingIcon id={id} /></button>)}<label className="formatting-toolbar__language formatting-toolbar__language--mobile"><span className="sr-only">代码块语言</span><select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value)} aria-label="移动端代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label></div></details>
-      </div>}
+      {mode !== 'read' && <FormattingToolbar codeLanguage={codeLanguage} onCodeLanguageChange={setCodeLanguage} onCommand={executeEditorCommand} onInsertLab={openLabInsert} />}
 
       {externalStat && (
         <div className="external-change-banner" role="alert">
@@ -460,6 +510,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
         {mode === 'read' && <KnowledgePanel noteId={note.id} />}
         {propertiesOpen && mode !== 'read' && <div id="document-properties"><PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} /></div>}
       </div>
+      {labInitialCode !== null && <LabInsertDialog initialCode={labInitialCode} onInsert={insertLab} onClose={() => setLabInitialCode(null)} />}
     </main>
   )
 }

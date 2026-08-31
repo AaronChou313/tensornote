@@ -11,6 +11,23 @@ function parseAttributes(meta: string) {
   return attributes
 }
 
+export interface ExecutableLabDraft {
+  id: string
+  difficulty: LabCell['difficulty']
+  cells: Array<{ title: string; code: string }>
+}
+
+export function createExecutableLabMarkdown({ id, difficulty, cells }: ExecutableLabDraft) {
+  const safeLabId = id.trim().replace(/[^a-zA-Z0-9_-]/g, '-').replace(/^-+|-+$/g, '') || 'python-experiment'
+  const contentCells = cells.length ? cells : [{ title: 'Cell 1', code: '' }]
+  if (contentCells.some((cell) => cell.code.includes('```'))) throw new Error('Cell 代码中不能包含 Markdown Fence（```）')
+  return contentCells.map((cell, index) => {
+    const title = (cell.title.trim() || `Cell ${index + 1}`).replaceAll('"', "'")
+    const code = cell.code.trimEnd() || '# 在这里编写 Python 代码'
+    return `\`\`\`python exec lab="${safeLabId}" cell="${index + 1}" title="${title}" difficulty="${difficulty}"\n${code}\n\`\`\``
+  }).join('\n\n')
+}
+
 export function extractLabs(content: string): { labs: Lab[]; renderedContent: string } {
   const grouped = new Map<string, LabCell[]>()
   let match: RegExpExecArray | null
@@ -75,10 +92,10 @@ export function insertScratchLab(raw: string, labId: string, cells: Array<{ titl
   const contentCells = cells.filter((cell) => cell.code.trim())
   if (!contentCells.length) throw new Error('Scratch Lab 至少需要一个非空 Cell')
   if (contentCells.some((cell) => cell.code.includes('```'))) throw new Error('Scratch Cell 中包含 Markdown Fence，无法安全写入笔记')
-  const safeLabId = labId.replace(/[^a-zA-Z0-9_-]/g, '-')
-  const fences = contentCells.map((cell, index) => {
-    const title = (cell.title.trim() || `Scratch Cell ${index + 1}`).replaceAll('"', "'")
-    return `\`\`\`python exec lab="${safeLabId}" cell="${index + 1}" title="${title}" difficulty="basic"\n${cell.code.trimEnd()}\n\`\`\``
-  }).join('\n\n')
+  const fences = createExecutableLabMarkdown({
+    id: labId,
+    difficulty: 'basic',
+    cells: contentCells.map((cell, index) => ({ ...cell, title: cell.title.trim() || `Scratch Cell ${index + 1}` })),
+  })
   return `${raw.trimEnd()}\n\n${fences}\n`
 }

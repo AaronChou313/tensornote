@@ -151,6 +151,7 @@ status: growing
 - 保存多个 Compute Profile，例如 Local Python、Laptop GPU、Lab RTX4090、Remote Server 和 Jetson。
 - 每个 Profile 可选择 Per note、Per workspace 或 Manual Session Scope。
 - Lab 支持 Run、Run All、Run Above、Run Below、Interrupt、Restart、Restart & Run All 和 Clear Outputs。
+- Markdown 编辑器提供独立的“实验”工具：可配置实验标识、运行级别与多个 Cell，并把选中代码直接带入第一个 Cell。
 - Scratch Lab 中的临时代码不会自动写入 Markdown；确认后才使用 `Insert into note` 生成可移植的 executable Fence。
 - 自动检测 Workspace 声明或根目录中的 `requirements.txt`、`pyproject.toml` 与 `environment.yml`，只提示、不静默安装。
 - 内置连接诊断依次检查 Browser、Server、Authentication、CORS、Kernel 与 WebSocket。

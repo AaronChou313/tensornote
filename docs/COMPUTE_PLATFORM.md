@@ -79,7 +79,18 @@ Jupyter Server ── Kernel
 
 输出不会自动写入 Markdown。图片和 HTML 输出只存在当前界面会话中。
 
-## 6. Scratch Lab
+## 6. 从编辑器插入实验
+
+编辑本地可写笔记时，点击 Markdown 工具栏中的烧瓶“实验”按钮，可以直接创建可执行实验，无需手写 Fence 元数据。
+
+1. 可先在编辑器中选中一段 Python 代码；打开窗口后，这段代码会成为第一个 Cell。
+2. 填写稳定的实验标识，例如 `loss-curves`。相同标识的 Cell 会合并为同一张实验卡。
+3. 选择运行级别，并按需使用“添加 Cell”组织准备数据、运行模型、绘图等步骤。
+4. 点击“插入实验”后保存笔记；切回阅读视图即可从实验卡打开并运行全部 Cell。
+
+TensorNote 会自动生成连续的 `cell` 编号和必要的 `exec`、`lab`、`title`、`difficulty` 元数据。Cell 代码不能包含嵌套的三个反引号 Fence；需要展示 Fence 时请改用字符串拼接或其他写法。
+
+## 7. Scratch Lab
 
 点击顶部 `Scratch` 打开临时实验区。Scratch Cell 只存在浏览器内存中，适合验证 API、检查张量形状或快速调试。
 
@@ -90,7 +101,7 @@ Jupyter Server ── Kernel
 
 关闭、刷新或离开仍有代码的 Scratch Lab 前会出现确认。Scratch 不自动恢复，也不会在后台静默修改 Markdown。如果当前 Markdown Editor 有未保存内容，必须先保存编辑器草稿，再插入 Scratch，以避免覆盖。
 
-## 7. Workspace Environment
+## 8. Workspace Environment
 
 Workspace 可以在 `tensornote.yaml` 声明依赖文件：
 
@@ -112,7 +123,7 @@ TensorNote 同时自动检测根目录的：
 
 Compute 设置会标记 `Found`、`Missing`、`declared` 或 `detected`。这只是可见性提示：TensorNote **绝不静默创建环境或安装依赖**。用户仍需在终端中审核文件并选择 Conda、pip 或 uv 执行安装。
 
-## 8. Connection Diagnostics
+## 9. Connection Diagnostics
 
 点击 `Run diagnostics` 后按顺序检查：
 
@@ -133,7 +144,7 @@ Compute 设置会标记 `Found`、`Missing`、`declared` 或 `detected`。这只
 - Kernel 失败：用 `jupyter kernelspec list` 核对内部名称。
 - WebSocket 失败：检查反向代理是否转发 Upgrade/Connection 头，以及网络或防火墙。
 
-## 9. 安全边界
+## 10. 安全边界
 
 - 只有 `features.executable: true` 的 Workspace 才允许执行。
 - GitHub Workspace 必须信任固定的 `owner/repo@commitSHA`；Revision 改变后重新确认。
@@ -141,7 +152,7 @@ Compute 设置会标记 `Found`、`Missing`、`declared` 或 `detected`。这只
 - 不建议关闭 Jupyter 身份验证，也不建议使用 `allow_origin=*`。
 - TensorNote 不自动安装 Workspace 声明的 Python 依赖。
 
-## 10. 每日启动清单
+## 11. 每日启动清单
 
 1. 终端 A 激活正确 Python 环境并启动 Jupyter Server。
 2. 终端 B 启动 TensorNote：`pnpm dev --host localhost --port 5173 --strictPort`。
