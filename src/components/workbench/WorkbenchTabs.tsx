@@ -17,7 +17,7 @@ export function WorkbenchPaneTabs({ pane }: { pane: PaneId }) {
   const navigate = useNavigate()
   const location = useLocation()
   const session = useWorkspaceStore((state) => state.session)
-  const { tabs, panes, activePane, secondaryOpen, closeTab, closePane, goBack, goForward, setActivePane } = useWorkbenchStore()
+  const { tabs, panes, activePane, secondaryOpen, closeTab, closePane, goBack, goForward, setActivePane, history, historyIndex } = useWorkbenchStore()
   if (!session) return null
 
   const activatePane = () => {
@@ -54,11 +54,13 @@ export function WorkbenchPaneTabs({ pane }: { pane: PaneId }) {
     const next = closePane(pane)
     navigate(next ? `/notes/${next}` : '/notes')
   }
+  const canGoBack = historyIndex[pane] > 0
+  const canGoForward = historyIndex[pane] >= 0 && historyIndex[pane] < history[pane].length - 1
 
   return <section className={`workbench-pane-tabs ${activePane === pane ? 'is-active' : ''}`} data-pane={pane} onMouseDown={activatePane}>
     <div className="workbench-tabs__history">
-      <button onClick={(event) => { event.stopPropagation(); navigateHistory(goBack(pane)) }} aria-label={`${pane === 'main' ? '左侧' : '右侧'}窗格后退`}><ArrowLeft size={15} /></button>
-      <button onClick={(event) => { event.stopPropagation(); navigateHistory(goForward(pane)) }} aria-label={`${pane === 'main' ? '左侧' : '右侧'}窗格前进`}><ArrowRight size={15} /></button>
+      <button onClick={(event) => { event.stopPropagation(); navigateHistory(goBack(pane)) }} aria-label={`${pane === 'main' ? '左侧' : '右侧'}窗格后退`} title="后退" disabled={!canGoBack}><ArrowLeft size={16} /></button>
+      <button onClick={(event) => { event.stopPropagation(); navigateHistory(goForward(pane)) }} aria-label={`${pane === 'main' ? '左侧' : '右侧'}窗格前进`} title="前进" disabled={!canGoForward}><ArrowRight size={16} /></button>
     </div>
     <div className="workbench-tabs__list">
       {tabs[pane].length ? tabs[pane].map((tab) => (
