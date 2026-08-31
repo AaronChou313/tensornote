@@ -1,0 +1,2 @@
+export const SETTINGS_MODEL_VERSION = 1
+export const SECRET_MODEL_VERSION = 1

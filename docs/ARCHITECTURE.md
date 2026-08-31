@@ -1,6 +1,6 @@
 # TensorNote 架构说明
 
-本文记录从 `v0.1.0 — Workspace Foundation` 到 `v0.9.0 — Distribution & Hardening` 的已落地稳定边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
+本文记录从 `v0.1.0 — Workspace Foundation` 到 `v1.0.0 — Stable Platform` 的已落地架构边界。长期路线图仍是产品决策的上位文档；后续版本必须在这些边界上增量演进。
 
 ## 产品定义
 
@@ -304,6 +304,16 @@ Git Bridge (fixed repository root)
 - App UI Store 增加短生命周期的 `settingsOpen/settingsSection` 与 `labOpenNonce`。前者驱动自动保存的 Settings Dialog，后者保证重复点击 Lab 也会重建 Drawer，不让隐藏或陈旧实例吞掉请求。
 - Python Lab 不再作为 Workbench 右栏标签；右栏只服务当前焦点笔记的 Properties、Outline、Backlinks 和 Graph。
 - v0.9.3 是 v0.9.0 后的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
+
+## v1.0.0 Stable Platform
+
+- `src/platform/index.ts` 是面向集成和扩展作者的稳定公开入口；它统一导出产品版本及六项 v1 契约，不要求调用者依赖内部目录布局。
+- Workspace Repository Schema v1 固定 `tensornote.yaml` 的已知字段、安全默认值、旧配置内存迁移和未来配置只读降级规则。
+- WorkspaceProvider API v1 与 ComputeProvider API v1 固定文件/资产/能力、执行/诊断/生命周期边界；UI 继续依赖 capability 与 Runtime，不识别具体实现。
+- Extension API v1 固定 Manifest、权限和贡献点；Executable Markdown Syntax v1 固定可移植 Python Fence 语法。
+- Settings / Secret Model v1 区分 Workspace 内容、持久浏览器偏好、恢复状态与会话 Secret；Token 和 Secret 不进入 Markdown、Manifest 或 Git。
+- v1.x 允许添加可选字段、可选方法与新贡献点，但不得改变既有字段含义或放宽安全默认值。必须破坏兼容的变化只进入新的主版本。
+- 详细的契约、兼容策略和数据归属见 [Platform Contracts](PLATFORM_CONTRACTS.md)。
 
 ## 版本更新规则
 

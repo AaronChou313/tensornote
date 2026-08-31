@@ -3,6 +3,8 @@ import type { NoteTreeItem } from '../content/noteTree'
 import type { KnowledgeIndex } from '../content/knowledgeIndex'
 import type { PropertyIndex } from '../content/propertyIndex'
 
+export const WORKSPACE_PROVIDER_API_VERSION = 1
+
 export interface WorkspaceCapabilities {
   read: boolean
   write: boolean

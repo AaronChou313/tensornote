@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { createGitService, GitCommandError } from './git-bridge-lib.mjs'
+
+const tensorNoteVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version
 
 function argument(name) {
   const index = process.argv.indexOf(name)
@@ -70,7 +73,7 @@ const server = createServer(async (request, response) => {
   const url = new URL(request.url || '/', `http://127.0.0.1:${port}`)
   try {
     if (request.method === 'GET' && url.pathname === '/api/git/health') {
-      return json(response, 200, { version: '0.8.0', workspaceName: service.workspaceName, repositoryRoot: service.root }, allowedOrigin)
+      return json(response, 200, { version: tensorNoteVersion, workspaceName: service.workspaceName, repositoryRoot: service.root }, allowedOrigin)
     }
     if (request.method === 'GET' && url.pathname === '/api/git/status') {
       return json(response, 200, await service.status(), allowedOrigin)
@@ -99,7 +102,7 @@ const server = createServer(async (request, response) => {
 })
 
 server.listen(port, '127.0.0.1', () => {
-  console.log(`TensorNote Git Bridge v0.8.0`)
+  console.log(`TensorNote Git Bridge v${tensorNoteVersion}`)
   console.log(`Repository: ${service.root}`)
   console.log(`Listening:  http://127.0.0.1:${port}`)
   console.log('Local-only. Push, pull, credentials, and arbitrary shell commands are not exposed.')

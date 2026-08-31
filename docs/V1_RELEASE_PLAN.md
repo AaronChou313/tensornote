@@ -1,6 +1,6 @@
 # TensorNote v1.0.0 发布计划
 
-状态：执行中
+状态：源码候选已完成，等待最终试用确认
 
 目标：首个稳定平台版本
 
@@ -82,3 +82,12 @@ docker build -t tensornote:v1.0.0 .
 - 本轮先提交并推送 v1.0.0 源码候选。
 - 不自动创建 GitHub Release 或 Tag。
 - 候选由用户完成最终试用确认后，再执行 `v1.0.0` Tag 与 GitHub Release。
+
+## 7. 候选验收结果
+
+- `pnpm check`：30 个测试文件、102 项测试，ESLint 与 Local 生产构建通过。
+- `pnpm test:performance`：3 项性能预算通过。
+- `pnpm audit --prod --audit-level high`：无已知漏洞。
+- Static `/tensornote/` Base Path 生产构建与 `git diff --check` 通过。
+- 当前机器未安装 Docker，未执行 Compose 与镜像构建；这不改变 Web 源码候选状态，正式容器发布环境仍应复核。
+- 浏览器已确认 Home、Workspace、双 Pane、Lab、Command Palette、Settings About、浅色与深色主题；About 显示 v1.0.0 和六项稳定契约。

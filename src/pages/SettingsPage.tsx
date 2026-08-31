@@ -5,7 +5,15 @@ import { computeRuntime } from '../compute/ComputeRuntime'
 import { computeProfileTemplates, type ComputeSessionScope, type DiagnosticCheck } from '../compute/types'
 import { deploymentAdapter } from '../deployment/config'
 import { useExtensionRecords, useExtensionRuntime } from '../extensions/ExtensionContext'
-import { TENSORNOTE_VERSION } from '../extensions/constants'
+import {
+  COMPUTE_PROVIDER_API_VERSION,
+  CURRENT_WORKSPACE_SCHEMA_VERSION,
+  EXECUTABLE_MARKDOWN_SYNTAX_VERSION,
+  EXTENSION_API_VERSION,
+  SETTINGS_MODEL_VERSION,
+  TENSORNOTE_VERSION,
+  WORKSPACE_PROVIDER_API_VERSION,
+} from '../platform'
 import { useAppStore, type EditorMode, type SettingsSection } from '../store/useAppStore'
 import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
 import { useExtensionStore } from '../store/useExtensionStore'
@@ -102,7 +110,15 @@ function AboutSettings() {
     ['Workspace', session?.manifest.workspace.name ?? 'None'],
     ['Provider', session?.descriptor.sourceLabel ?? 'None'],
   ], [session])
-  return <section className="settings-panel"><header><span>System</span><h2>关于 TensorNote</h2><p>Markdown-first executable knowledge workspace。</p></header><div className="settings-about-grid">{facts.map(([label, value]) => <div key={label}><small>{label}</small><strong>{value}</strong></div>)}</div><div className="settings-principle"><Gear size={20} /><div><strong>内容始终属于你</strong><p>TensorNote 不会把知识锁进私有数据库。Markdown、图片、代码与 Git Repository 可以脱离应用继续使用。</p></div></div></section>
+  const contracts = [
+    `Workspace Schema v${CURRENT_WORKSPACE_SCHEMA_VERSION}`,
+    `WorkspaceProvider v${WORKSPACE_PROVIDER_API_VERSION}`,
+    `ComputeProvider v${COMPUTE_PROVIDER_API_VERSION}`,
+    `Extension API v${EXTENSION_API_VERSION}`,
+    `Executable Markdown v${EXECUTABLE_MARKDOWN_SYNTAX_VERSION}`,
+    `Settings Model v${SETTINGS_MODEL_VERSION}`,
+  ]
+  return <section className="settings-panel"><header><span>System</span><h2>关于 TensorNote</h2><p>Markdown-first executable knowledge workspace。</p></header><div className="settings-about-grid">{facts.map(([label, value]) => <div key={label}><small>{label}</small><strong>{value}</strong></div>)}</div><div className="settings-contracts"><span>Stable platform contracts</span><div>{contracts.map((contract) => <small key={contract}>{contract}</small>)}</div></div><div className="settings-principle"><Gear size={20} /><div><strong>内容始终属于你</strong><p>TensorNote 不会把知识锁进私有数据库。Markdown、图片、代码与 Git Repository 可以脱离应用继续使用。</p></div></div></section>
 }
 
 export function SettingsContent({ section, onSectionChange }: { section: SettingsSection; onSectionChange: (section: SettingsSection) => void }) {

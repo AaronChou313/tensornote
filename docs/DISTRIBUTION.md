@@ -64,7 +64,7 @@ PWA 离线能力只覆盖应用 Shell 和已经缓存的同源资源：
 - 不会缓存 Jupyter Token 或 Extension Secret。
 - 不会把任意 GitHub Repository、Jupyter 响应或用户 Workspace 文件批量复制进 Cache Storage。
 - Local Directory 权限是否能在安装后的 PWA 中继续使用由浏览器决定。
-- Service Worker 更新会清除旧的 `tensornote-shell-*` Cache。
+- Service Worker 注册 URL 携带 `package.json` 的产品版本，并据此生成 `tensornote-shell-v<version>` Cache；升级会清除旧的 TensorNote Cache，避免代码版本与离线 Shell 漂移。
 
 ## 5. Base Path 与环境变量
 

@@ -153,17 +153,17 @@ git push -u origin feat/功能短名称
 
 ## 3. 版本号策略
 
-TensorNote 在 `1.0.0` 前使用以下约定：
+TensorNote 使用语义化版本：
 
-- `0.0.x`：Bug 修复、样式修复、小范围文档更新。
-- `0.x.0`：新增一组可用功能或课程模块。
-- `1.0.0`：功能、配置格式和升级路径达到稳定状态。
+- Patch：兼容的 Bug、样式或文档修复。
+- Minor：向后兼容的功能、可选字段或新贡献点。
+- Major：需要迁移的契约破坏。v1.x 必须保持 [Platform Contracts](PLATFORM_CONTRACTS.md) 中的 v1 基线向后兼容。
 
 每次 Release 前应同步修改 `package.json` 中的 `version`，并保证 Git Tag 使用带 `v` 的相同版本，例如包版本 `0.0.2` 对应 Tag `v0.0.2`。
 
 ## 4. 发布下一版本
 
-以下示例发布 `v0.9.0`：
+以下示例发布 `v1.0.0`。先完成源码候选并交付试用；只有最终验收确认后才执行 Tag 与 GitHub Release：
 
 ```bash
 git switch main
@@ -178,10 +178,12 @@ git status
 
 ```bash
 git push origin main
-gh release create v0.9.0 \
+git tag -a v1.0.0 -m "TensorNote v1.0.0"
+git push origin v1.0.0
+gh release create v1.0.0 \
   --target main \
-  --title "TensorNote v0.9.0" \
-  --notes-file docs/releases/v0.9.0.md
+  --title "TensorNote v1.0.0" \
+  --notes-file docs/releases/v1.0.0.md
 ```
 
 验证：
@@ -189,7 +191,7 @@ gh release create v0.9.0 \
 ```bash
 git fetch origin --tags
 git tag --points-at HEAD
-gh release view v0.9.0
+gh release view v1.0.0
 ```
 
 Release 创建后，GitHub 会提供该 Tag 对应的源码压缩包。当前 TensorNote 是本地开发型 Web App，因此 Release 暂不附带独立安装程序。

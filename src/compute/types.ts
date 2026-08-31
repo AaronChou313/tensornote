@@ -1,5 +1,7 @@
 import type { KernelStatus } from '../types'
 
+export const COMPUTE_PROVIDER_API_VERSION = 1
+
 export type CellOutput =
   | { type: 'stream'; name: 'stdout' | 'stderr'; text: string }
   | { type: 'display'; data: Record<string, unknown> }

@@ -4,9 +4,9 @@
 
 TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。它不限定知识领域，也不把内容锁进数据库；普通文件夹、公开 GitHub Repository 和随应用提供的示例内容都通过同一套 Workspace 接口读取。
 
-知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 声明可执行、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
+知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 的 Manifest 或当前设备设置明确允许、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
 
-当前源码版本：`v0.9.3 — Focused Pane Workspace`。最近正式 Release 仍为 `v0.9.0`。
+当前源码候选：`v1.0.0 — Stable Platform`。六项首个稳定契约、完整 Release Gate 与人工验收范围见 [v1.0.0 发布计划](docs/V1_RELEASE_PLAN.md)；在最终试用确认前，最近正式 Release 仍为 `v0.9.0`。
 
 ## 概览与目录
 
@@ -16,6 +16,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 - [Workbench](#workbench)：多标签、分栏、侧栏与统一命令系统。
 - [知识系统](#知识系统)：链接、标签、搜索、属性与局部图谱。
 - [Compute Platform](#compute-platform)：按需连接 Jupyter 执行 Python Lab。
+- [Platform Contracts](docs/PLATFORM_CONTRACTS.md)：v1 的 Workspace、Compute、Extension、可执行 Markdown 与设置兼容承诺。
 - [快速开始](#快速开始)：安装、启动和 Workspace 打开方式。
 
 ## Git & Sync
@@ -76,6 +77,8 @@ v0.9.1 把编辑体验提升为首要优化面：主、次 Pane 拥有独立标�
 v0.9.2 进一步把工作台收敛为更少、更明确的操作：Pane 可以分别关闭，关闭主 Pane 时会提升另一侧，关闭最后一个 Pane 进入可恢复的空工作台；Lab 会排除右栏冲突并按笔记与实验联合重建。侧栏取消重复入口与底部来源卡片，工作区来源和读写能力改为顶部标签，Recent Files 可折叠。浅色主题采用白色内容面，淡绿仅用于组件和交互状态；顶栏仅保留图标化的命令与 Scratch 入口。本阶段只提交源码，不创建 Tag 或 GitHub Release。
 
 v0.9.3 将每个 Pane 重构成完整的阅读编辑区：Pane 自己拥有标签操作栏和独立滚动展示区，焦点决定右侧上下文栏及后续笔记相关命令的对象。拆分与上下文栏操作提升至顶栏；设置改为自动保存、可从空白处或关闭按钮退出的弹窗，命令面板则收敛为无背景虚化的 VS Code 式顶部浮层。Files 与 Extensions 也和 Recent Files 一样可折叠。本阶段只提交源码，不创建 Tag 或 GitHub Release。
+
+v1.0.0 将现有能力收敛为首个稳定平台基线：Workspace Repository Schema、WorkspaceProvider、ComputeProvider、Extension API、Executable Markdown 和 Settings / Secret Model 均固定为 v1，并通过统一的 `src/platform` 入口导出。1.x 会保持这些契约向后兼容；必须破坏兼容的变化进入新的主版本。当前阶段先提交源码候选，最终试用确认后才创建 Tag 与 GitHub Release。
 
 详细的布局、命令与快捷键见 [Workbench 使用说明](docs/WORKBENCH.md)。
 
@@ -254,6 +257,7 @@ tensornote/
 │   ├── extensions/      Extension API、Manifest、权限与生命周期
 │   ├── git/             Local Git Bridge 客户端与协议类型
 │   ├── jupyter/         Jupyter Provider 的底层 Client
+│   ├── platform/        v1 稳定契约的公开导出入口
 │   ├── workspace/       Schema、统一加载器与 Providers
 │   └── store/           Workspace、界面、进度与连接配置
 ├── scripts/             Local Git Bridge 与协议测试

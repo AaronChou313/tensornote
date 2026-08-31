@@ -1,5 +1,7 @@
 import type { Lab, LabCell } from '../types'
 
+export const EXECUTABLE_MARKDOWN_SYNTAX_VERSION = 1
+
 const EXEC_BLOCK = /```python\s+exec([^\n]*)\n([\s\S]*?)```/g
 const ATTRIBUTE = /(lab|cell|title|difficulty)="([^"]+)"/g
 
