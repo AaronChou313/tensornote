@@ -6,14 +6,11 @@ import {
   FolderOpen,
   GithubLogo,
   Leaf,
-  Moon,
   Plus,
-  Sun,
 } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import logoWide from '../../assets/images/TensorNote_logo_wide.png'
 import { Button } from '../components/ui/Button'
-import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
 import { pickLocalWorkspace } from '../workspace/providers/LocalWorkspaceProvider'
@@ -30,8 +27,6 @@ function parseGitHubRepository(value: string) {
 
 export function HomePage() {
   const navigate = useNavigate()
-  const theme = useAppStore((state) => state.theme)
-  const toggleTheme = useAppStore((state) => state.toggleTheme)
   const status = useWorkspaceStore((state) => state.status)
   const loadingMessage = useWorkspaceStore((state) => state.loadingMessage)
   const error = useWorkspaceStore((state) => state.error)
@@ -89,9 +84,7 @@ export function HomePage() {
     <main className="workspace-home">
       <header className="landing-nav">
         <div className="brand-compact"><span>T</span><strong>TensorNote</strong></div>
-        <div className="landing-nav__runtime"><span>{deploymentAdapter.label}</span><Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === 'light' ? '切换深色模式' : '切换浅色模式'}>
-          {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-        </Button></div>
+        <div className="landing-nav__runtime"><span>{deploymentAdapter.label}</span></div>
       </header>
 
       <div className="workspace-home__content">

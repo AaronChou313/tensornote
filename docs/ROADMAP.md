@@ -17,6 +17,17 @@
 - `v0.8.3 — Recovery`：已完成源码阶段；提供非破坏式草稿恢复、文件冲突延续保护与应用崩溃恢复界面，不单独创建 Release 或 Tag。
 - `v0.8.4 — Distribution & Performance`：已完成源码阶段；加入三种 Web 分发模式、PWA、自托管容器、缓存与大 Workspace 性能门，不单独创建 Release 或 Tag。
 - `v0.9.0 — Distribution & Hardening`：已完成；汇总兼容、恢复、分发、安全、性能与测试硬化，作为正式 Release。
+- `v0.9.1 — Editor Experience & Settings`：已完成源码阶段；重构独立 Pane/Tab、编辑工具栏、标题渲染、Lab 回跳、Workspace 入口和统一设置页，不单独创建 Release 或 Tag。
+
+## v0.9.1 — Editor Experience & Settings（源码阶段已完成）
+
+- 主、次 Pane 各自拥有标签、历史、固定与关闭状态；拆分先创建空窗格，从侧栏选择第二篇笔记后独立工作。
+- 双窗格阅读使用紧凑排版；关闭一侧标签不会联动关闭另一侧，窄屏只呈现当前活动 Pane。
+- 只隐藏与文档属性标题相同的首个 Markdown H1，后续 H1 正常作为正文标题显示。
+- 编辑器常用格式动作压缩为单行图标与样式选择器，语言和低频命令进入下拉或溢出菜单。
+- Scratch 插入或笔记 Lab 卡片使用笔记路径与 Lab ID 联合定位，保存后可立即回到对应实验。
+- Workspace 切换直接进入侧栏左上角；外观、编辑器、Jupyter、扩展和版本信息统一进入 `/settings`。
+- 阶段成果提交并推送到 `main`，但不创建 GitHub Release 或 Tag。
 
 ## v0.9.0 — Distribution & Hardening（已完成）
 

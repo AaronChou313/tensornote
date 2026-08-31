@@ -1,3 +1,6 @@
+// @vitest-environment jsdom
+import { StrictMode } from 'react'
+import { render } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { Lab } from '../types'
@@ -34,5 +37,24 @@ describe('MarkdownRenderer', () => {
     expect(html).toContain('class="lab-card group"')
     expect(html).not.toMatch(/<pre>\s*<div class="mermaid-/)
     expect(html).not.toMatch(/<pre>\s*<button class="lab-card/)
+  })
+
+  it('marks only the duplicated document title while keeping later H1 headings visible', () => {
+    const html = renderToStaticMarkup(
+      <MarkdownRenderer content={'# Document title\n\nIntro\n\n# A real section'} documentTitle="Document title" labs={[]} />,
+    )
+
+    expect(html.match(/markdown-title-heading/g)).toHaveLength(1)
+    expect(html).toContain('<h1 id="a-real-section">A real section</h1>')
+  })
+
+  it('keeps the duplicate-title marker stable during strict client rendering', () => {
+    const { container } = render(
+      <StrictMode><MarkdownRenderer content={'# Document title\n\n# A real section'} documentTitle="Document title" labs={[]} /></StrictMode>,
+    )
+
+    expect(container.querySelectorAll('h1')).toHaveLength(2)
+    expect(container.querySelector('h1')?.className).toBe('markdown-title-heading')
+    expect(container.querySelectorAll('.markdown-title-heading')).toHaveLength(1)
   })
 })

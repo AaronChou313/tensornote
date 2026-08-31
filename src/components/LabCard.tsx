@@ -3,13 +3,13 @@ import type { Lab } from '../types'
 import { useAppStore } from '../store/useAppStore'
 import { useComputeStore } from '../store/useComputeStore'
 
-export function LabCard({ lab }: { lab: Lab }) {
-  const setActiveLabId = useAppStore((state) => state.setActiveLabId)
+export function LabCard({ lab, noteId }: { lab: Lab; noteId?: string }) {
+  const openLab = useAppStore((state) => state.openLab)
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
   const difficulty = { basic: '基础', medium: '进阶', heavy: '重型' }[lab.difficulty]
 
   return (
-    <button className="lab-card group" onClick={() => { setScratchOpen(false); setActiveLabId(lab.id) }}>
+    <button className="lab-card group" onClick={() => { setScratchOpen(false); openLab(noteId ?? null, lab.id) }}>
       <span className="lab-card__icon"><Flask size={22} weight="duotone" /></span>
       <span className="min-w-0 flex-1 text-left">
         <span className="block text-[11px] font-medium text-[var(--accent)]">PYTHON LAB / {difficulty}</span>

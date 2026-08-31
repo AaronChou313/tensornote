@@ -6,9 +6,7 @@ interface ComputeState {
   profiles: ComputeProfile[]
   activeProfileId: string
   tokens: Record<string, string>
-  settingsOpen: boolean
   scratchOpen: boolean
-  setSettingsOpen: (open: boolean) => void
   setScratchOpen: (open: boolean) => void
   setActiveProfile: (id: string) => void
   addProfile: (template: Omit<ComputeProfile, 'id'>) => string
@@ -51,9 +49,7 @@ export const useComputeStore = create<ComputeState>()(
       profiles: [defaultProfile],
       activeProfileId: defaultProfile.id,
       tokens: readTokens(),
-      settingsOpen: false,
       scratchOpen: false,
-      setSettingsOpen: (settingsOpen) => set({ settingsOpen }),
       setScratchOpen: (scratchOpen) => set({ scratchOpen }),
       setActiveProfile: (activeProfileId) => set({ activeProfileId }),
       addProfile: (template) => {

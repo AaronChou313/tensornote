@@ -9,6 +9,7 @@ describe('workbench store', () => {
     const state = useWorkbenchStore.getState()
     expect(state.panes).toEqual({ main: 'a', secondary: 'b' })
     expect(state.recent).toEqual(['b', 'a'])
+    expect(state.tabs).toMatchObject({ main: [{ noteId: 'a' }], secondary: [{ noteId: 'b' }] })
   })
   it('navigates history in the active pane', () => {
     const store = useWorkbenchStore.getState(); store.openNote('a', 'A'); store.openNote('b', 'B')
@@ -17,7 +18,7 @@ describe('workbench store', () => {
   it('keeps pinned tabs open and returns a fallback when closing the active tab', () => {
     const store = useWorkbenchStore.getState(); store.openNote('a', 'A'); store.openNote('b', 'B'); store.togglePin('a')
     expect(useWorkbenchStore.getState().closeTab('a')).toBe('b')
-    expect(useWorkbenchStore.getState().tabs.map((tab) => tab.noteId)).toEqual(['a', 'b'])
+    expect(useWorkbenchStore.getState().tabs.main.map((tab) => tab.noteId)).toEqual(['a', 'b'])
     expect(useWorkbenchStore.getState().closeTab('b')).toBe('a')
     expect(useWorkbenchStore.getState().panes.main).toBe('a')
   })
@@ -25,14 +26,37 @@ describe('workbench store', () => {
     const store = useWorkbenchStore.getState(); store.openNote('a', 'A'); store.split('left'); useWorkbenchStore.getState().openNote('b', 'B')
     expect(useWorkbenchStore.getState()).toMatchObject({ panes: { main: 'a', secondary: 'b' }, secondaryPosition: 'left' })
   })
+  it('opens a genuinely empty secondary pane instead of cloning the current note', () => {
+    const store = useWorkbenchStore.getState()
+    store.openNote('a', 'A')
+    store.split('right')
+
+    expect(useWorkbenchStore.getState()).toMatchObject({
+      panes: { main: 'a', secondary: null },
+      activePane: 'secondary',
+      secondaryOpen: true,
+    })
+  })
+  it('keeps pane tabs independent when the same note is open on both sides', () => {
+    const store = useWorkbenchStore.getState()
+    store.openNote('a', 'A', 'main')
+    store.split('right')
+    useWorkbenchStore.getState().openNote('a', 'A', 'secondary')
+    useWorkbenchStore.getState().closeTab('a', 'secondary')
+
+    expect(useWorkbenchStore.getState()).toMatchObject({
+      panes: { main: 'a', secondary: null },
+      tabs: { main: [{ noteId: 'a', title: 'A', pinned: false }], secondary: [] },
+    })
+  })
   it('keeps workspace views out of note tabs and note history', () => {
     const store = useWorkbenchStore.getState()
     store.openNote('a', 'A')
     store.openView('knowledge')
 
-    expect(useWorkbenchStore.getState()).toMatchObject({ activeView: 'knowledge', panes: { main: 'a' }, history: ['a'] })
+    expect(useWorkbenchStore.getState()).toMatchObject({ activeView: 'knowledge', panes: { main: 'a' }, history: { main: ['a'] } })
     useWorkbenchStore.getState().openNote('b', 'B')
-    expect(useWorkbenchStore.getState()).toMatchObject({ activeView: null, panes: { main: 'b' }, history: ['a', 'b'] })
+    expect(useWorkbenchStore.getState()).toMatchObject({ activeView: null, panes: { main: 'b' }, history: { main: ['a', 'b'] } })
   })
   it('clears workspace-scoped navigation while restoring the default layout', () => {
     const store = useWorkbenchStore.getState()
@@ -44,7 +68,7 @@ describe('workbench store', () => {
     useWorkbenchStore.getState().resetWorkspace()
 
     expect(useWorkbenchStore.getState()).toMatchObject({
-      tabs: [],
+      tabs: { main: [], secondary: [] },
       panes: { main: null, secondary: null },
       activePane: 'main',
       activeView: null,
@@ -53,8 +77,8 @@ describe('workbench store', () => {
       leftSidebar: true,
       rightSidebar: false,
       recent: [],
-      history: [],
-      historyIndex: -1,
+      history: { main: [], secondary: [] },
+      historyIndex: { main: -1, secondary: -1 },
     })
   })
 })

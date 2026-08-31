@@ -7,10 +7,14 @@ describe('app workspace UI state', () => {
     localStorage.clear()
     useAppStore.setState({
       theme: 'dark',
+      editorDefaultMode: 'edit',
+      editorLineNumbers: false,
+      editorWordWrap: false,
       sidebarOpen: true,
       searchOpen: true,
       commandPaletteOpen: true,
       activeLabId: 'lab-1',
+      activeLabNoteId: 'note-1',
       pendingLabAction: { labId: 'lab-1', action: 'runAll' },
       kernelStatus: 'busy',
       editorDirtyPath: 'notes/a.md',
@@ -25,10 +29,14 @@ describe('app workspace UI state', () => {
 
     expect(useAppStore.getState()).toMatchObject({
       theme: 'dark',
+      editorDefaultMode: 'edit',
+      editorLineNumbers: false,
+      editorWordWrap: false,
       sidebarOpen: false,
       searchOpen: false,
       commandPaletteOpen: false,
       activeLabId: null,
+      activeLabNoteId: null,
       pendingLabAction: null,
       kernelStatus: 'offline',
       editorDirtyPath: null,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowClockwise, Broom, FloppyDisk, Gear, Play, Plus, ShieldWarning, Stop, X } from '@phosphor-icons/react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { computeRuntime } from '../compute/ComputeRuntime'
 import type { CellOutput } from '../compute/types'
 import { insertScratchLab, updateLabCells } from '../content/labParser'
@@ -37,13 +37,17 @@ function scratchCell(order: number): LabCell {
 
 export function LabDrawer() {
   const activeLabId = useAppStore((state) => state.activeLabId)
+  const activeLabNoteId = useAppStore((state) => state.activeLabNoteId)
   const scratchOpen = useComputeStore((state) => state.scratchOpen)
   const session = useWorkspaceStore((state) => state.session)
   const allLabs = useMemo(
     () => session?.documents.flatMap((note) => note.labs.map((lab) => ({ ...lab, noteId: note.id }))) ?? [],
     [session],
   )
-  const lab = useMemo(() => allLabs.find((item) => item.id === activeLabId), [activeLabId, allLabs])
+  const lab = useMemo(
+    () => allLabs.find((item) => item.id === activeLabId && (!activeLabNoteId || item.noteId === activeLabNoteId)),
+    [activeLabId, activeLabNoteId, allLabs],
+  )
 
   if (!session) return null
   if (scratchOpen) {
@@ -55,7 +59,9 @@ export function LabDrawer() {
 
 function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
+  const openLab = useAppStore((state) => state.openLab)
   const pendingLabAction = useAppStore((state) => state.pendingLabAction)
   const setPendingLabAction = useAppStore((state) => state.setPendingLabAction)
   const setLabDirty = useAppStore((state) => state.setLabDirty)
@@ -70,7 +76,6 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const profiles = useComputeStore((state) => state.profiles)
   const activeProfileId = useComputeStore((state) => state.activeProfileId)
   const tokens = useComputeStore((state) => state.tokens)
-  const setSettingsOpen = useComputeStore((state) => state.setSettingsOpen)
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
   const profile = activeComputeProfile({ profiles, activeProfileId })
   const token = tokens[profile.id] ?? ''
@@ -209,11 +214,12 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
     try {
       const scratchId = `scratch-${Date.now().toString(36)}`
       const updated = insertScratchLab(sourceNote.raw, scratchId, labCells.map((cell) => ({ title: cell.title, code: cells[cell.id]?.code ?? '' })))
-      await saveDocument(sourceNote.path, updated, {
+      const saved = await saveDocument(sourceNote.path, updated, {
         expectedModifiedAt: sourceNote.sourceModifiedAt,
         expectedSize: sourceNote.sourceSize,
       })
       setScratchOpen(false)
+      if (saved.labs.some((savedLab) => savedLab.id === scratchId)) openLab(saved.id, scratchId)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '无法把 Scratch Lab 插入笔记')
     }
@@ -242,6 +248,13 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
     else setActiveLabId(null)
   }
 
+  const openComputeSettings = () => {
+    if (labDirty && !window.confirm(lab.scratch ? 'Scratch Lab 仍有临时代码，确定前往设置吗？' : '实验代码还有未保存到 Markdown 的修改，确定前往设置吗？')) return
+    setScratchOpen(false)
+    setActiveLabId(null)
+    navigate('/settings?section=compute')
+  }
+
   const startResize = (event: React.PointerEvent) => {
     event.currentTarget.setPointerCapture(event.pointerId)
     const onMove = (moveEvent: PointerEvent) => setWidth(Math.min(820, Math.max(500, window.innerWidth - moveEvent.clientX)))
@@ -262,7 +275,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
           <h2>{lab.title}</h2>
           <span>{profile.name} · {profile.kernelName} · {profile.scope}</span>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="Compute 设置"><Gear size={18} /></Button>
+        <Button variant="ghost" size="icon" onClick={openComputeSettings} aria-label="Compute 设置"><Gear size={18} /></Button>
         <Button variant="ghost" size="icon" onClick={closeLab} aria-label="关闭实验"><X size={18} /></Button>
       </header>
       <div className="lab-toolbar">
@@ -279,7 +292,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
       {!session?.manifest.features.executable && <div className="lab-trust-banner"><ShieldWarning size={17} /><p>此 Workspace 未在 tensornote.yaml 中声明可执行能力，代码仅供阅读。</p></div>}
       {session?.manifest.features.executable && !session.trusted && session.descriptor.type === 'github' && <div className="lab-trust-banner"><ShieldWarning size={17} /><p>远程 Workspace 默认禁止执行。信任当前 Revision 后才能连接 Compute Provider。</p><Button variant="secondary" size="sm" onClick={trustActiveWorkspace}>Trust revision</Button></div>}
       {lab.scratch && !sourceNote && <div className="scratch-note-banner"><p>Scratch 代码只在内存中。打开一篇本地笔记后，才能使用 Insert into note。</p></div>}
-      {error && <div className="lab-error"><p>{error}</p><Button variant="secondary" size="sm" onClick={() => setSettingsOpen(true)}>打开 Compute 设置</Button></div>}
+      {error && <div className="lab-error"><p>{error}</p><Button variant="secondary" size="sm" onClick={openComputeSettings}>打开 Compute 设置</Button></div>}
 
       <div className="lab-drawer__body">
         {labCells.map((cell, index) => {

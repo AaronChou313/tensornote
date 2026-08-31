@@ -7,7 +7,6 @@ import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { computeRuntime } from '../compute/ComputeRuntime'
 import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
-import { ComputeSettingsDialog } from './ComputeSettingsDialog'
 import { CommandRegistry } from '../commands/CommandRegistry'
 import { CommandRegistryContext } from '../commands/CommandContext'
 import { CommandPalette } from './workbench/CommandPalette'
@@ -29,6 +28,7 @@ export function AppShell() {
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
   const setCommandPaletteOpen = useAppStore((state) => state.setCommandPaletteOpen)
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
+  const openLab = useAppStore((state) => state.openLab)
   const setPendingLabAction = useAppStore((state) => state.setPendingLabAction)
   const requestNewNote = useAppStore((state) => state.requestNewNote)
   const setKernelStatus = useAppStore((state) => state.setKernelStatus)
@@ -68,7 +68,6 @@ export function AppShell() {
     useWorkbenchStore.getState().resetWorkspace()
     useAppStore.getState().resetWorkspaceUi()
     useComputeStore.getState().setScratchOpen(false)
-    useComputeStore.getState().setSettingsOpen(false)
     useGitStore.getState().disconnect()
     navigate('/', { replace: true })
     return true
@@ -134,14 +133,15 @@ export function AppShell() {
       registry.register({ id: 'workspace.switch', label: 'Switch workspace', category: 'Workspace', description: 'Close the current workspace and return to the start page', execute: async () => { await switchWorkspace() } }),
       registry.register({ id: 'view.graph', label: 'Open graph', category: 'View', execute: () => navigate('/knowledge') }),
       registry.register({ id: 'view.database', label: 'Open database', category: 'View', description: 'Browse structured note properties', execute: () => navigate('/database') }),
+      registry.register({ id: 'view.settings', label: 'Open settings', category: 'View', description: 'Appearance, editor, compute and extensions', execute: () => navigate('/settings') }),
       registry.register({ id: 'view.git', label: 'Open Git workspace', category: 'View', description: 'Inspect local changes, diffs, history, and commits', isAvailable: () => deploymentAdapter.capabilities.gitBridge && session.capabilities.git && session.descriptor.type === 'local', execute: () => navigate('/git') }),
       registry.register({ id: 'view.toggleSidebar', label: 'Toggle sidebar', category: 'View', execute: () => useWorkbenchStore.getState().setSidebar('left', !useWorkbenchStore.getState().leftSidebar) }),
       registry.register({ id: 'navigate.back', label: 'Go back', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goBack(); if (note) navigate(`/notes/${note}`) } }),
       registry.register({ id: 'navigate.forward', label: 'Go forward', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goForward(); if (note) navigate(`/notes/${note}`) } }),
-      registry.register({ id: 'compute.runAll', label: 'Run all labs in current note', category: 'Compute', description: 'Open the note Lab and queue Run all', isAvailable: () => Boolean(activeNote()?.labs[0]), execute: () => { const lab = activeNote()?.labs[0]; if (!lab) return; setScratchOpen(false); setActiveLabId(lab.id); setPendingLabAction({ labId: lab.id, action: 'runAll' }) } }),
+      registry.register({ id: 'compute.runAll', label: 'Run all labs in current note', category: 'Compute', description: 'Open the note Lab and queue Run all', isAvailable: () => Boolean(activeNote()?.labs[0]), execute: () => { const note = activeNote(); const lab = note?.labs[0]; if (!note || !lab) return; setScratchOpen(false); openLab(note.id, lab.id); setPendingLabAction({ labId: lab.id, action: 'runAll' }) } }),
     ]
     return () => unregister.forEach((remove) => remove())
-  }, [navigate, registry, requestNewNote, session, setActiveLabId, setPendingLabAction, setScratchOpen, switchWorkspace])
+  }, [navigate, openLab, registry, requestNewNote, session, setPendingLabAction, setScratchOpen, switchWorkspace])
 
   useEffect(() => {
     computeRuntime.onStatus(setKernelStatus)
@@ -175,13 +175,13 @@ export function AppShell() {
       if (note && (state.activeView || state.panes[state.activePane] !== note.id)) state.openNote(note.id, note.frontmatter.title)
       return
     }
-    const viewByPath = { '/workspace': 'workspace', '/knowledge': 'knowledge', '/database': 'database', '/git': 'git' } as const
+    const viewByPath = { '/workspace': 'workspace', '/knowledge': 'knowledge', '/database': 'database', '/git': 'git', '/settings': 'settings' } as const
     const view = viewByPath[location.pathname as keyof typeof viewByPath]
     if (view && useWorkbenchStore.getState().activeView !== view) useWorkbenchStore.getState().openView(view)
   }, [location.pathname, session])
 
   if (!session) {
-    if (status === 'idle' && (location.pathname === '/workspace' || location.pathname === '/knowledge' || location.pathname === '/database' || location.pathname === '/git')) return <Navigate to="/" replace />
+    if (status === 'idle' && (location.pathname === '/workspace' || location.pathname === '/knowledge' || location.pathname === '/database' || location.pathname === '/git' || location.pathname === '/settings')) return <Navigate to="/" replace />
     return (
       <main className="route-status-page">
         <span className="workspace-spinner" />
@@ -205,7 +205,6 @@ export function AppShell() {
         <SearchDialog />
         <CommandPalette />
         <Suspense fallback={null}><LabDrawer /></Suspense>
-        <ComputeSettingsDialog />
         <ExtensionManagerDialog />
         <ExtensionViewDialog />
       </div>

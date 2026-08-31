@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowClockwise, ArrowsOutLineHorizontal, CaretDown, CaretUpDown, Copy, DotsThree, FilePlus, FileText, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, Trash, X } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowsOutLineHorizontal, CaretDown, CaretUpDown, Copy, DotsThree, FilePlus, FileText, FolderOpen, FolderPlus, Gear, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, Trash, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -15,16 +15,16 @@ import { deploymentAdapter } from '../deployment/config'
 
 const treePageSize = 200
 
-function TreeChildren({ items, depth = 0, onAction }: { items: NoteTreeItem[]; depth?: number; onAction: (request: FileDialogRequest) => void }) {
+function TreeChildren({ items, depth = 0, onAction, onOpenNote }: { items: NoteTreeItem[]; depth?: number; onAction: (request: FileDialogRequest) => void; onOpenNote: (noteId: string) => void }) {
   const [visible, setVisible] = useState(treePageSize)
   const shown = items.slice(0, visible)
   return <>
-    {shown.map((child) => <TreeItem key={`${child.path || child.label}:${child.noteId || 'folder'}`} item={child} depth={depth} onAction={onAction} />)}
+    {shown.map((child) => <TreeItem key={`${child.path || child.label}:${child.noteId || 'folder'}`} item={child} depth={depth} onAction={onAction} onOpenNote={onOpenNote} />)}
     {shown.length < items.length && <button className="workspace-tree__more" onClick={() => setVisible((count) => count + treePageSize)}>显示更多 <span>{items.length - shown.length}</span></button>}
   </>
 }
 
-function TreeItem({ item, depth = 0, onAction }: { item: NoteTreeItem; depth?: number; onAction: (request: FileDialogRequest) => void }) {
+function TreeItem({ item, depth = 0, onAction, onOpenNote }: { item: NoteTreeItem; depth?: number; onAction: (request: FileDialogRequest) => void; onOpenNote: (noteId: string) => void }) {
   const [expanded, setExpanded] = useState(depth < 2)
   const [menuOpen, setMenuOpen] = useState(false)
   const closeSidebar = useAppStore((state) => state.setSidebarOpen)
@@ -47,7 +47,7 @@ function TreeItem({ item, depth = 0, onAction }: { item: NoteTreeItem; depth?: n
         {item.noteId ? (
           <NavLink
             to={`/notes/${item.noteId}`}
-            onClick={() => closeSidebar(false)}
+            onClick={() => { onOpenNote(item.noteId!); closeSidebar(false) }}
             className={({ isActive }) => cn('tree-link', isActive && 'tree-link--active')}
           >
             {item.label}
@@ -69,7 +69,7 @@ function TreeItem({ item, depth = 0, onAction }: { item: NoteTreeItem; depth?: n
           </div>
         )}
       </div>
-      {hasChildren && expanded && <div><TreeChildren items={item.children ?? []} depth={depth + 1} onAction={onAction} /></div>}
+      {hasChildren && expanded && <div><TreeChildren items={item.children ?? []} depth={depth + 1} onAction={onAction} onOpenNote={onOpenNote} /></div>}
     </div>
   )
 }
@@ -132,31 +132,31 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
     }
   }
 
+  const openNote = (noteId: string) => {
+    const note = session.documentById.get(noteId)
+    if (note) useWorkbenchStore.getState().openNote(note.id, note.frontmatter.title)
+  }
+
   return (
     <>
       {sidebarOpen && <button className="sidebar-scrim" onClick={() => setSidebarOpen(false)} aria-label="关闭目录" />}
       <aside className={cn('workspace-sidebar', sidebarOpen ? 'translate-x-0' : '-translate-x-full', !leftSidebar && !sidebarOpen && 'workspace-sidebar--collapsed')}>
         <div className="sidebar-brand">
-          <NavLink to="/workspace" onClick={() => setSidebarOpen(false)} aria-label="Workspace 首页">
-            <span className="brand-mark">T</span>
-            <span><strong>TensorNote</strong><small>Executable workspace</small></span>
-          </NavLink>
+          <details className="sidebar-workspace-menu" ref={workspaceMenu}>
+            <summary className="sidebar-workspace-name" aria-label={`切换 Workspace：${session.manifest.workspace.name}`}>
+              <span>{session.manifest.workspace.name.slice(0, 1).toUpperCase()}</span>
+              <div><strong>{session.manifest.workspace.name}</strong><small>{session.documents.length} Markdown files</small></div>
+              <CaretUpDown size={14} weight="bold" />
+            </summary>
+            <div className="sidebar-workspace-menu__popover">
+              <NavLink to="/workspace" onClick={() => { workspaceMenu.current?.removeAttribute('open'); setSidebarOpen(false) }}><House size={15} />工作区概览</NavLink>
+              <button type="button" onClick={() => void refreshWorkspace()} disabled={refreshing}><ArrowClockwise size={15} className={refreshing ? 'is-spinning' : ''} />{refreshing ? '正在刷新…' : '刷新文件'}</button>
+              <button type="button" onClick={() => void switchWorkspace()}><FolderOpen size={15} />切换工作区</button>
+              {workspaceActionError && <p role="alert">{workspaceActionError}</p>}
+            </div>
+          </details>
           <div><button className="sidebar-icon-action" onClick={() => setSearchOpen(true)} aria-label="搜索文件" title="Search (⌘K)"><MagnifyingGlass size={16} /></button><button className="sidebar-icon-action sidebar-icon-action--collapse" onClick={() => setLeftSidebar('left', false)} aria-label="收起侧栏" title="Collapse sidebar"><SidebarSimple size={16} /></button><Button className="lg:hidden" variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} aria-label="关闭目录"><X size={18} /></Button></div>
         </div>
-
-        <details className="sidebar-workspace-menu" ref={workspaceMenu}>
-          <summary className="sidebar-workspace-name" aria-label="Workspace 菜单">
-            <span>{session.manifest.workspace.name.slice(0, 1).toUpperCase()}</span>
-            <div><strong>{session.manifest.workspace.name}</strong><small>{session.documents.length} Markdown files</small></div>
-            <CaretUpDown size={14} weight="bold" />
-          </summary>
-          <div className="sidebar-workspace-menu__popover">
-            <NavLink to="/workspace" onClick={() => { workspaceMenu.current?.removeAttribute('open'); setSidebarOpen(false) }}><House size={15} />工作区概览</NavLink>
-            <button type="button" onClick={() => void refreshWorkspace()} disabled={refreshing}><ArrowClockwise size={15} className={refreshing ? 'is-spinning' : ''} />{refreshing ? '正在刷新…' : '刷新文件'}</button>
-            <button type="button" onClick={() => void switchWorkspace()}><FolderOpen size={15} />切换工作区</button>
-            {workspaceActionError && <p role="alert">{workspaceActionError}</p>}
-          </div>
-        </details>
 
         <div className="sidebar-overview-link">
           <NavLink to="/workspace" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
@@ -171,11 +171,14 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           {deploymentAdapter.capabilities.gitBridge && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <GitBranch size={15} />Git
           </NavLink>}
+          <NavLink to="/settings" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
+            <Gear size={15} />Settings
+          </NavLink>
         </div>
 
         {recent.length > 0 && <div className="sidebar-recent"><span>Recent files</span>{recent.slice(0, 4).map((noteId) => {
           const note = session.documentById.get(noteId)
-          return note ? <NavLink key={noteId} to={`/notes/${noteId}`} onClick={() => setSidebarOpen(false)}><FileText size={13} />{note.frontmatter.title}</NavLink> : null
+          return note ? <NavLink key={noteId} to={`/notes/${noteId}`} onClick={() => { openNote(note.id); setSidebarOpen(false) }}><FileText size={13} />{note.frontmatter.title}</NavLink> : null
         })}</div>}
 
         <div className="sidebar-section-label">
@@ -183,7 +186,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           {session.capabilities.write && <div><button onClick={() => setFileDialog({ action: 'new-note' })} aria-label="新建笔记"><FilePlus size={14} /></button><button onClick={() => setFileDialog({ action: 'new-folder' })} aria-label="新建文件夹"><FolderPlus size={14} /></button></div>}
         </div>
         <nav className="workspace-tree" aria-label="Workspace 文件">
-          <TreeChildren items={session.navigation} onAction={setFileDialog} />
+          <TreeChildren items={session.navigation} onAction={setFileDialog} onOpenNote={openNote} />
         </nav>
 
         {extensionItems.length > 0 && <div className="sidebar-extension-items"><span>Extensions</span>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div>}

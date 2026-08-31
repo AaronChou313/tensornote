@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ClipboardEvent,
 import CodeMirror from '@uiw/react-codemirror'
 import { markdown } from '@codemirror/lang-markdown'
 import { redo, undo } from '@codemirror/commands'
-import type { EditorView } from '@codemirror/view'
+import { EditorView } from '@codemirror/view'
 import {
   ArrowCounterClockwise,
   ArrowClockwise,
@@ -44,7 +44,7 @@ import type { Note } from '../types'
 import { getDocumentBody, getDocumentProperties, parseDocument, replaceDocumentBody, updateDocumentProperties, type DocumentProperties } from '../content/document'
 import { dirname, joinWorkspacePath, relativeWorkspacePath } from '../workspace/path'
 import { WorkspaceConflictError, type WorkspaceFileStat, type WorkspaceProvider } from '../workspace/types'
-import { useAppStore } from '../store/useAppStore'
+import { useAppStore, type EditorMode } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
 import { MarkdownRenderer } from './MarkdownRenderer'
@@ -54,8 +54,6 @@ import { useCommandRegistry } from '../commands/CommandContext'
 import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../commands/editor'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 import { draftRecovery, type DraftRecoveryRecord } from '../recovery/draftRecovery'
-
-type EditorMode = 'read' | 'edit' | 'split'
 
 function NotePreview({ note, provider, compact = false }: { note: Note; provider: WorkspaceProvider; compact?: boolean }) {
   const session = useWorkspaceStore((state) => state.session)
@@ -70,6 +68,7 @@ function NotePreview({ note, provider, compact = false }: { note: Note; provider
       <MarkdownRenderer
         content={note.renderedContent}
         labs={note.labs}
+        documentTitle={note.frontmatter.title}
         documentPath={note.path}
         resolveAssetUrl={(path, fromDocument) => provider.resolveAssetUrl(path, fromDocument)}
         knowledgeIndex={session?.knowledgeIndex}
@@ -108,7 +107,8 @@ const formattingGroups: { label: string; commands: EditorCommandId[] }[] = [
   { label: 'Inline', commands: ['editor.bold', 'editor.italic', 'editor.strikethrough', 'editor.inlineCode', 'editor.link', 'editor.image'] },
   { label: 'Blocks', commands: ['editor.blockquote', 'editor.callout', 'editor.bulletList', 'editor.numberedList', 'editor.taskList', 'editor.codeFence', 'editor.table', 'editor.horizontalRule', 'editor.mathBlock'] },
 ]
-const primaryFormattingCommands: EditorCommandId[] = ['editor.paragraph', 'editor.heading1', 'editor.bold', 'editor.italic', 'editor.link', 'editor.blockquote', 'editor.bulletList', 'editor.codeFence']
+const textStyleCommands: EditorCommandId[] = ['editor.paragraph', 'editor.heading1', 'editor.heading2', 'editor.heading3', 'editor.heading4', 'editor.heading5', 'editor.heading6']
+const primaryFormattingCommands: EditorCommandId[] = ['editor.bold', 'editor.italic', 'editor.strikethrough', 'editor.link', 'editor.bulletList', 'editor.codeFence']
 const codeLanguages = ['python', 'javascript', 'typescript', 'bash', 'json', 'markdown', 'plain']
 
 function FormattingIcon({ id }: { id: EditorCommandId }) {
@@ -139,12 +139,15 @@ function FormattingIcon({ id }: { id: EditorCommandId }) {
 
 export function NoteEditor({ note, provider, isActive = true }: { note: Note; provider: WorkspaceProvider; isActive?: boolean }) {
   const theme = useAppStore((state) => state.theme)
+  const editorDefaultMode = useAppStore((state) => state.editorDefaultMode)
+  const editorLineNumbers = useAppStore((state) => state.editorLineNumbers)
+  const editorWordWrap = useAppStore((state) => state.editorWordWrap)
   const setEditorDirty = useAppStore((state) => state.setEditorDirty)
   const saveDocument = useWorkspaceStore((state) => state.saveDocument)
   const refreshWorkspace = useWorkspaceStore((state) => state.refreshWorkspace)
   const writeAsset = useWorkspaceStore((state) => state.writeAsset)
   const workspaceId = useWorkspaceStore((state) => state.session?.descriptor.id) ?? provider.id
-  const [mode, setMode] = useState<EditorMode>('read')
+  const [mode, setMode] = useState<EditorMode>(editorDefaultMode)
   const [draft, setDraft] = useState(note.raw)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -397,9 +400,9 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
     <main className={`note-page note-page--authoring note-page--knowledge mode-${mode}`}>
       <header className="authoring-toolbar">
         <div className="mode-switcher" aria-label="阅读与编辑模式">
-          <button className={mode === 'read' ? 'is-active' : ''} onClick={() => setMode('read')}><Eye size={15} />Reading</button>
-          <button className={mode === 'edit' ? 'is-active' : ''} onClick={() => setMode('edit')}><NotePencil size={15} />Editing</button>
-          <button className={mode === 'split' ? 'is-active' : ''} onClick={() => setMode('split')}><Columns size={15} />Split</button>
+          <button className={mode === 'read' ? 'is-active' : ''} onClick={() => setMode('read')}><Eye size={15} />阅读</button>
+          <button className={mode === 'edit' ? 'is-active' : ''} onClick={() => setMode('edit')}><NotePencil size={15} />编辑</button>
+          <button className={mode === 'split' ? 'is-active' : ''} onClick={() => setMode('split')}><Columns size={15} />双栏预览</button>
         </div>
         <div className="authoring-toolbar__actions">
           {mode !== 'read' && <>
@@ -414,8 +417,10 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
         </div>
       </header>
       {mode !== 'read' && <div className="formatting-toolbar" role="toolbar" aria-label="Markdown formatting">
-        <div className="formatting-toolbar__group">{primaryFormattingCommands.map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={`${editorCommandLabels[id]}${id === 'editor.bold' ? ' (⌘B)' : id === 'editor.italic' ? ' (⌘I)' : id === 'editor.link' ? ' (⌘K)' : ''}`}><FormattingIcon id={id} /></button>)}<label className="formatting-toolbar__language"><select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value)} aria-label="代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label></div>
-        <details className="formatting-toolbar__more"><summary aria-label="更多 Markdown 格式工具" title="More formatting"><DotsThree size={18} weight="bold" /></summary><div>{formattingGroups.flatMap((group) => group.commands).filter((id) => !primaryFormattingCommands.includes(id)).map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={editorCommandLabels[id]}><FormattingIcon id={id} /></button>)}</div></details>
+        <label className="formatting-toolbar__style"><span className="sr-only">文本样式</span><select value="" onChange={(event) => { if (event.target.value) executeEditorCommand(event.target.value as EditorCommandId) }} aria-label="文本样式"><option value="" disabled>正文 / 标题</option>{textStyleCommands.map((id) => <option key={id} value={id}>{editorCommandLabels[id]}</option>)}</select></label>
+        <div className="formatting-toolbar__group">{primaryFormattingCommands.map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={`${editorCommandLabels[id]}${id === 'editor.bold' ? ' (⌘B)' : id === 'editor.italic' ? ' (⌘I)' : id === 'editor.link' ? ' (⌘K)' : ''}`}><FormattingIcon id={id} /></button>)}</div>
+        <label className="formatting-toolbar__language"><span className="sr-only">代码块语言</span><select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value)} aria-label="代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label>
+        <details className="formatting-toolbar__more"><summary aria-label="更多 Markdown 格式工具" title="更多格式"><DotsThree size={18} weight="bold" /></summary><div>{formattingGroups.flatMap((group) => group.commands).filter((id) => !primaryFormattingCommands.includes(id) && !textStyleCommands.includes(id)).map((id) => <button key={id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => executeEditorCommand(id)} aria-label={editorCommandLabels[id]} title={editorCommandLabels[id]}><FormattingIcon id={id} /></button>)}<label className="formatting-toolbar__language formatting-toolbar__language--mobile"><span className="sr-only">代码块语言</span><select value={codeLanguage} onChange={(event) => setCodeLanguage(event.target.value)} aria-label="移动端代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label></div></details>
       </div>}
 
       {externalStat && (
@@ -442,10 +447,10 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
             <div className="editor-file-label"><span>{note.path}</span><small>Markdown source</small></div>
             <CodeMirror
               value={editableBody}
-              extensions={[markdown(), ...extensionEditorExtensions.map((item) => item.extension)]}
+              extensions={[markdown(), ...(editorWordWrap ? [EditorView.lineWrapping] : []), ...extensionEditorExtensions.map((item) => item.extension)]}
               theme={theme}
               minHeight="calc(100dvh - 166px)"
-              basicSetup={{ lineNumbers: true, foldGutter: true, history: true, autocompletion: true, highlightActiveLine: true }}
+              basicSetup={{ lineNumbers: editorLineNumbers, foldGutter: editorLineNumbers, history: true, autocompletion: true, highlightActiveLine: true }}
               onCreateEditor={(view) => { viewRef.current = view }}
               onChange={changeBody}
             />

@@ -279,6 +279,15 @@ Git Bridge (fixed repository root)
 - 正式支持 Local Web、Static Web 与 Self-hosted Web Runtime；PWA 是可关闭的增强，Tauri 和 Server-mounted Workspace 不属于 v0.9.0 承诺。
 - Release Gate 为全量 Vitest、ESLint、TypeScript/Vite Local Build、Static Base Path Build、PWA 产物、Dependency Audit、性能预算、浏览器明暗/桌面/窄屏/路由回归与 `git diff --check`。
 
+## v0.9.1 Editor Experience & Settings
+
+- Workbench 状态按 `main` / `secondary` Pane 分区保存标签、历史和活动笔记；URL 只描述当前活动笔记，不能再被当作两个 Pane 的唯一状态源。
+- `split` 创建空白次 Pane，文件树把笔记显式打开到活动 Pane。关闭标签只变更所属 Pane，关闭次 Pane 才销毁其 UI 状态。
+- Markdown 文档属性标题与正文 H1 分开：只标记并隐藏与属性标题相同的首个源码 H1，其他 H1 保留在正文渲染树中。
+- Lab 激活键由 `noteId + labId` 组成，避免不同笔记的同名 Lab 互相命中；Scratch 写回后使用保存结果立即绑定 LabDrawer。
+- `/settings` 是应用设置的唯一主入口；App Store 持久化编辑器默认模式、行号和换行，Compute Store 继续独立管理 Profile 与 Session。
+- v0.9.1 是 v0.9.0 后的源码阶段里程碑，不创建独立 Git Tag 或 GitHub Release。
+
 ## 版本更新规则
 
 每个版本至少同步更新：

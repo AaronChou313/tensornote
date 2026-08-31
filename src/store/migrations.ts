@@ -28,6 +28,9 @@ export function migrateAppPreferences(persisted: unknown) {
   const legacyProgress = state.noteProgress ?? state.progress
   return {
     theme: state.theme === 'dark' || state.theme === 'light' ? state.theme : state.darkMode === true ? 'dark' : 'light',
+    editorDefaultMode: state.editorDefaultMode === 'edit' || state.editorDefaultMode === 'split' || state.editorDefaultMode === 'read' ? state.editorDefaultMode : 'read',
+    editorLineNumbers: state.editorLineNumbers !== false,
+    editorWordWrap: state.editorWordWrap !== false,
     progress: progressRecord(legacyProgress),
   }
 }

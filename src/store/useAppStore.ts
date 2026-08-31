@@ -4,27 +4,36 @@ import type { KernelStatus, NoteProgress } from '../types'
 import { migrateAppPreferences } from './migrations'
 
 type Theme = 'light' | 'dark'
+export type EditorMode = 'read' | 'edit' | 'split'
 export type PendingLabAction = { labId: string; action: 'runAll' } | null
 
 interface AppState {
   theme: Theme
+  editorDefaultMode: EditorMode
+  editorLineNumbers: boolean
+  editorWordWrap: boolean
   sidebarOpen: boolean
   searchOpen: boolean
   commandPaletteOpen: boolean
   newNoteRequestNonce: number
   activeLabId: string | null
+  activeLabNoteId: string | null
   pendingLabAction: PendingLabAction
   kernelStatus: KernelStatus
   editorDirtyPath: string | null
   editorDirtyPaths: Record<string, true>
   labDirty: boolean
   progress: Record<string, NoteProgress>
-  toggleTheme: () => void
+  setTheme: (theme: Theme) => void
+  setEditorDefaultMode: (mode: EditorMode) => void
+  setEditorLineNumbers: (enabled: boolean) => void
+  setEditorWordWrap: (enabled: boolean) => void
   setSidebarOpen: (open: boolean) => void
   setSearchOpen: (open: boolean) => void
   setCommandPaletteOpen: (open: boolean) => void
   requestNewNote: () => void
   setActiveLabId: (id: string | null) => void
+  openLab: (noteId: string | null, labId: string) => void
   setPendingLabAction: (action: PendingLabAction) => void
   setKernelStatus: (status: KernelStatus) => void
   setEditorDirtyPath: (path: string | null) => void
@@ -40,23 +49,31 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       theme: 'light',
+      editorDefaultMode: 'read',
+      editorLineNumbers: true,
+      editorWordWrap: true,
       sidebarOpen: false,
       searchOpen: false,
       commandPaletteOpen: false,
       newNoteRequestNonce: 0,
       activeLabId: null,
+      activeLabNoteId: null,
       pendingLabAction: null,
       kernelStatus: 'offline',
       editorDirtyPath: null,
       editorDirtyPaths: {},
       labDirty: false,
       progress: {},
-      toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
+      setTheme: (theme) => set({ theme }),
+      setEditorDefaultMode: (editorDefaultMode) => set({ editorDefaultMode }),
+      setEditorLineNumbers: (editorLineNumbers) => set({ editorLineNumbers }),
+      setEditorWordWrap: (editorWordWrap) => set({ editorWordWrap }),
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       setSearchOpen: (searchOpen) => set({ searchOpen }),
       setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
       requestNewNote: () => set((state) => ({ newNoteRequestNonce: state.newNoteRequestNonce + 1 })),
-      setActiveLabId: (activeLabId) => set({ activeLabId }),
+      setActiveLabId: (activeLabId) => set({ activeLabId, ...(activeLabId ? {} : { activeLabNoteId: null }) }),
+      openLab: (activeLabNoteId, activeLabId) => set({ activeLabId, activeLabNoteId }),
       setPendingLabAction: (pendingLabAction) => set({ pendingLabAction }),
       setKernelStatus: (kernelStatus) => set({ kernelStatus }),
       setEditorDirtyPath: (editorDirtyPath) => set({ editorDirtyPath, editorDirtyPaths: editorDirtyPath ? { [editorDirtyPath]: true } : {} }),
@@ -72,6 +89,7 @@ export const useAppStore = create<AppState>()(
         searchOpen: false,
         commandPaletteOpen: false,
         activeLabId: null,
+        activeLabNoteId: null,
         pendingLabAction: null,
         kernelStatus: 'offline',
         editorDirtyPath: null,
@@ -88,9 +106,15 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'tensornote-preferences',
-      version: 1,
+      version: 2,
       migrate: (persisted) => migrateAppPreferences(persisted),
-      partialize: (state) => ({ theme: state.theme, progress: state.progress }),
+      partialize: (state) => ({
+        theme: state.theme,
+        editorDefaultMode: state.editorDefaultMode,
+        editorLineNumbers: state.editorLineNumbers,
+        editorWordWrap: state.editorWordWrap,
+        progress: state.progress,
+      }),
     },
   ),
 )

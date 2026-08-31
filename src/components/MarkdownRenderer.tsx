@@ -32,6 +32,7 @@ function textFromNode(node: ReactNode): string {
 interface MarkdownRendererProps {
   content: string
   labs: Lab[]
+  documentTitle?: string
   documentPath?: string
   resolveAssetUrl?: (path: string, fromDocument: string) => Promise<string>
   knowledgeIndex?: KnowledgeIndex
@@ -39,7 +40,7 @@ interface MarkdownRendererProps {
   embeddedTrail?: string[]
 }
 
-export function MarkdownRenderer({ content, labs, documentPath = '', resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail = [] }: MarkdownRendererProps) {
+export function MarkdownRenderer({ content, labs, documentTitle, documentPath = '', resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail = [] }: MarkdownRendererProps) {
   const processors = useExtensionSnapshot().markdownProcessors
   const labMap = new Map(labs.map((lab) => [lab.id, lab]))
   const headingCounts = new Map<string, number>()
@@ -57,13 +58,19 @@ export function MarkdownRenderer({ content, labs, documentPath = '', resolveAsse
     () => knowledgeIndex && noteId ? transformWikiMarkdown(processedContent, knowledgeIndex, noteId) : processedContent,
     [knowledgeIndex, noteId, processedContent],
   )
+  const firstH1Offset = markdown.search(/^#\s+/m)
 
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeKatex, rehypeHighlight]}
       components={{
-        h1: ({ children }) => <h1 id={headingId(children)}>{children}</h1>,
+        h1: ({ children, node }) => {
+          const duplicateDocumentTitle = firstH1Offset >= 0
+            && node?.position?.start.offset === firstH1Offset
+            && textFromNode(children).trim() === documentTitle?.trim()
+          return <h1 id={headingId(children)} className={duplicateDocumentTitle ? 'markdown-title-heading' : undefined}>{children}</h1>
+        },
         h2: ({ children }) => <h2 id={headingId(children)}>{children}</h2>,
         h3: ({ children }) => <h3 id={headingId(children)}>{children}</h3>,
         h4: ({ children }) => <h4 id={headingId(children)}>{children}</h4>,
@@ -99,7 +106,7 @@ export function MarkdownRenderer({ content, labs, documentPath = '', resolveAsse
           if (language === 'mermaid') return <MermaidDiagram chart={source} />
           if (language === 'tensornote-lab') {
             const lab = labMap.get(source.trim())
-            return lab ? <LabCard lab={lab} /> : null
+            return lab ? <LabCard lab={lab} noteId={noteId} /> : null
           }
           if (language === 'tensornote-embed' && knowledgeIndex && noteId) {
             const reference = source.trim()
