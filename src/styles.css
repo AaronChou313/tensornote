@@ -4654,8 +4654,10 @@ button.trust-status {
 }
 
 .workbench-tab > button:first-child {
+  display: flex;
   height: 32px;
   min-height: 32px;
+  align-items: center;
   padding: 0 8px 0 11px;
   color: var(--muted);
   font-size: .73rem;
