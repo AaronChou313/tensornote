@@ -8,6 +8,7 @@ import { useAppStore } from '../store/useAppStore'
 import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import type { LabCell } from '../types'
+import { canExecuteWorkspace, resolveWorkspaceExecutionPolicy } from '../workspace/executionPolicy'
 import { Button } from './ui/Button'
 import { CodeCell, type CodeCellState } from './CodeCell'
 
@@ -71,6 +72,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const kernelStatus = useAppStore((state) => state.kernelStatus)
   const theme = useAppStore((state) => state.theme)
   const session = useWorkspaceStore((state) => state.session)
+  const executionOverrides = useWorkspaceStore((state) => state.executionOverrides)
   const trustActiveWorkspace = useWorkspaceStore((state) => state.trustActiveWorkspace)
   const provider = useWorkspaceStore((state) => state.provider)
   const saveDocument = useWorkspaceStore((state) => state.saveDocument)
@@ -80,7 +82,8 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
   const profile = activeComputeProfile({ profiles, activeProfileId })
   const token = tokens[profile.id] ?? ''
-  const canExecute = Boolean(session?.trusted && session.manifest.features.executable)
+  const executionPolicy = session ? resolveWorkspaceExecutionPolicy(session, executionOverrides) : null
+  const canExecute = session ? canExecuteWorkspace(session, executionOverrides) : false
   const currentNoteId = location.pathname.match(/^\/notes\/([^/]+)/)?.[1]
   const sourceNoteId = lab.noteId ?? currentNoteId
   const sourceNote = sourceNoteId ? session?.documentById.get(decodeURIComponent(sourceNoteId)) : undefined
@@ -134,7 +137,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
 
   const runCell = useCallback(async (cell: LabCell) => {
     if (!canExecute) {
-      setError('当前 Workspace 未声明可执行能力，或远程 Revision 尚未受信任。')
+      setError('当前 Workspace 未允许执行代码，或远程 Revision 尚未受信任。请在设置的“计算与 Jupyter”中检查执行权限。')
       return
     }
     const state = cellsRef.current[cell.id]
@@ -250,9 +253,6 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   }
 
   const openComputeSettings = () => {
-    if (labDirty && !window.confirm(lab.scratch ? 'Scratch Lab 仍有临时代码，确定前往设置吗？' : '实验代码还有未保存到 Markdown 的修改，确定前往设置吗？')) return
-    setScratchOpen(false)
-    setActiveLabId(null)
     setSettingsOpen(true, 'compute')
   }
 
@@ -290,8 +290,8 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
         {!lab.scratch && provider?.capabilities.write && <Button className="lab-save-note" variant="secondary" size="sm" onClick={() => void saveToNote()} disabled={!labDirty}><FloppyDisk size={14} />Save to note</Button>}
       </div>
 
-      {!session?.manifest.features.executable && <div className="lab-trust-banner"><ShieldWarning size={17} /><p>此 Workspace 未在 tensornote.yaml 中声明可执行能力，代码仅供阅读。</p></div>}
-      {session?.manifest.features.executable && !session.trusted && session.descriptor.type === 'github' && <div className="lab-trust-banner"><ShieldWarning size={17} /><p>远程 Workspace 默认禁止执行。信任当前 Revision 后才能连接 Compute Provider。</p><Button variant="secondary" size="sm" onClick={trustActiveWorkspace}>Trust revision</Button></div>}
+      {!executionPolicy?.enabled && <div className="lab-trust-banner"><ShieldWarning size={17} /><p>{executionPolicy?.canChange ? '当前 Workspace 尚未允许执行代码。请在设置 → 计算与 Jupyter 中手动开启。' : '此 Workspace 使用了 TensorNote 尚不支持的配置版本，无法开启代码执行。'}</p>{executionPolicy?.canChange && <Button variant="secondary" size="sm" onClick={openComputeSettings}>打开设置</Button>}</div>}
+      {executionPolicy?.enabled && session && !session.trusted && session.descriptor.type === 'github' && <div className="lab-trust-banner"><ShieldWarning size={17} /><p>远程 Workspace 默认禁止执行。信任当前 Revision 后才能连接 Compute Provider。</p><Button variant="secondary" size="sm" onClick={trustActiveWorkspace}>Trust revision</Button></div>}
       {lab.scratch && !sourceNote && <div className="scratch-note-banner"><p>Scratch 代码只在内存中。打开一篇本地笔记后，才能使用 Insert into note。</p></div>}
       {error && <div className="lab-error"><p>{error}</p><Button variant="secondary" size="sm" onClick={openComputeSettings}>打开 Compute 设置</Button></div>}
 

@@ -32,9 +32,11 @@ describe('persisted settings migrations', () => {
     expect(migrateWorkspaceSettings({
       recent: [{ id: 'local:notes', type: 'local', name: 'Notes', config: { provider: 'local', invalid: 3 } }, { id: 2 }],
       trustedRevisions: ['github:a/b@1', 'github:a/b@1', null],
+      executionOverrides: { 'local:notes': true, malformed: 'yes' },
     })).toEqual({
       recentWorkspaces: [{ id: 'local:notes', type: 'local', name: 'Notes', sourceLabel: 'local', detail: undefined, config: { provider: 'local' }, openedAt: 0 }],
       trustedRevisions: ['github:a/b@1'],
+      executionOverrides: { 'local:notes': true },
     })
   })
 

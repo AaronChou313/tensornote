@@ -106,7 +106,7 @@ environment:
 ```
 
 - 未提供配置时仍可打开普通 Markdown 文件夹。
-- 无配置的 Workspace 默认 `executable: false`。
+- 无配置的 Workspace 默认 `executable: false`；用户可在 Compute 设置中保存仅限当前浏览器、当前 Workspace 的显式执行授权。
 - 未知顶层字段被忽略；扩展元数据放在 `extensions`。
 - 文档 `id` 必须在 Workspace 内唯一。
 - `environment.files` 是环境入口提示；缺失或存在都会展示，但 TensorNote 不自动安装。
@@ -138,7 +138,8 @@ JupyterComputeProvider ── JupyterClient
 ## 信任与凭据边界
 
 - GitHub Workspace 默认只读、未受信任，信任键固定到 `owner/repo@commitSHA`；Repository 更新后必须重新信任。
-- 只有 `features.executable: true` 且当前 Revision 已受信任时，远程 Workspace 才能触发 Jupyter 执行。
+- 执行策略合并 manifest 默认值与当前浏览器的 Workspace 级显式授权；未来版本 manifest 始终禁用执行。
+- GitHub Workspace 即使已手动开启执行，仍需信任固定到当前 `owner/repo@commitSHA` 的 Revision。
 - Jupyter Token 只写入 `sessionStorage`，关闭浏览器会话后清除；长期配置只保存 Server URL 与 Kernel Name。
 - Workspace 配置不得包含 Token、密码或云端密钥。
 - 诊断错误在显示前对当前 Token 脱敏；环境声明不会被当作安装授权。

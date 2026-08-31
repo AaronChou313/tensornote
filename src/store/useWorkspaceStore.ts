@@ -9,6 +9,7 @@ import type {
   WorkspaceSession,
   WorkspaceWriteOptions,
 } from '../workspace/types'
+import type { WorkspaceExecutionOverrides } from '../workspace/executionPolicy'
 import { migrateWorkspaceSettings } from './migrations'
 
 type WorkspaceStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -21,6 +22,7 @@ interface WorkspaceState {
   session: WorkspaceSession | null
   recentWorkspaces: RecentWorkspace[]
   trustedRevisions: string[]
+  executionOverrides: WorkspaceExecutionOverrides
   openProvider: (provider: WorkspaceProvider) => Promise<WorkspaceSession>
   refreshWorkspace: () => Promise<WorkspaceSession>
   saveDocument: (path: string, content: string, options?: WorkspaceWriteOptions) => Promise<Note>
@@ -32,6 +34,7 @@ interface WorkspaceState {
   moveEntry: (source: string, destination: string) => Promise<void>
   closeWorkspace: () => Promise<void>
   trustActiveWorkspace: () => void
+  setActiveWorkspaceExecution: (enabled: boolean) => void
   clearError: () => void
 }
 
@@ -97,6 +100,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         session: null,
         recentWorkspaces: [],
         trustedRevisions: [],
+        executionOverrides: {},
         openProvider: async (provider) => {
           set({ status: 'loading', loadingMessage: '正在读取 Workspace…', error: null })
           try {
@@ -186,15 +190,20 @@ export const useWorkspaceStore = create<WorkspaceState>()(
             session: { ...session, trusted: true },
           }))
         },
+        setActiveWorkspaceExecution: (enabled) => {
+          const session = get().session
+          if (!session || session.compatibility.status === 'future') return
+          set((state) => ({ executionOverrides: { ...state.executionOverrides, [session.descriptor.id]: enabled } }))
+        },
         clearError: () => set({ error: null, status: get().session ? 'ready' : 'idle' }),
       }
     },
     {
       name: 'tensornote-workspaces',
-      version: 1,
+      version: 2,
       migrate: (persisted) => migrateWorkspaceSettings(persisted),
       storage: createJSONStorage(() => localStorage),
-      partialize: ({ recentWorkspaces, trustedRevisions }) => ({ recentWorkspaces, trustedRevisions }),
+      partialize: ({ recentWorkspaces, trustedRevisions, executionOverrides }) => ({ recentWorkspaces, trustedRevisions, executionOverrides }),
     },
   ),
 )

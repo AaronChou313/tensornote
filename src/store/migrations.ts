@@ -57,7 +57,7 @@ export function migrateWorkspaceSettings(persisted: unknown) {
   const trustedRevisions = Array.isArray(state.trustedRevisions)
     ? [...new Set(state.trustedRevisions.filter((item): item is string => typeof item === 'string' && item.length > 0))]
     : []
-  return { recentWorkspaces, trustedRevisions }
+  return { recentWorkspaces, trustedRevisions, executionOverrides: booleanRecord(state.executionOverrides) }
 }
 
 export function migrateExtensionSettings(persisted: unknown) {

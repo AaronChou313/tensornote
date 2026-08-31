@@ -6,7 +6,7 @@ import { useWorkspaceStore } from './useWorkspaceStore'
 describe('workspace lifecycle', () => {
   beforeEach(() => {
     localStorage.clear()
-    useWorkspaceStore.setState({ status: 'idle', loadingMessage: '', error: null, provider: null, session: null })
+    useWorkspaceStore.setState({ status: 'idle', loadingMessage: '', error: null, provider: null, session: null, executionOverrides: {} })
   })
 
   it('releases the active provider and returns to idle', async () => {
@@ -35,5 +35,13 @@ describe('workspace lifecycle', () => {
 
     expect(useWorkspaceStore.getState()).toMatchObject({ status: 'idle', provider: null, session: null })
     expect(useWorkspaceStore.getState().error).toContain('handle unavailable')
+  })
+
+  it('stores execution permission against the active workspace only', () => {
+    useWorkspaceStore.setState({ session: { descriptor: { id: 'local:notes' }, compatibility: { status: 'supported' } } as WorkspaceSession })
+
+    useWorkspaceStore.getState().setActiveWorkspaceExecution(true)
+
+    expect(useWorkspaceStore.getState().executionOverrides).toEqual({ 'local:notes': true })
   })
 })

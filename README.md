@@ -213,6 +213,8 @@ environment:
 
 没有配置文件时，TensorNote 仍会尝试把目录作为普通 Markdown Workspace 打开，但默认不授予可执行能力。
 
+如需在当前设备临时授权，可以打开“设置 → 计算与 Jupyter”，开启“允许当前 Workspace 执行代码”。该偏好按 Workspace 保存在浏览器中，不会改写或替代仓库里的 `tensornote.yaml`。
+
 普通 Python Fence 只用于展示：
 
 ````markdown

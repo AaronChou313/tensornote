@@ -146,7 +146,8 @@ Compute 设置会标记 `Found`、`Missing`、`declared` 或 `detected`。这只
 
 ## 10. 安全边界
 
-- 只有 `features.executable: true` 的 Workspace 才允许执行。
+- Workspace 默认遵循 `features.executable`；用户也可以在“设置 → 计算与 Jupyter”中为当前 Workspace 显式开启或关闭执行。
+- 手动授权按 Workspace 保存在当前浏览器，不会静默改写 `tensornote.yaml`，也不会随仓库分享给其他设备。
 - GitHub Workspace 必须信任固定的 `owner/repo@commitSHA`；Revision 改变后重新确认。
 - Token 只存在当前浏览器会话，诊断错误也会对 Token 文本脱敏。
 - 不建议关闭 Jupyter 身份验证，也不建议使用 `allow_origin=*`。
