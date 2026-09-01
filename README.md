@@ -32,7 +32,7 @@
 
 TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。知识正文、属性、链接和实验定义都保存在可读、可迁移、适合 Git 的文件中；索引、图谱和 Database 可以随时从源文件重建。应用不把知识锁进私有数据库，也不会在未授权时执行代码。
 
-当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已进入 **v1.1.0 — Dual Host Foundation** 源码阶段：同一 React 核心现可运行于 Web 与 Tauri Desktop；尚不提供签名安装包。详见[下一代规划](docs/NEXT_GENERATION_PLAN.md)与[v1.1.0 源码阶段说明](docs/releases/v1.1.0.md)。
+当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已完成 **v1.2.0 — Native Local Workspace** 源码阶段：同一 React 核心可运行于 Web 与 Tauri Desktop，Desktop 已具备受限原生目录读写、恢复、拖放、文件关联与本地 Git；尚不提供签名安装包。详见[下一代规划](docs/NEXT_GENERATION_PLAN.md)与[v1.2.0 源码阶段说明](docs/releases/v1.2.0.md)。
 
 ## 为什么是 TensorNote
 
@@ -51,7 +51,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 | **多窗格 Workbench** | 独立 Pane、Tabs、History 与滚动状态；左右分栏、焦点上下文、命令面板、设置弹窗、可折叠侧栏与响应式布局。 |
 | **Python Lab** | 多 Cell executable fence、Scratch Lab、Run/Run All/Run Above/Below、Restart、Interrupt、输出管理、Compute Profile 与连接诊断。 |
 | **Structured Knowledge** | 从 YAML Frontmatter 重建属性索引，以表达式查询笔记，并在 Table、Card、List 视图之间切换。 |
-| **Git & Sync** | 可选 Local Git Bridge；查看状态、Diff 与历史，Stage/Unstage 并创建本地 Commit，不暴露任意 Shell。 |
+| **Git & Sync** | Desktop 原生 Git 或 Local Web 可选 Bridge；查看状态、Diff 与历史，Stage/Unstage 并创建本地 Commit，不暴露任意 Shell。 |
 | **Extension Platform** | Command、View、Sidebar、Markdown Processor、Editor、Settings、Status Bar、Workspace 与 Compute Provider 扩展点。 |
 | **分发与恢复** | Local、Static、Self-hosted Web、可选 PWA；未来 Schema 只读降级、应用级错误恢复和大 Workspace 性能门。 |
 
@@ -77,11 +77,11 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 | 来源 | 阅读 | 编辑 | Python Lab | Git 工作台 |
 | --- | :---: | :---: | :---: | :---: |
-| 本地文件夹 | ✓ | ✓ | 显式授权后 | 可选 Bridge |
+| 本地文件夹 | ✓ | ✓ | 显式授权后 | Desktop 原生 / Local Web Bridge |
 | 内置示例 | ✓ | — | 仅阅读定义 | — |
 | 公开 GitHub Repository | ✓ | — | 信任当前 Revision 后 | — |
 
-本地创作依赖支持 [File System Access API](https://developer.mozilla.org/docs/Web/API/File_System_API) 的桌面 Chromium 浏览器。Safari/Firefox 或权限受限环境仍可使用只读来源。
+Local Web 的本地创作依赖支持 [File System Access API](https://developer.mozilla.org/docs/Web/API/File_System_API) 的桌面 Chromium 浏览器；Desktop 使用 Rust 侧原生目录授权，不依赖该浏览器 API。Safari/Firefox 或权限受限 Web 环境仍可使用只读来源。
 
 ## 快速开始
 
@@ -232,7 +232,7 @@ pnpm check:desktop
 pnpm build:desktop
 ```
 
-v1.1.0 Desktop 当前提供安全的原生壳、Built-in/GitHub Workspace 和既有 Jupyter 连接；原生本地目录读写将在 v1.2.0 接入，Conda/venv/uv 检测与 Jupyter 一键启停将在 v1.3.0 接入。当前 `.app`/可执行文件未签名，不作为正式安装包发布。
+v1.2.0 Desktop 可通过系统选择器打开/新建本地 Workspace，原子保存 Markdown、检测外部修改、恢复最近目录、拖入目录或 Markdown、在文件管理器中显示，并直接使用受限原生 Git。Conda/venv/uv 检测与 Jupyter 一键启停属于 v1.3.0。当前 `.app`/可执行文件未签名，不作为正式安装包发布。
 
 ## 智能体接口
 

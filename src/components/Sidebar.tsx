@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowClockwise, ArrowsOutLineHorizontal, CaretDown, CaretUpDown, Copy, DotsThree, FilePlus, FileText, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, Trash, X } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowSquareOut, ArrowsOutLineHorizontal, CaretDown, CaretUpDown, Copy, DotsThree, FilePlus, FileText, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, Trash, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -12,6 +12,7 @@ import { joinWorkspacePath } from '../workspace/path'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 import { useCommandRegistry } from '../commands/CommandContext'
 import { deploymentAdapter } from '../deployment/config'
+import { getHostAdapter } from '../host/runtime'
 
 const treePageSize = 200
 
@@ -88,6 +89,10 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
   const workspaceMenu = useRef<HTMLDetailsElement>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [workspaceActionError, setWorkspaceActionError] = useState<string | null>(null)
+  const hostAdapter = getHostAdapter()
+  const nativeWorkspaceId = session?.descriptor.config?.provider === 'native-local'
+    ? session.descriptor.config.workspaceId
+    : undefined
   useEffect(() => {
     return useAppStore.subscribe((state, previous) => {
       if (state.newNoteRequestNonce !== previous.newNoteRequestNonce && session?.capabilities.write) setFileDialog({ action: 'new-note' })
@@ -132,6 +137,17 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
     }
   }
 
+  const revealWorkspace = async () => {
+    if (!nativeWorkspaceId || !hostAdapter.revealWorkspaceItem) return
+    setWorkspaceActionError(null)
+    try {
+      await hostAdapter.revealWorkspaceItem(nativeWorkspaceId)
+      workspaceMenu.current?.removeAttribute('open')
+    } catch (reason) {
+      setWorkspaceActionError(reason instanceof Error ? reason.message : '无法在文件管理器中显示 Workspace')
+    }
+  }
+
   const openNote = (noteId: string) => {
     const note = session.documentById.get(noteId)
     if (note) useWorkbenchStore.getState().openNote(note.id, note.frontmatter.title)
@@ -150,6 +166,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
             </summary>
             <div className="sidebar-workspace-menu__popover">
               <button type="button" onClick={() => void refreshWorkspace()} disabled={refreshing}><ArrowClockwise size={15} className={refreshing ? 'is-spinning' : ''} />{refreshing ? '正在刷新…' : '刷新文件'}</button>
+              {nativeWorkspaceId && hostAdapter.revealWorkspaceItem && <button type="button" onClick={() => void revealWorkspace()}><ArrowSquareOut size={15} />在文件管理器中显示</button>}
               <button type="button" onClick={() => void switchWorkspace()}><FolderOpen size={15} />切换工作区</button>
               {workspaceActionError && <p role="alert">{workspaceActionError}</p>}
             </div>
@@ -167,7 +184,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           <NavLink to="/database" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <Rows size={15} />Database
           </NavLink>
-          {deploymentAdapter.capabilities.gitBridge && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
+          {(deploymentAdapter.capabilities.gitBridge || hostAdapter.capabilities.nativeGit) && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <GitBranch size={15} />Git
           </NavLink>}
         </div>

@@ -23,12 +23,24 @@ describe('host adapter runtime', () => {
   })
 
   it('loads the desktop adapter without claiming future native capabilities', async () => {
-    const adapter = await createHostAdapter({ kind: 'desktop', webLabel: 'Local Web' })
+    const adapter = await createHostAdapter({
+      kind: 'desktop',
+      webLabel: 'Local Web',
+      desktopAdapterLoader: () => import('./TauriHostAdapter'),
+    })
     expect(adapter).toMatchObject({ id: 'desktop', label: 'Desktop' })
     expect(adapter.capabilities.desktopShell).toBe(true)
-    expect(adapter.capabilities.nativeFilesystem).toBe(false)
+    expect(adapter.capabilities.nativeFilesystem).toBe(true)
+    expect(adapter.capabilities.nativeGit).toBe(true)
+    expect(adapter.capabilities.fileAssociations).toBe(true)
     expect(adapter.capabilities.environmentDiscovery).toBe(false)
     expect(adapter.capabilities.processManagement).toBe(false)
+  })
+
+  it('fails closed when a Web build is asked to start as Desktop', async () => {
+    await expect(createHostAdapter({ kind: 'desktop', webLabel: 'Static Web' })).rejects.toThrow(
+      'Desktop host adapter is not included',
+    )
   })
 
   it('installs the adapter used by product surfaces', async () => {

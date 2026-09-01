@@ -1,0 +1,19 @@
+[[permission]]
+identifier = "allow-native-workspace"
+description = "Allows the bundled main window to use only user-selected Native Workspace roots through opaque IDs and validated relative paths."
+commands.allow = [
+  "select_native_workspace",
+  "reopen_native_workspace",
+  "take_pending_native_workspace",
+  "reveal_native_workspace",
+  "native_workspace_list",
+  "native_workspace_read_text",
+  "native_workspace_read_binary",
+  "native_workspace_stat",
+  "native_workspace_write_text",
+  "native_workspace_write_binary",
+  "native_workspace_create_directory",
+  "native_workspace_remove_entry",
+  "native_workspace_copy_entry",
+  "native_workspace_move_entry",
+]

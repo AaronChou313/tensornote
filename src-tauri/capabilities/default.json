@@ -7,6 +7,8 @@
   ],
   "permissions": [
     "core:default",
-    "allow-platform-info"
+    "allow-platform-info",
+    "allow-native-workspace",
+    "allow-native-git"
   ]
 }

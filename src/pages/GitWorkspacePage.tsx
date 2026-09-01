@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import {
   ArrowDown,
   ArrowUp,
@@ -21,6 +21,11 @@ import { useGitStore } from '../store/useGitStore'
 import { deploymentAdapter } from '../deployment/config'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import type { GitChange, GitChangeKind } from '../git/types'
+import { getHostAdapter } from '../host/runtime'
+
+const loadNativeGitClient = import.meta.env.VITE_TENSORNOTE_HOST === 'desktop'
+  ? () => import('../git/NativeGitClient')
+  : undefined
 
 const kindLabels: Record<GitChangeKind, string> = {
   modified: 'Modified',
@@ -69,7 +74,8 @@ function DiffView({ patch }: { patch: string }) {
   </div>
 }
 
-function SetupState({ bridgeDraft, busy, error, onDraft, onConnect }: {
+function SetupState({ native, bridgeDraft, busy, error, onDraft, onConnect }: {
+  native: boolean
   bridgeDraft: string
   busy: boolean
   error: string | null
@@ -79,17 +85,19 @@ function SetupState({ bridgeDraft, busy, error, onDraft, onConnect }: {
   return <section className="git-setup-state">
     <div className="git-setup-state__icon"><TerminalWindow size={23} /></div>
     <div className="git-setup-state__copy">
-      <span>Optional local companion</span>
-      <h2>Connect the Git Bridge</h2>
-      <p>浏览器不能直接执行系统 Git。请在第三个终端把 Bridge 固定到当前 Local Workspace 的仓库根目录。</p>
-      <code>pnpm git:bridge -- --workspace /absolute/path/to/workspace</code>
+      <span>{native ? 'Desktop capability' : 'Optional local companion'}</span>
+      <h2>{native ? 'Connect Native Git' : 'Connect the Git Bridge'}</h2>
+      {native
+        ? <p>TensorNote Desktop 使用当前 Workspace 的不透明授权调用系统 Git，不需要启动额外 Bridge。</p>
+        : <><p>浏览器不能直接执行系统 Git。请在第三个终端把 Bridge 固定到当前 Local Workspace 的仓库根目录。</p><code>pnpm git:bridge -- --workspace /absolute/path/to/workspace</code></>}
     </div>
-    <div className="git-connect-form">
+    {!native && <div className="git-connect-form">
       <label><span>Bridge URL</span><input value={bridgeDraft} onChange={(event) => onDraft(event.target.value)} placeholder="http://127.0.0.1:4318" /></label>
       <button onClick={onConnect} disabled={busy}>{busy ? 'Connecting…' : 'Connect'}</button>
-    </div>
+    </div>}
+    {native && <div className="git-connect-form"><button onClick={onConnect} disabled={busy}>{busy ? 'Connecting…' : 'Retry Native Git'}</button></div>}
     {error && <div className="git-inline-error" role="alert"><WarningCircle size={16} /><span><strong>Connection unavailable</strong>{error}</span></div>}
-    <p className="git-security-note">Bridge 只监听本机、只允许配置的 TensorNote Origin，并且不暴露 Push、Pull、凭据或任意 Shell 命令。</p>
+    <p className="git-security-note">{native ? 'Native Git 只开放 Status、Diff、Stage 与 Commit 类型化操作；不接受 Shell 字符串，也不处理凭据、Push 或 Pull。' : 'Bridge 只监听本机、只允许配置的 TensorNote Origin，并且不暴露 Push、Pull、凭据或任意 Shell 命令。'}</p>
   </section>
 }
 
@@ -117,18 +125,36 @@ export function GitWorkspacePage() {
   const autoConnectKey = useRef('')
 
   const workspaceName = provider?.descriptor.detail || provider?.descriptor.name || ''
-  const supported = Boolean(deploymentAdapter.capabilities.gitBridge && session?.capabilities.git && session.descriptor.type === 'local')
+  const hostAdapter = getHostAdapter()
+  const nativeWorkspaceId = session?.descriptor.config?.provider === 'native-local'
+    ? session.descriptor.config.workspaceId
+    : undefined
+  const native = Boolean(hostAdapter.capabilities.nativeGit && nativeWorkspaceId && loadNativeGitClient)
+  const supported = Boolean(session?.capabilities.git && session.descriptor.type === 'local' && (native || deploymentAdapter.capabilities.gitBridge))
+
+  const connectCurrent = useCallback(() => {
+    if (native && nativeWorkspaceId && loadNativeGitClient) {
+      return loadNativeGitClient().then(({ NativeGitClient }) => connect(workspaceName, new NativeGitClient(nativeWorkspaceId)))
+    }
+    return connect(workspaceName)
+  }, [connect, native, nativeWorkspaceId, workspaceName])
+
   useEffect(() => {
-    if (!supported || !workspaceName || autoConnectKey.current === `${workspaceName}:${bridgeUrl}`) return
-    autoConnectKey.current = `${workspaceName}:${bridgeUrl}`
-    void connect(workspaceName).catch(() => undefined)
-  }, [bridgeUrl, connect, supported, workspaceName])
+    const connectionKey = native ? `${workspaceName}:native:${nativeWorkspaceId}` : `${workspaceName}:${bridgeUrl}`
+    if (!supported || !workspaceName || autoConnectKey.current === connectionKey) return
+    autoConnectKey.current = connectionKey
+    void connectCurrent().catch(() => undefined)
+  }, [bridgeUrl, connectCurrent, native, nativeWorkspaceId, supported, workspaceName])
 
   if (!session) return null
   const stagedChanges = status?.changes.filter((change) => change.staged) ?? []
   const workingChanges = status?.changes.filter((change) => change.unstaged) ?? []
   const unsavedCount = Object.keys(editorDirtyPaths).length
   const submitConnect = () => {
+    if (native) {
+      void connectCurrent().catch(() => undefined)
+      return
+    }
     const normalized = bridgeDraft.trim().replace(/\/$/, '')
     setBridgeUrl(normalized)
     autoConnectKey.current = `${workspaceName}:${normalized}`
@@ -148,7 +174,7 @@ export function GitWorkspacePage() {
       </header>
 
       {!supported ? <section className="git-unavailable-state"><LinkBreak size={21} /><strong>Local Git is not available in this runtime.</strong><p>{deploymentAdapter.capabilities.gitBridge ? '请先把 Workspace 作为本地目录打开。Bundled 与 GitHub 阅读来源保持只读，也不会连接本地仓库。' : `${deploymentAdapter.label} 不连接 localhost Git Bridge；请使用 Local Web Runtime 完成本地 Git 操作。`}</p></section>
-        : connection !== 'ready' || !status || !health ? <SetupState bridgeDraft={bridgeDraft} busy={busy} error={error} onDraft={setBridgeDraft} onConnect={submitConnect} />
+        : connection !== 'ready' || !status || !health ? <SetupState native={native} bridgeDraft={bridgeDraft} busy={busy} error={error} onDraft={setBridgeDraft} onConnect={submitConnect} />
           : <>
             <section className="git-repository-bar" aria-label="Repository summary">
               <div><CheckCircle size={16} /><span><strong>{health.workspaceName}</strong><small>{health.repositoryRoot}</small></span></div>

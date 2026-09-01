@@ -22,7 +22,7 @@
     "node": ">=22"
   },
   "packageManager": "pnpm@11.24.0",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -30,7 +30,7 @@
     "dev:desktop": "tauri dev",
     "git:bridge": "node scripts/git-bridge.mjs",
     "build": "tsc -b && vite build",
-    "build:web": "tsc -b && vite build --mode static",
+    "build:web": "tsc -b && vite build --mode static && node scripts/verify-static-boundary.mjs",
     "build:desktop:web": "tsc -b && vite build --mode desktop",
     "build:desktop": "tauri build",
     "lint": "eslint .",

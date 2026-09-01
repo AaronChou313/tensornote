@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { LocalGitClient } from '../git/LocalGitClient'
-import type { GitBridgeHealth, GitDiff, GitHistoryEntry, GitStatus } from '../git/types'
+import type { GitBridgeHealth, GitClient, GitDiff, GitHistoryEntry, GitStatus } from '../git/types'
 import { migrateGitSettings } from './migrations'
 
 type GitConnectionState = 'idle' | 'connecting' | 'ready' | 'error'
@@ -17,7 +17,7 @@ interface GitState {
   history: GitHistoryEntry[]
   diff: GitDiff | null
   setBridgeUrl: (url: string) => void
-  connect: (workspaceName: string) => Promise<void>
+  connect: (workspaceName: string, selectedClient?: GitClient) => Promise<void>
   refresh: () => Promise<void>
   selectDiff: (path: string, staged: boolean) => Promise<void>
   stage: (path: string, staged: boolean) => Promise<void>
@@ -30,10 +30,12 @@ function message(reason: unknown) {
   return reason instanceof Error ? reason.message : 'Git 操作失败'
 }
 
+let activeClient: GitClient | null = null
+
 export const useGitStore = create<GitState>()(
   persist(
     (set, get) => {
-      const client = () => new LocalGitClient(get().bridgeUrl)
+      const client = () => activeClient ?? new LocalGitClient(get().bridgeUrl)
       const load = async (activeClient = client()) => {
         const [status, history] = await Promise.all([activeClient.status(), activeClient.history()])
         set({ status, history, error: null })
@@ -58,17 +60,21 @@ export const useGitStore = create<GitState>()(
         status: null,
         history: [],
         diff: null,
-        setBridgeUrl: (bridgeUrl) => set({ bridgeUrl, connection: 'idle', health: null, status: null, history: [], diff: null, error: null }),
-        connect: async (workspaceName) => {
+        setBridgeUrl: (bridgeUrl) => {
+          activeClient = null
+          set({ bridgeUrl, connection: 'idle', health: null, status: null, history: [], diff: null, error: null })
+        },
+        connect: async (workspaceName, selectedClient) => {
           set({ connection: 'connecting', busy: true, error: null, notice: null })
           try {
-            const activeClient = client()
-            const health = await activeClient.health()
+            if (selectedClient) activeClient = selectedClient
+            const connectedClient = client()
+            const health = await connectedClient.health()
             if (health.workspaceName !== workspaceName) {
               throw new Error(`Git Bridge 指向“${health.workspaceName}”，当前 Local Workspace 是“${workspaceName}”`)
             }
             set({ health })
-            await load(activeClient)
+            await load(connectedClient)
             set({ connection: 'ready', busy: false })
           } catch (reason) {
             set({ connection: 'error', busy: false, error: message(reason), health: null, status: null, history: [], diff: null })
@@ -116,7 +122,10 @@ export const useGitStore = create<GitState>()(
             throw reason
           }
         },
-        disconnect: () => set({ connection: 'idle', busy: false, error: null, notice: null, health: null, status: null, history: [], diff: null }),
+        disconnect: () => {
+          activeClient = null
+          set({ connection: 'idle', busy: false, error: null, notice: null, health: null, status: null, history: [], diff: null })
+        },
         clearNotice: () => set({ notice: null }),
       }
     },

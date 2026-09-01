@@ -62,6 +62,10 @@ Every added Rust command must:
 - Native capabilities arrive more slowly because each expands the threat surface explicitly.
 - Tauri configuration, application permissions and Rust handlers become release-gated security artifacts.
 
+## v1.2 expansion
+
+v1.2.0 按上述规则加入系统目录选择、Opaque Workspace authority、受限相对路径文件操作、Reveal 和类型化 Native Git。它没有启用 Guest JavaScript 文件系统或 Shell 权限；完整新增安全面与验证见 [ADR 0003](0003-native-workspace-capability.md)。本 ADR 的“Explicitly absent in v1.1”仍是 v1.1 的历史基线，不表示 v1.2 capability 状态。
+
 ## Verification
 
 - `cargo fmt --check`, `cargo clippy -- -D warnings` and `cargo test` pass.

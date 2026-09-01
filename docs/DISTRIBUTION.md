@@ -94,9 +94,11 @@ pnpm check:desktop
 pnpm build:desktop
 ```
 
-`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。v1.1.0 的 Desktop 是双宿主源码基础：支持 Built-in/GitHub Workspace 和已有 Jupyter 连接，但还没有原生本地目录 Provider。原生本地读写属于 v1.2.0，环境检测和 Jupyter 生命周期属于 v1.3.0。当前产物未签名、公证，也不作为正式安装包发布。
+`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。v1.2.0 Desktop 支持 Built-in/GitHub，以及系统选择器授权的原生本地 Workspace：读写、原子保存、外部修改检测、最近目录恢复、拖放、Markdown 文件关联、Reveal 和受限 Native Git 均不依赖浏览器 File System Access API 或 localhost Bridge。环境检测和 Jupyter 生命周期属于 v1.3.0。当前产物未签名、公证，也不作为正式安装包发布。
 
-Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移。
+Desktop 仍要求用户自行安装系统 Git 才能使用 Native Git。打开目录后可在 Workspace 菜单选择“在文件管理器中显示”；也可把目录或 `.md` / `.markdown` 文件拖入窗口。直接打开单篇 Markdown 时，TensorNote 优先寻找最近的 `tensornote.yaml` 或 Git 根目录，否则以该文件所在目录作为 Workspace。
+
+Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)与 [Native Workspace ADR](adr/0003-native-workspace-capability.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移；Static build 另有脚本阻止 Native IPC 进入 GitHub Pages 产物。
 
 ## 7. 性能验证
 

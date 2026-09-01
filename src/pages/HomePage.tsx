@@ -19,6 +19,10 @@ import type { RecentWorkspace, WorkspaceProvider } from '../workspace/types'
 import { deploymentAdapter } from '../deployment/config'
 import { getHostAdapter } from '../host/runtime'
 
+const loadNativeWorkspaceProvider = import.meta.env.VITE_TENSORNOTE_HOST === 'desktop'
+  ? () => import('../workspace/providers/NativeLocalWorkspaceProvider')
+  : undefined
+
 function parseGitHubRepository(value: string) {
   const normalized = value.trim().replace(/\.git$/, '').replace(/\/$/, '')
   const urlMatch = normalized.match(/github\.com[/:]([^/]+)\/([^/]+)$/i)
@@ -52,6 +56,15 @@ export function HomePage() {
 
   const openLocal = async () => {
     try {
+      const host = getHostAdapter()
+      if (host.capabilities.nativeFilesystem) {
+        if (!loadNativeWorkspaceProvider) throw new Error('当前构建不包含桌面文件系统能力')
+        const selection = await host.selectWorkspaceDirectory?.()
+        if (!selection) return
+        const { NativeLocalWorkspaceProvider } = await loadNativeWorkspaceProvider()
+        await open(new NativeLocalWorkspaceProvider(selection))
+        return
+      }
       await open(await pickLocalWorkspace())
     } catch (reason) {
       setInputError(reason instanceof Error ? reason.message : '无法打开本地目录')
@@ -77,12 +90,29 @@ export function HomePage() {
     if (recent.type === 'github' && recent.config?.owner && recent.config.repo) {
       return open(new GitHubWorkspaceProvider(recent.config.owner, recent.config.repo, recent.config.ref))
     }
+    if (recent.type === 'local' && recent.config?.provider === 'native-local' && recent.config.workspaceId) {
+      const host = getHostAdapter()
+      if (!host.capabilities.nativeFilesystem || !host.restoreWorkspaceDirectory) {
+        setInputError('这个 Workspace 需要 TensorNote Desktop 打开')
+        return
+      }
+      try {
+        if (!loadNativeWorkspaceProvider) throw new Error('当前构建不包含桌面文件系统能力')
+        const selection = await host.restoreWorkspaceDirectory(recent.config.workspaceId)
+        const { NativeLocalWorkspaceProvider } = await loadNativeWorkspaceProvider()
+        return open(new NativeLocalWorkspaceProvider(selection))
+      } catch (reason) {
+        setInputError(reason instanceof Error ? reason.message : String(reason))
+        return
+      }
+    }
     await openLocal()
   }
 
   const busy = status === 'loading'
   const hostAdapter = getHostAdapter()
-  const visibleRecentWorkspaces = deploymentAdapter.capabilities.localDirectory
+  const supportsLocalWorkspace = deploymentAdapter.capabilities.localDirectory || hostAdapter.capabilities.nativeFilesystem
+  const visibleRecentWorkspaces = supportsLocalWorkspace
     ? recentWorkspaces
     : recentWorkspaces.filter((recent) => recent.type !== 'local')
 
@@ -112,19 +142,19 @@ export function HomePage() {
         )}
 
         <section className="workspace-actions" aria-label="打开 Workspace">
-          {deploymentAdapter.capabilities.localDirectory && <button className="workspace-action workspace-action--primary" onClick={() => void openLocal()} disabled={busy}>
+          {supportsLocalWorkspace && <button className="workspace-action workspace-action--primary" onClick={() => void openLocal()} disabled={busy}>
             <span className="workspace-action__icon"><FolderOpen size={23} weight="duotone" /></span>
             <span><strong>Open local workspace</strong><small>选择电脑上的 Markdown 文件夹</small></span>
             <ArrowRight size={17} />
           </button>}
 
-          <button className={`workspace-action${deploymentAdapter.capabilities.localDirectory ? '' : ' workspace-action--primary'}`} onClick={() => void openBundled()} disabled={busy}>
+          <button className={`workspace-action${supportsLocalWorkspace ? '' : ' workspace-action--primary'}`} onClick={() => void openBundled()} disabled={busy}>
             <span className="workspace-action__icon"><BookOpenText size={23} weight="duotone" /></span>
             <span><strong>AI Learning Notes</strong><small>打开随 TensorNote 提供的示例 Workspace</small></span>
             <ArrowRight size={17} />
           </button>
 
-          {deploymentAdapter.capabilities.localDirectory && <button className="workspace-action" onClick={() => void openLocal()} disabled={busy}>
+          {supportsLocalWorkspace && <button className="workspace-action" onClick={() => void openLocal()} disabled={busy}>
             <span className="workspace-action__icon"><Plus size={22} /></span>
             <span><strong>New workspace</strong><small>选择一个新建或空文件夹，从第一篇笔记开始</small></span>
             <ArrowRight size={17} />

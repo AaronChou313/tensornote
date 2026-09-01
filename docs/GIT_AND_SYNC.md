@@ -1,12 +1,14 @@
 # TensorNote Local Git 使用说明
 
-TensorNote v0.8.0 为本地 Workspace 提供可选的 Git 工作台：查看 Branch Info、Status、逐文件 Diff、History，暂存或取消暂存文件，并创建本地 Commit。Markdown 与资源文件仍是唯一数据源，Git 只负责版本记录。
+TensorNote 为本地 Workspace 提供 Git 工作台：查看 Branch Info、Status、逐文件 Diff、History，暂存或取消暂存文件，并创建本地 Commit。v1.2.0 起 Desktop 直接使用受限 Native Git；Local Web 继续使用可选 localhost Git Bridge。Markdown 与资源文件仍是唯一数据源，Git 只负责版本记录。
 
 本版不包含 Clone、Push、Pull、Fetch、Branch 创建/切换、GitHub OAuth、私有仓库认证或冲突解决器。
 
-## 1. 为什么需要 Git Bridge
+## 1. Desktop Native Git 与 Local Web Bridge
 
-TensorNote 的本地目录由浏览器 File System Access API 打开。浏览器不会暴露目录绝对路径，也不能直接执行系统 `git`。因此 Git 功能由一个显式启动的本地 companion 提供：
+Desktop 打开原生本地 Workspace 后，无需启动 Bridge。TensorNote 使用该 Workspace 的 Opaque 授权在 Rust 侧调用系统 Git，只开放 Repository root 验证、Status、History、Diff、Stage/Unstage 与 Commit。UI 不会获得绝对路径，也不能提交任意 Git 参数或 Shell 字符串。
+
+Local Web 的本地目录由浏览器 File System Access API 打开。浏览器不会暴露目录绝对路径，也不能直接执行系统 `git`，因此使用显式启动的本地 companion：
 
 ```text
 TensorNote /git
@@ -53,7 +55,7 @@ git config user.name "Your Name"
 git config user.email "you@example.com"
 ```
 
-## 3. 启动 Git Bridge
+## 3. 启动 Git Bridge（仅 Local Web）
 
 在 TensorNote 软件仓库中打开第三个终端；`--workspace` 指向你在浏览器中打开的本地知识库，而不一定是 TensorNote 软件目录。
 
@@ -83,11 +85,11 @@ Listening:  http://127.0.0.1:4318
 
 ## 4. 在 TensorNote 中连接
 
-1. 首页选择 `Open local workspace`，选择与 Bridge 相同的仓库根目录。
-2. 左侧选择 `Git`，或在 Command Palette 执行 `Open Git workspace`。
-3. 默认 Bridge URL 为 `http://127.0.0.1:4318`，页面会自动尝试连接。
-4. 页面会验证 Bridge 的仓库文件夹名与当前 Local Workspace 文件夹名一致；不一致时拒绝显示或修改仓库。
-5. 连接成功后检查仓库路径、Branch、Upstream 与改动数量。
+1. Desktop：直接打开 Git Repository 根目录；左侧会显示 Git，页面自动连接 Native Git。
+2. Local Web：首页选择 `Open local workspace`，选择与 Bridge 相同的仓库根目录。
+3. 左侧选择 `Git`，或在 Command Palette 执行 `Open Git workspace`。
+4. Local Web 默认 Bridge URL 为 `http://127.0.0.1:4318`，页面会自动尝试连接，并验证 Bridge Workspace 名称。
+5. 连接成功后检查 Workspace、Branch、Upstream 与改动数量。
 
 Bundled 和 GitHub 阅读来源不会显示 Git 入口。GitHub Workspace 的 `capabilities.git` 只描述远程来源元数据，不表示它可以调用本地 Git 工作台。
 
@@ -121,7 +123,7 @@ Changes 分成两组：
 
 Commit 只包含 Git Index 中已经暂存的改动。TensorNote 不会自动暂存整个仓库，也不会自动 Push。
 
-如果 Git 身份未配置、存在未解决冲突、Commit Hook 失败或没有已暂存内容，页面会显示系统 Git 返回的错误；修复后点击 `Refresh` 再试。
+如果 Git 身份未配置、存在未解决冲突或没有已暂存内容，页面会显示系统 Git 返回的错误；修复后点击 `Refresh` 再试。为避免仓库 Hook 借由 GUI Commit 获得隐式执行机会，TensorNote 的 Bridge 与 Native Git Commit 都禁用 Hook，并关闭 GPG 自动签名。
 
 ## 7. History 与 Branch Info
 

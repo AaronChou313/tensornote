@@ -325,6 +325,16 @@ Git Bridge (fixed repository root)
 - Web/Static 构建不导入 Desktop 命令实现；Desktop 通过动态边界加载 Tauri API，并继续复用同一 Workspace、Knowledge、Workbench、Editor 与 Compute 核心。
 - 详细决策和安全面分别见 [ADR 0001](adr/0001-dual-host-and-host-adapter.md) 与 [ADR 0002](adr/0002-tauri-security-surface.md)。
 
+## v1.2.0 Native Local Workspace
+
+- `NativeLocalWorkspaceProvider` 继续实现 WorkspaceProvider API v1；文档解析、索引、编辑、恢复和冲突 UI 与 Browser Local Provider 共用。
+- 原生目录授权只能由 Rust 系统选择器、桌面拖放或已关联 Markdown 打开请求产生。WebView 只获得不透明 Workspace ID、显示名和可选相对笔记路径，不能提交任意绝对路径。
+- Rust 注册表保存于应用配置目录；所有文件命令先以 Workspace ID 解析根目录，再校验相对路径、Canonical containment 与 Symlink escape。
+- 写入采用同目录原子替换，并复用 `expectedModifiedAt` / `expectedSize` 乐观冲突契约。首版监听通过受限 `stat` 轮询实现，可在不改 Provider API 的前提下升级为事件监听。
+- Native Git 只提供 Repository root 校验、Status、History、Diff、Stage/Unstage 与 Commit。参数由 Rust 固定构造并在 `--` 后传入已校验路径；不开放 Shell、任意 Git 参数、凭据、Push 或 Pull。
+- Desktop 专属模块由构建期 Host 开关裁剪；`build:web` 会扫描 Static 产物并拒绝任何 Tauri IPC、Native Workspace 或 Native Git 符号。
+- 安全决策见 [ADR 0003](adr/0003-native-workspace-capability.md)。
+
 ## 版本更新规则
 
 每个版本至少同步更新：

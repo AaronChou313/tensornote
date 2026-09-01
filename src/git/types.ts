@@ -40,3 +40,12 @@ export interface GitDiff {
   staged: boolean
   patch: string
 }
+
+export interface GitClient {
+  health(): Promise<GitBridgeHealth>
+  status(): Promise<GitStatus>
+  history(limit?: number): Promise<GitHistoryEntry[]>
+  diff(path: string, staged: boolean): Promise<GitDiff>
+  stage(paths: string[], staged: boolean): Promise<GitStatus>
+  commit(message: string): Promise<GitStatus>
+}

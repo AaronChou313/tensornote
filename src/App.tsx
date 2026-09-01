@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { useAppStore } from './store/useAppStore'
 import { HomePage } from './pages/HomePage'
+import { DesktopWorkspaceOpenBridge } from './host/DesktopWorkspaceOpenBridge'
 
 const AppShell = lazy(() => import('./components/AppShell').then((module) => ({ default: module.AppShell })))
 const GitHubOpenPage = lazy(() => import('./pages/GitHubOpenPage').then((module) => ({ default: module.GitHubOpenPage })))
@@ -41,6 +42,7 @@ export function App() {
   return (
     <>
       <RouteScrollReset />
+      <DesktopWorkspaceOpenBridge />
       <Routes>
         <Route index element={<HomePage />} />
         <Route path="open/github/:owner/:repo" element={deferred(<GitHubOpenPage />)} />

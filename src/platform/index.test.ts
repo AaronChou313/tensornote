@@ -15,7 +15,7 @@ import {
 
 describe('TensorNote v1 platform contracts', () => {
   it('publishes the first stable contract versions from one entrypoint', () => {
-    expect(TENSORNOTE_VERSION).toBe('1.1.0')
+    expect(TENSORNOTE_VERSION).toBe('1.2.0')
     expect({
       workspaceSchema: CURRENT_WORKSPACE_SCHEMA_VERSION,
       workspaceProvider: WORKSPACE_PROVIDER_API_VERSION,

@@ -1,0 +1,11 @@
+[[permission]]
+identifier = "allow-native-git"
+description = "Allows the bundled main window to use the bounded native Git client for a user-selected Native Workspace."
+commands.allow = [
+  "native_git_health",
+  "native_git_status",
+  "native_git_history",
+  "native_git_diff",
+  "native_git_stage",
+  "native_git_commit",
+]

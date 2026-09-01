@@ -1,6 +1,6 @@
 # TensorNote 下一代产品与架构规划
 
-状态：执行中；`v1.1.0` 源码阶段已完成
+状态：执行中；`v1.2.0` 源码阶段已完成
 
 基线：`v1.0.0 — Stable Platform`
 
@@ -448,6 +448,15 @@ Python → Environment → Jupyter Server → Kernel → Workspace Permission �
 - 原子写入、外部修改冲突、恢复和大目录性能回归。
 
 验收：Windows/macOS/Linux 完成本地打开、编辑、外部修改检测、恢复、Git Status/Commit 主流程。
+
+完成记录（2026-09-01）：
+
+- Rust 系统选择器将已 Canonicalize 的目录注册为 Opaque Workspace ID；Native Provider 完整复用 WorkspaceProvider API v1，支持文本/二进制、文件操作、Assets 与 Stat watcher。
+- 原子写入、`modifiedAt/size` 冲突、路径穿越、隐藏目录、Symlink escape、复制/移动/删除均有 Rust 与 TypeScript 回归。
+- 最近目录只保存 Opaque ID；Desktop 支持目录或 Markdown 拖放、`.md/.markdown` Bundle association、最近 Manifest/Git root 识别与 Finder/Explorer Reveal。
+- Native Git 只实现 Repository root 验证、Status、History、Diff、Stage/Unstage 和 Commit；真实临时仓库测试覆盖 Stage/Commit，Web Bridge 继续兼容。
+- Static Web 在构建时裁剪全部 Desktop module，并扫描产物拒绝 Tauri/Native IPC；Desktop CI 继续覆盖 macOS、Windows 与 Linux。
+- 本阶段只提交并推送源码，不创建 Git Tag 或 GitHub Release；签名安装包仍由 v1.6.0 分发阶段负责。
 
 ### v1.3.0 — Local Runtime Assistant
 

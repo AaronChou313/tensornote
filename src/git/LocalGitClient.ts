@@ -1,4 +1,4 @@
-import type { GitBridgeHealth, GitDiff, GitHistoryEntry, GitStatus } from './types'
+import type { GitBridgeHealth, GitClient, GitDiff, GitHistoryEntry, GitStatus } from './types'
 
 function normalizeBaseUrl(value: string) {
   const url = new URL(value.trim())
@@ -17,7 +17,7 @@ async function errorMessage(response: Response) {
   }
 }
 
-export class LocalGitClient {
+export class LocalGitClient implements GitClient {
   readonly baseUrl: string
 
   constructor(baseUrl: string) {
