@@ -18,6 +18,7 @@ export interface ComputeProfile {
   kernelName: string
   scope: ComputeSessionScope
   description?: string
+  runtimeServerId?: string
 }
 
 export interface ComputeConnectionConfig {

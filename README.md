@@ -32,7 +32,7 @@
 
 TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。知识正文、属性、链接和实验定义都保存在可读、可迁移、适合 Git 的文件中；索引、图谱和 Database 可以随时从源文件重建。应用不把知识锁进私有数据库，也不会在未授权时执行代码。
 
-当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已完成 **v1.2.0 — Native Local Workspace** 源码阶段：同一 React 核心可运行于 Web 与 Tauri Desktop，Desktop 已具备受限原生目录读写、恢复、拖放、文件关联与本地 Git；尚不提供签名安装包。详见[下一代规划](docs/NEXT_GENERATION_PLAN.md)与[v1.2.0 源码阶段说明](docs/releases/v1.2.0.md)。
+当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已完成 **v1.3.0 — Local Runtime Assistant** 源码阶段：同一 React 核心可运行于 Web 与 Tauri Desktop；Desktop 还可检测本机 Python 工具链、审核后创建最小环境，并一键启停它自己拥有的 Jupyter Server。尚不提供签名安装包。详见[下一代规划](docs/NEXT_GENERATION_PLAN.md)与[v1.3.0 源码阶段说明](docs/releases/v1.3.0.md)。
 
 ## 为什么是 TensorNote
 
@@ -50,6 +50,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 | **知识系统** | WikiLink、嵌入、Alias、Tags、Backlinks、Outline、局部 Graph、全文搜索、学习进度与未解析链接检查。 |
 | **多窗格 Workbench** | 独立 Pane、Tabs、History 与滚动状态；左右分栏、焦点上下文、命令面板、设置弹窗、可折叠侧栏与响应式布局。 |
 | **Python Lab** | 多 Cell executable fence、Scratch Lab、Run/Run All/Run Above/Below、Restart、Interrupt、输出管理、Compute Profile 与连接诊断。 |
+| **Local Runtime Assistant** | Desktop 只读发现 Python/Conda/uv/Jupyter/Kernel；先预览计划再创建最小环境，安全启动、查看日志并停止 Owned Jupyter。 |
 | **Structured Knowledge** | 从 YAML Frontmatter 重建属性索引，以表达式查询笔记，并在 Table、Card、List 视图之间切换。 |
 | **Git & Sync** | Desktop 原生 Git 或 Local Web 可选 Bridge；查看状态、Diff 与历史，Stage/Unstage 并创建本地 Commit，不暴露任意 Shell。 |
 | **Extension Platform** | Command、View、Sidebar、Markdown Processor、Editor、Settings、Status Bar、Workspace 与 Compute Provider 扩展点。 |
@@ -112,6 +113,10 @@ pnpm dev --host localhost --port 5173 --strictPort
 完整的 Conda、`venv`、`uv`、Jupyter Kernel、CORS 与每日启动顺序见[环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)。
 
 ### 每日需要启动什么
+
+使用 **TensorNote Desktop** 时，只需启动应用。在“设置 → 计算与 Jupyter”中选择检测到的环境并点击“启动并使用”，TensorNote 会为它自己启动的 Jupyter 自动生成会话 Compute Profile；退出应用时会停止该 Server。环境创建始终先显示计划，并要求输入确认短语。
+
+使用 **Local Web** 时仍按下面的终端流程启动：
 
 | 终端 | 什么时候需要 | 命令 |
 | --- | --- | --- |
@@ -232,7 +237,7 @@ pnpm check:desktop
 pnpm build:desktop
 ```
 
-v1.2.0 Desktop 可通过系统选择器打开/新建本地 Workspace，原子保存 Markdown、检测外部修改、恢复最近目录、拖入目录或 Markdown、在文件管理器中显示，并直接使用受限原生 Git。Conda/venv/uv 检测与 Jupyter 一键启停属于 v1.3.0。当前 `.app`/可执行文件未签名，不作为正式安装包发布。
+v1.3.0 Desktop 可通过系统选择器打开本地 Workspace、直接使用受限原生 Git，并在设置中检测 Python/Conda/uv/Jupyter/Kernel。用户可以审核计划后创建仅含 Jupyter Server、ipykernel、NumPy、Matplotlib 与 Pillow 的独立环境；Owned Jupyter 只绑定 Loopback、使用随机 Token，并可查看脱敏日志或一键停止。TensorNote 不会静默安装大型 ML 框架，也不会停止外部 Server。当前 `.app`/可执行文件未签名，不作为正式安装包发布。
 
 ## 智能体接口
 

@@ -2,6 +2,8 @@
 
 本文从一台尚未配置开发环境的电脑开始，覆盖前端依赖、三种 Python 环境方案、Jupyter Server、Kernel 注册、TensorNote 连接设置，以及以后每天的启动和关闭顺序。
 
+v1.3.0 Desktop 用户可以优先使用“设置 → 计算与 Jupyter → 本地运行时助手”：它会只读检测已有工具，允许审核后创建最小基础环境，并启动/停止 TensorNote 自己拥有的 Jupyter。下方完整终端流程仍适用于 Local Web、远程 Jupyter、高级环境和故障排查。
+
 如果希望由智能体完成或检查这些步骤，请安装仓库内的 `$tensornote-knowledge-workspace` Skill，并参阅[智能体接口与 Skill 使用说明](AGENT_INTEGRATION.md)。Skill 会根据 Conda、venv 或 uv 方案选择正确流程，同时保留 Token、CORS 和执行授权的安全边界。
 
 > [!IMPORTANT]
@@ -28,6 +30,19 @@ TensorNote 日常阅读由前端进程组成；运行 Python Lab 时增加 Jupyt
 - 普通阅读不需要 Jupyter；只有运行带 `exec` 的 Python Cell 时才需要它。
 - 普通阅读和编辑不需要 Git Bridge；只有使用 `/git` 的 Status、Diff、History、Stage 或 Commit 时才需要它。
 - 笔记正文保存在 `notes/**/*.md`，不依赖数据库。
+
+### Desktop 最短路径
+
+1. 安装并启动 TensorNote Desktop；打开本地 Workspace。
+2. 打开“设置 → 计算与 Jupyter”，点击“重新检测”。
+3. 若列表中已有安装 Jupyter 的 Python，直接选择并点击“启动并使用”。
+4. 若没有，展开“创建 TensorNote Managed Environment”，选择检测到的 uv、Conda 或标准 venv，审核计划并输入界面要求的确认短语。
+5. 等待状态变为“环境已就绪”，选择该环境并启动。TensorNote 会自动创建会话 Compute Profile；再显式允许当前 Workspace 执行代码。
+
+Managed Environment 只包含 Jupyter Server、ipykernel、NumPy、Matplotlib 与 Pillow。运行 PyTorch/Transformers 等笔记前，仍需由用户按项目兼容性在相应环境中明确安装；TensorNote 不会自动执行 Workspace 中的 requirements。
+
+> [!IMPORTANT]
+> 只有标记为完成的环境才能启动。取消或失败的目录会被清理；Jupyter 只绑定本机 Loopback，Token 不写入 Workspace，停止或退出 Desktop 时会终止该 Owned Server。TensorNote 不会停止你在终端或其他工具中启动的外部 Jupyter。
 
 ## 2. 首次安装公共工具
 
@@ -478,6 +493,8 @@ pnpm git:bridge -- --workspace "/absolute/path/to/markdown-workspace"
 Git Bridge 不需要激活 Conda、venv 或 uv 环境，也不依赖 Jupyter。完整的 Git 身份配置、端口/Origin、安全边界、暂存与提交说明见 [Local Git 使用说明](GIT_AND_SYNC.md)。
 
 ## 10. 以后每天启动什么
+
+Desktop 用户通常只需启动 TensorNote，然后在运行时助手中点击“启动并使用”。以下多终端顺序用于 Local Web 或手动管理 Jupyter 的 Desktop 高级用法。
 
 首次配置完成后，按使用场景启动：
 

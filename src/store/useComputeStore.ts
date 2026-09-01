@@ -13,6 +13,8 @@ interface ComputeState {
   updateProfile: (id: string, patch: Partial<Omit<ComputeProfile, 'id'>>) => void
   removeProfile: (id: string) => void
   setToken: (profileId: string, token: string) => void
+  upsertOwnedRuntimeProfile: (input: { serverId: string; environmentName: string; serverUrl: string; kernelName: string; token: string }) => string
+  removeOwnedRuntimeProfile: (serverId: string) => void
 }
 
 const tokenStorageKey = 'tensornote-compute-tokens'
@@ -74,6 +76,43 @@ export const useComputeStore = create<ComputeState>()(
         writeTokens(tokens)
         return { tokens }
       }),
+      upsertOwnedRuntimeProfile: ({ serverId, environmentName, serverUrl, kernelName, token }) => {
+        const state = get()
+        const existing = state.profiles.find((profile) => profile.runtimeServerId === serverId)
+        const id = existing?.id ?? profileId(`TensorNote · ${environmentName}`)
+        const profile: ComputeProfile = {
+          id,
+          name: `TensorNote · ${environmentName}`,
+          kind: 'jupyter',
+          serverUrl,
+          kernelName,
+          scope: 'workspace',
+          description: '由 TensorNote Desktop 启动并管理',
+          runtimeServerId: serverId,
+        }
+        const profiles = existing
+          ? state.profiles.map((item) => item.id === id ? profile : item)
+          : [...state.profiles, profile]
+        const tokens = { ...state.tokens, [id]: token }
+        writeTokens(tokens)
+        set({ profiles, activeProfileId: id, tokens })
+        return id
+      },
+      removeOwnedRuntimeProfile: (serverId) => {
+        const state = get()
+        const removed = state.profiles.find((profile) => profile.runtimeServerId === serverId)
+        if (!removed) return
+        const profiles = state.profiles.filter((profile) => profile.id !== removed.id)
+        const nextProfiles = profiles.length > 0 ? profiles : [defaultProfile]
+        const tokens = { ...state.tokens }
+        delete tokens[removed.id]
+        writeTokens(tokens)
+        set({
+          profiles: nextProfiles,
+          tokens,
+          activeProfileId: state.activeProfileId === removed.id ? nextProfiles[0].id : state.activeProfileId,
+        })
+      },
     }),
     {
       name: 'tensornote-jupyter-config',
@@ -88,7 +127,16 @@ export const useComputeStore = create<ComputeState>()(
         }
         return { profiles: [migrated], activeProfileId: migrated.id }
       },
-      partialize: ({ profiles, activeProfileId }) => ({ profiles, activeProfileId }),
+      partialize: ({ profiles, activeProfileId }) => {
+        const persistentProfiles = profiles.filter((profile) => !profile.runtimeServerId)
+        const safeProfiles = persistentProfiles.length > 0 ? persistentProfiles : [defaultProfile]
+        return {
+          profiles: safeProfiles,
+          activeProfileId: safeProfiles.some((profile) => profile.id === activeProfileId)
+            ? activeProfileId
+            : safeProfiles[0].id,
+        }
+      },
     },
   ),
 )

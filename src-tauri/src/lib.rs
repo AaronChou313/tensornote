@@ -1,6 +1,7 @@
 use serde::Serialize;
 use tauri::{Emitter, Manager};
 
+mod local_runtime;
 mod native_git;
 mod native_workspace;
 
@@ -35,6 +36,7 @@ pub fn run() {
                 let _ = registry.queue_open_path(&path);
             }
             app.manage(registry);
+            app.manage(local_runtime::LocalRuntimeManager::new(app.handle())?);
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -69,11 +71,24 @@ pub fn run() {
             native_git::native_git_diff,
             native_git::native_git_stage,
             native_git::native_git_commit,
+            local_runtime::local_runtime_discover,
+            local_runtime::local_runtime_plan_environment,
+            local_runtime::local_runtime_apply_environment,
+            local_runtime::local_runtime_operation,
+            local_runtime::local_runtime_cancel_operation,
+            local_runtime::local_runtime_start_jupyter,
+            local_runtime::local_runtime_owned_servers,
+            local_runtime::local_runtime_server_logs,
+            local_runtime::local_runtime_stop_jupyter,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
 
     app.run(|app, event| {
+        if matches!(event, tauri::RunEvent::Exit) {
+            app.state::<local_runtime::LocalRuntimeManager>().stop_all();
+        }
+
         #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Opened { urls } = event {
             if let Some(path) = urls

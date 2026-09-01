@@ -22,7 +22,7 @@ describe('host adapter runtime', () => {
     await expect(adapter.getPlatformInfo()).resolves.toEqual({ os: 'browser', arch: 'unknown', family: 'web' })
   })
 
-  it('loads the desktop adapter without claiming future native capabilities', async () => {
+  it('loads the desktop adapter with bounded local runtime capabilities', async () => {
     const adapter = await createHostAdapter({
       kind: 'desktop',
       webLabel: 'Local Web',
@@ -33,8 +33,10 @@ describe('host adapter runtime', () => {
     expect(adapter.capabilities.nativeFilesystem).toBe(true)
     expect(adapter.capabilities.nativeGit).toBe(true)
     expect(adapter.capabilities.fileAssociations).toBe(true)
-    expect(adapter.capabilities.environmentDiscovery).toBe(false)
-    expect(adapter.capabilities.processManagement).toBe(false)
+    expect(adapter.capabilities.environmentDiscovery).toBe(true)
+    expect(adapter.capabilities.processManagement).toBe(true)
+    expect(adapter.discoverLocalRuntime).toBeTypeOf('function')
+    expect(adapter.startOwnedJupyter).toBeTypeOf('function')
   })
 
   it('fails closed when a Web build is asked to start as Desktop', async () => {

@@ -26,6 +26,7 @@
 - `v1.0.0 — Stable Platform`：已完成并正式发布；六项核心契约、版本一致性、首批主流程、分发、安全、性能、开源协议与文档验收均已落地。
 - `v1.1.0 — Dual Host Foundation`：已完成源码阶段；同一 React 核心现可运行于 Web 与 Tauri Desktop，并具备受限 HostAdapter、跨平台编译门和原生壳验收，不单独创建 Release 或 Tag。
 - `v1.2.0 — Native Local Workspace`：已完成源码阶段；Desktop 已具备 Opaque directory authority、原生读写/恢复/拖放/关联、Reveal 与受限 Native Git，Static Web 构建保持无 Tauri IPC，不单独创建 Release 或 Tag。
+- `v1.3.0 — Local Runtime Assistant`：已完成源码阶段；Desktop 可发现 Python/Conda/uv/Jupyter/Kernel、审核式创建最小环境并管理 Owned Jupyter，Static Web 继续不包含本地运行时 IPC，不单独创建 Release 或 Tag。
 
 ## 下一代 v1.x 路线（执行中）
 
@@ -33,7 +34,7 @@ v1.0.0 之后，TensorNote 将沿“双宿主、双来源、开放发布”方�
 
 该路线不得破坏下方已经发布的 v1 契约。HostAdapter、Native Workspace、Runtime Assistant、Pages 发布和 Remote Compute Connector 都必须以可选、能力驱动的方式增量接入。
 
-当前顺序：`v1.2.0` 原生本地 Workspace 已完成源码阶段，下一阶段是 `v1.3.0` Local Runtime Assistant。Python/Conda/uv 检测、审核式基础环境创建和 Jupyter 一键启停仍与笔记核心及 Jupyter Server 严格分离。
+当前顺序：`v1.3.0` Local Runtime Assistant 已完成源码阶段，下一阶段是 `v1.4.0 — Publish & Read Anywhere`。本地运行时能力仍通过 HostAdapter 与 Rust 白名单命令隔离；WorkspaceProvider、ComputeProvider 和 Jupyter Server 保持独立。
 
 ## v1.0.0 — Stable Platform（已发布）
 

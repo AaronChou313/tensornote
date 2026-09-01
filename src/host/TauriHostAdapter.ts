@@ -1,10 +1,22 @@
-import type { HostAdapter, HostCapabilities, HostDirectorySelection, HostPlatformInfo } from './types'
+import type {
+  EnvironmentPlan,
+  EnvironmentPlanRequest,
+  HostAdapter,
+  HostCapabilities,
+  HostDirectorySelection,
+  HostPlatformInfo,
+  JupyterServerLaunch,
+  OwnedJupyterServer,
+  RuntimeDiscovery,
+  RuntimeLogLine,
+  RuntimeOperation,
+} from './types'
 
 const desktopCapabilities: HostCapabilities = {
   desktopShell: true,
   nativeFilesystem: true,
-  environmentDiscovery: false,
-  processManagement: false,
+  environmentDiscovery: true,
+  processManagement: true,
   nativeGit: true,
   fileAssociations: true,
   autoUpdate: false,
@@ -43,5 +55,50 @@ export class TauriHostAdapter implements HostAdapter {
   async onWorkspaceOpen(listener: (selection: HostDirectorySelection) => void): Promise<() => void> {
     const { listen } = await import('@tauri-apps/api/event')
     return listen<HostDirectorySelection>('native-workspace-open', (event) => listener(event.payload))
+  }
+
+  async discoverLocalRuntime(workspaceId?: string): Promise<RuntimeDiscovery> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<RuntimeDiscovery>('local_runtime_discover', { workspaceId })
+  }
+
+  async planLocalEnvironment(request: EnvironmentPlanRequest): Promise<EnvironmentPlan> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<EnvironmentPlan>('local_runtime_plan_environment', { request })
+  }
+
+  async applyLocalEnvironment(planId: string, confirmation: string): Promise<RuntimeOperation> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<RuntimeOperation>('local_runtime_apply_environment', { planId, confirmation })
+  }
+
+  async getLocalRuntimeOperation(operationId: string): Promise<RuntimeOperation> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<RuntimeOperation>('local_runtime_operation', { operationId })
+  }
+
+  async cancelLocalRuntimeOperation(operationId: string): Promise<RuntimeOperation> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<RuntimeOperation>('local_runtime_cancel_operation', { operationId })
+  }
+
+  async startOwnedJupyter(environmentId: string, workspaceId: string | undefined, origin: string): Promise<JupyterServerLaunch> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<JupyterServerLaunch>('local_runtime_start_jupyter', { environmentId, workspaceId, origin })
+  }
+
+  async listOwnedJupyter(): Promise<OwnedJupyterServer[]> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<OwnedJupyterServer[]>('local_runtime_owned_servers')
+  }
+
+  async getOwnedJupyterLogs(serverId: string): Promise<RuntimeLogLine[]> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<RuntimeLogLine[]>('local_runtime_server_logs', { serverId })
+  }
+
+  async stopOwnedJupyter(serverId: string): Promise<void> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    await invoke('local_runtime_stop_jupyter', { serverId })
   }
 }

@@ -1,6 +1,6 @@
 # TensorNote 下一代产品与架构规划
 
-状态：执行中；`v1.2.0` 源码阶段已完成
+状态：执行中；`v1.3.0` 源码阶段已完成
 
 基线：`v1.0.0 — Stable Platform`
 
@@ -469,6 +469,16 @@ Python → Environment → Jupyter Server → Kernel → Workspace Permission �
 - 自动生成会话 Compute Profile，保持 Token 临时存储。
 
 验收：全新测试机可通过向导创建最小环境、启动 Server、运行 Hello World、关闭 Owned Server；取消或失败不会留下被误认为可用的配置。
+
+完成记录（2026-09-02）：
+
+- Desktop HostAdapter 已开放环境发现与受限进程管理 capability；Static Web 仍在构建期裁剪 Desktop 模块，并扫描产物拒绝 `local_runtime_*` IPC。
+- Rust 只读扫描 PATH、常见安装目录、Workspace `.venv`/`venv`、Conda 环境和 TensorNote Managed Environment；前端只获得 Opaque ID、版本、健康状态、Kernel 和 Loopback Server 摘要，不获得可执行文件绝对路径。
+- 环境创建仅支持类型化 uv、标准 venv 和 Conda 命令族；用户先审核管理器、Python、目标标签、最小包与 Kernel 步骤，再输入精确确认短语。只有全部完成才写入 ready marker；失败或取消会终止子进程并清理未完成目录。
+- 最小环境仅安装 Jupyter Server、ipykernel、NumPy、Matplotlib 与 Pillow；Kernel 注册在 Managed Environment 内，不写入用户全局 Kernel 目录，也不自动安装 PyTorch、Transformers 或 CUDA。
+- Owned Jupyter 由 Rust 选择随机 Loopback 端口和 256-bit Token，等待端口真正就绪后才生成会话 Compute Profile；日志有长度上限并脱敏，停止/退出只终止 TensorNote 仍持有所有权的子进程。
+- TypeScript 运行时 Profile、Rust 状态机与安全输入均有回归；Desktop/Static 构建、Static IPC 边界、Rust fmt/clippy/test 与本地界面走查通过。
+- 本阶段只提交并推送源码，不创建 Git Tag 或 GitHub Release；签名安装包仍由 v1.6.0 分发阶段负责。
 
 ### v1.4.0 — Publish & Read Anywhere
 

@@ -66,9 +66,13 @@ Every added Rust command must:
 
 v1.2.0 按上述规则加入系统目录选择、Opaque Workspace authority、受限相对路径文件操作、Reveal 和类型化 Native Git。它没有启用 Guest JavaScript 文件系统或 Shell 权限；完整新增安全面与验证见 [ADR 0003](0003-native-workspace-capability.md)。本 ADR 的“Explicitly absent in v1.1”仍是 v1.1 的历史基线，不表示 v1.2 capability 状态。
 
+## v1.3 expansion
+
+v1.3.0 按同一规则加入只读运行时发现、审核式 Managed Environment 创建和 Owned Jupyter 生命周期。新增命令只接受类型化 Manager/Environment/Plan/Server Opaque ID，不接受 Shell 字符串、可执行路径或任意参数；Token 不持久化，终止操作只命中内存所有权表。完整命令白名单、清理语义和日志边界见 [ADR 0004](0004-local-runtime-assistant.md)。本 ADR 前文的 absent 列表继续仅代表 v1.1 历史基线。
+
 ## Verification
 
 - `cargo fmt --check`, `cargo clippy -- -D warnings` and `cargo test` pass.
-- Capability configuration contains no shell/filesystem/process permission.
+- Capability configuration contains no generic Shell or guest JavaScript filesystem/process permission; every added native capability comes from a project-owned per-command allowlist.
 - Frontend tests confirm Web selection never constructs TauriHostAdapter.
 - Desktop smoke invokes `platform_info` without exposing additional system data.

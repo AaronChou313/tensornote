@@ -319,7 +319,7 @@ Git Bridge (fixed repository root)
 ## v1.1.0 Dual Host Foundation
 
 - `src/host/` 是 Web 与 Desktop 的宿主能力边界；`HostAdapter` 描述运行容器，不替代 WorkspaceProvider 或 ComputeProvider。
-- `WebHostAdapter` 不声明任何原生能力；`TauriHostAdapter` 当前只声明 `desktopShell`，文件系统、环境发现、进程管理、原生 Git、文件关联与自动更新全部保持关闭。
+- `WebHostAdapter` 不声明任何原生能力；`TauriHostAdapter` 按已验收阶段声明 Desktop Shell、Native Workspace/Git、环境发现和 Owned Process 管理，自动更新仍保持关闭。
 - `src/main.tsx` 在 React 挂载前安装 HostAdapter。组件读取 capability，不允许散落检测 `window.__TAURI__`、User Agent 或操作系统分支。
 - `src-tauri/` 只承载 Tauri 2 壳、窗口配置和受审 IPC。首阶段唯一命令 `platform_info` 无参数、只返回 OS/Arch/Family；没有 Shell、文件系统或进程插件。
 - Web/Static 构建不导入 Desktop 命令实现；Desktop 通过动态边界加载 Tauri API，并继续复用同一 Workspace、Knowledge、Workbench、Editor 与 Compute 核心。
@@ -334,6 +334,28 @@ Git Bridge (fixed repository root)
 - Native Git 只提供 Repository root 校验、Status、History、Diff、Stage/Unstage 与 Commit。参数由 Rust 固定构造并在 `--` 后传入已校验路径；不开放 Shell、任意 Git 参数、凭据、Push 或 Pull。
 - Desktop 专属模块由构建期 Host 开关裁剪；`build:web` 会扫描 Static 产物并拒绝任何 Tauri IPC、Native Workspace 或 Native Git 符号。
 - 安全决策见 [ADR 0003](adr/0003-native-workspace-capability.md)。
+
+## v1.3.0 Local Runtime Assistant
+
+```text
+Settings / HostAdapter
+        │ typed requests + opaque IDs
+        ▼
+LocalRuntimeManager (Rust)
+  ├── read-only discovery ── Python / Conda / uv / Jupyter / Kernel / Server
+  ├── reviewed plan ──────── managed environment + local Kernel
+  └── owned process ──────── loopback Jupyter + bounded redacted logs
+        │
+        ▼
+session-only Compute Profile ── existing ComputeRuntime / JupyterComputeProvider
+```
+
+- WebView 只能选择 Rust 已发现并登记的 Tool/Environment Opaque ID，不能提交可执行文件路径、目标路径或任意参数；没有通用 Shell、终端或命令执行 IPC。
+- 环境创建分为 plan 与 apply。Plan 固定管理器、Python 版本、应用数据目录内的目标标签、最小包、Kernel 名称、过期时间与精确确认短语；错误确认不会执行命令。
+- Managed Environment 只有在环境创建、最小依赖安装、Kernel 注册与 Python 复检全部成功后才写 ready marker。取消或失败会杀掉当前子进程并删除不完整目录。
+- Jupyter Server 由 Rust 选择 Loopback 端口和随机 Token，等待端口可用才返回；停止 API 只接受仍在内存所有权表中的 Server ID，应用退出时停止全部 Owned Server。
+- 自动生成的 Compute Profile 继续使用 ComputeProvider API v1；Token 只进入 `sessionStorage`，Owned Profile 不持久化，Server 停止时同步移除。外部或远程 Jupyter 仍使用既有手动 Profile。
+- Desktop 模块使用构建期开关动态加载；Static 产物扫描新增 `local_runtime_*` 禁止项。完整安全决策见 [ADR 0004](adr/0004-local-runtime-assistant.md)。
 
 ## 版本更新规则
 

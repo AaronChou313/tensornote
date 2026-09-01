@@ -1,0 +1,14 @@
+[[permission]]
+identifier = "allow-local-runtime"
+description = "Allows TensorNote Desktop to discover local Python runtimes, create reviewed managed environments, and control only Jupyter servers it owns."
+commands.allow = [
+  "local_runtime_discover",
+  "local_runtime_plan_environment",
+  "local_runtime_apply_environment",
+  "local_runtime_operation",
+  "local_runtime_cancel_operation",
+  "local_runtime_start_jupyter",
+  "local_runtime_owned_servers",
+  "local_runtime_server_logs",
+  "local_runtime_stop_jupyter",
+]

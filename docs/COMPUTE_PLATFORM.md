@@ -121,7 +121,19 @@ TensorNote 同时自动检测根目录的：
 - `environment.yml`
 - `environment.yaml`
 
-Compute 设置会标记 `Found`、`Missing`、`declared` 或 `detected`。这只是可见性提示：TensorNote **绝不静默创建环境或安装依赖**。用户仍需在终端中审核文件并选择 Conda、pip 或 uv 执行安装。
+Compute 设置会标记 `Found`、`Missing`、`declared` 或 `detected`。这些 Workspace 文件只是可见性提示，TensorNote **绝不静默安装 Workspace 依赖**。Local Web 用户仍需在终端中审核文件；v1.3.0 Desktop 可另外创建 TensorNote 自己管理的最小基础环境，但必须先审核固定计划并输入确认短语。
+
+### Desktop Local Runtime Assistant
+
+Desktop 的“设置 → 计算与 Jupyter”提供独立运行时助手：
+
+1. “重新检测”只读扫描 Python、Conda、uv、Jupyter、Kernel 与 Loopback Server；前端看不到可执行文件绝对路径。
+2. “创建 TensorNote Managed Environment”先生成计划。最小包固定为 `jupyter-server`、`ipykernel`、`numpy`、`matplotlib` 与 `pillow`，不包含 PyTorch、Transformers、CUDA 或 Workspace 依赖。
+3. 输入界面给出的精确确认短语后才创建；失败或取消会清理不完整目录，只有完成全部步骤的环境会显示为 Managed。
+4. 选择已安装 Jupyter 的环境并点击“启动并使用”。TensorNote 只在 `127.0.0.1` 启动带随机 Token 的 Owned Server，端口就绪后自动创建当前会话 Compute Profile。
+5. 可查看有长度上限且已脱敏的日志；“停止”只会终止 TensorNote 当前仍拥有的 Server，并移除临时 Profile。关闭应用也会停止 Owned Server。
+
+运行时助手不会修改 Workspace、读取其中的安装命令、停止外部 Jupyter，或把 Jupyter 合并进 TensorNote 进程。Conda、uv、Python、Jupyter 和 Kernel 仍是独立工具。
 
 ## 9. Connection Diagnostics
 
@@ -151,12 +163,8 @@ Compute 设置会标记 `Found`、`Missing`、`declared` 或 `detected`。这只
 - GitHub Workspace 必须信任固定的 `owner/repo@commitSHA`；Revision 改变后重新确认。
 - Token 只存在当前浏览器会话，诊断错误也会对 Token 文本脱敏。
 - 不建议关闭 Jupyter 身份验证，也不建议使用 `allow_origin=*`。
-- TensorNote 不自动安装 Workspace 声明的 Python 依赖。
+- TensorNote 不自动安装 Workspace 声明的 Python 依赖；Desktop Managed Environment 也只安装界面明确列出的最小基础包。
 
 ## 11. 每日启动清单
 
-1. 终端 A 激活正确 Python 环境并启动 Jupyter Server。
-2. 终端 B 启动 TensorNote：`pnpm dev --host localhost --port 5173 --strictPort`。
-3. 浏览器打开 `http://localhost:5173`。
-4. 选择 Profile，必要时更新 Token，首次或故障时运行 diagnostics。
-5. 仅阅读 Markdown 时不需要启动 Jupyter。
+Desktop：启动 TensorNote → 打开 Workspace → 在设置中“启动并使用” → 开始运行 Lab。Local Web：终端 A 启动 Jupyter，终端 B 启动 TensorNote，再配置 Profile。两种模式仅阅读 Markdown 时都不需要 Jupyter。

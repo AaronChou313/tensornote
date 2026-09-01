@@ -9,6 +9,7 @@
     "core:default",
     "allow-platform-info",
     "allow-native-workspace",
-    "allow-native-git"
+    "allow-native-git",
+    "allow-local-runtime"
   ]
 }

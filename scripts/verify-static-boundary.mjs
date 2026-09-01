@@ -12,6 +12,7 @@ const forbidden = [
   'reveal_native_workspace',
   'take_pending_native_workspace',
   'native-workspace-open',
+  'local_runtime_',
 ]
 
 async function filesIn(directory) {

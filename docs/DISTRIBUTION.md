@@ -94,11 +94,11 @@ pnpm check:desktop
 pnpm build:desktop
 ```
 
-`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。v1.2.0 Desktop 支持 Built-in/GitHub，以及系统选择器授权的原生本地 Workspace：读写、原子保存、外部修改检测、最近目录恢复、拖放、Markdown 文件关联、Reveal 和受限 Native Git 均不依赖浏览器 File System Access API 或 localhost Bridge。环境检测和 Jupyter 生命周期属于 v1.3.0。当前产物未签名、公证，也不作为正式安装包发布。
+`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。v1.3.0 Desktop 支持 Built-in/GitHub、系统选择器授权的原生本地 Workspace、受限 Native Git，以及 Local Runtime Assistant。环境发现、审核式最小环境创建和 Owned Jupyter 生命周期均由 Rust 类型化白名单命令提供，不依赖浏览器 File System Access API、任意 Shell 或 localhost Bridge。当前产物未签名、公证，也不作为正式安装包发布。
 
-Desktop 仍要求用户自行安装系统 Git 才能使用 Native Git。打开目录后可在 Workspace 菜单选择“在文件管理器中显示”；也可把目录或 `.md` / `.markdown` 文件拖入窗口。直接打开单篇 Markdown 时，TensorNote 优先寻找最近的 `tensornote.yaml` 或 Git 根目录，否则以该文件所在目录作为 Workspace。
+Desktop 仍要求用户自行安装系统 Git 才能使用 Native Git。运行 Python Lab 至少需要一个本机 Python；运行时助手可复用已有 Jupyter 环境，或在用户确认后通过检测到的 uv、Conda 或标准 venv 创建最小基础环境。打开目录后可在 Workspace 菜单选择“在文件管理器中显示”；也可把目录或 `.md` / `.markdown` 文件拖入窗口。
 
-Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)与 [Native Workspace ADR](adr/0003-native-workspace-capability.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移；Static build 另有脚本阻止 Native IPC 进入 GitHub Pages 产物。
+Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)、[Native Workspace ADR](adr/0003-native-workspace-capability.md)与 [Local Runtime ADR](adr/0004-local-runtime-assistant.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移；Static build 另有脚本阻止 Native IPC 进入 GitHub Pages 产物。
 
 ## 7. 性能验证
 
