@@ -1,6 +1,25 @@
 {
   "name": "tensornote",
   "private": true,
+  "description": "Local-first, Markdown-first executable knowledge workspace.",
+  "homepage": "https://github.com/AaronChou313/tensornote#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AaronChou313/tensornote.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AaronChou313/tensornote/issues"
+  },
+  "keywords": [
+    "markdown",
+    "knowledge-base",
+    "jupyter",
+    "notebook",
+    "local-first"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "packageManager": "pnpm@11.24.0",
   "version": "1.0.0",
   "type": "module",

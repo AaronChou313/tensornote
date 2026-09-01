@@ -1,201 +1,125 @@
-![TensorNote — Executable Notes for Learning AI](assets/images/TensorNote_logo_wide.png)
+<p align="center">
+  <img src="assets/images/TensorNote_logo_wide.png" alt="TensorNote — Executable Notes for Learning AI" width="760">
+</p>
 
-# TensorNote
+<h1 align="center">TensorNote</h1>
 
-TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。它不限定知识领域，也不把内容锁进数据库；普通文件夹、公开 GitHub Repository 和随应用提供的示例内容都通过同一套 Workspace 接口读取。
+<p align="center">
+  <strong>Markdown-first executable knowledge workspace.</strong><br>
+  用普通文件管理知识，在同一个工作台中阅读、写作、连接知识，并运行可复现的 Python 实验。
+</p>
 
-知识正文始终是普通 `.md` 文件。应用提供目录、路由、全文搜索、KaTeX、Mermaid、Callout、学习进度和可折叠的 Python Lab。Python 代码只会在 Workspace 的 Manifest 或当前设备设置明确允许、远程 Revision 已受信任，并且用户主动连接自己的 Jupyter Server 后运行。
+<p align="center">
+  <a href="https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml"><img src="https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/release-v1.0.0%20candidate-4f8062" alt="v1.0.0 candidate">
+  <img src="https://img.shields.io/badge/Node.js-22%2B-43853d" alt="Node.js 22+">
+  <img src="https://img.shields.io/badge/pnpm-11-f69220" alt="pnpm 11">
+  <img src="https://img.shields.io/badge/React-19-149eca" alt="React 19">
+</p>
 
-当前源码候选：`v1.0.0 — Stable Platform`。六项首个稳定契约、完整 Release Gate 与人工验收范围见 [v1.0.0 发布计划](docs/V1_RELEASE_PLAN.md)；在最终试用确认前，最近正式 Release 仍为 `v0.9.0`。
+<p align="center">
+  <a href="#为什么是-tensornote">产品理念</a> ·
+  <a href="#功能">功能</a> ·
+  <a href="#界面预览">界面预览</a> ·
+  <a href="#快速开始">快速开始</a> ·
+  <a href="#python-lab">Python Lab</a> ·
+  <a href="#智能体接口">智能体接口</a> ·
+  <a href="#参与贡献">参与贡献</a>
+</p>
 
-## 概览与目录
+![TensorNote Workspace Overview](docs/images/screenshots/02-workspace-overview.png)
 
-- [Git & Sync](#git--sync)：查看本地仓库状态、差异、历史并创建本地提交。
-- [Structured Knowledge](#structured-knowledge)：从 YAML Frontmatter 建立可筛选的 Markdown 数据库。
-- [Extension Platform](#extension-platform)：通过受权限约束的官方或本地扩展贡献功能。
-- [Workbench](#workbench)：多标签、分栏、侧栏与统一命令系统。
-- [知识系统](#知识系统)：链接、标签、搜索、属性与局部图谱。
-- [Compute Platform](#compute-platform)：按需连接 Jupyter 执行 Python Lab。
-- [Platform Contracts](docs/PLATFORM_CONTRACTS.md)：v1 的 Workspace、Compute、Extension、可执行 Markdown 与设置兼容承诺。
-- [Agent Interface](docs/AGENT_INTEGRATION.md)：供智能体撰写、配置、运行和校验 TensorNote Workspace 的 Skill、模板与工具。
-- [快速开始](#快速开始)：安装、启动和 Workspace 打开方式。
+TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。知识正文、属性、链接和实验定义都保存在可读、可迁移、适合 Git 的文件中；索引、图谱和 Database 可以随时从源文件重建。应用不把知识锁进私有数据库，也不会在未授权时执行代码。
 
-## Git & Sync
+当前源码为 **v1.0.0 候选版**。六项稳定平台契约和 Release Gate 已完成，等待最终试用确认后再创建 `v1.0.0` Tag 与 GitHub Release；最近正式 Release 仍为 `v0.9.0`。详见 [v1.0.0 发布计划](docs/V1_RELEASE_PLAN.md)与[发布说明](docs/releases/v1.0.0.md)。
 
-TensorNote v0.8.0 为 Local Workspace 提供可选的本地 Git 工作台：
+## 为什么是 TensorNote
 
-- `/git` 显示 Branch、Upstream、Ahead / Behind、Staged 与 Working tree 状态。
-- 支持逐文件 Worktree / Staged Diff、Stage、Unstage、本地 Commit 和最近提交历史。
-- 编辑器存在未保存草稿时会明确提示；只有已经写入磁盘并进入 Git Index 的内容会被提交。
-- 浏览器通过显式启动的 localhost Git Bridge 调用系统 Git；Bridge 固定仓库根目录，不经过 Shell，也不提供任意 Git 命令。
-- v0.8.0 不包含 Clone、Push、Pull、Fetch、Branch 操作、OAuth、私有仓库认证或冲突解决器。
+- **内容属于你**：笔记就是 `.md`，图片就是普通 Assets，Workspace 行为由 `tensornote.yaml` 描述。
+- **知识与实验不分家**：阅读概念、查看公式、编辑源码、运行多 Cell Python Lab 都在同一上下文完成。
+- **本地优先，来源统一**：本地文件夹、内置示例和公开 GitHub Repository 通过相同的 Workspace 接口呈现。
+- **能力显式授权**：写入、代码执行、Git 和本地扩展都由 Provider capability、Manifest 与用户操作共同决定。
+- **平台边界稳定**：Workspace、Compute、Extension、Executable Markdown 与 Settings 已冻结为 v1 契约。
 
-Git 完全可选；不使用版本工作台时仍只需启动 TensorNote，运行 Python Lab 时再启动 Jupyter。安装、第三终端启动命令、安全边界与故障排查见 [Local Git 使用说明](docs/GIT_AND_SYNC.md)。
+## 功能
 
-## Structured Knowledge
+| 能力 | 具体功能 |
+| --- | --- |
+| **Markdown 创作** | CodeMirror 6 编辑器、图标化格式工具栏、Properties 面板、图片/附件、文件与目录管理、草稿恢复、外部修改冲突保护。 |
+| **知识系统** | WikiLink、嵌入、Alias、Tags、Backlinks、Outline、局部 Graph、全文搜索、学习进度与未解析链接检查。 |
+| **多窗格 Workbench** | 独立 Pane、Tabs、History 与滚动状态；左右分栏、焦点上下文、命令面板、设置弹窗、可折叠侧栏与响应式布局。 |
+| **Python Lab** | 多 Cell executable fence、Scratch Lab、Run/Run All/Run Above/Below、Restart、Interrupt、输出管理、Compute Profile 与连接诊断。 |
+| **Structured Knowledge** | 从 YAML Frontmatter 重建属性索引，以表达式查询笔记，并在 Table、Card、List 视图之间切换。 |
+| **Git & Sync** | 可选 Local Git Bridge；查看状态、Diff 与历史，Stage/Unstage 并创建本地 Commit，不暴露任意 Shell。 |
+| **Extension Platform** | Command、View、Sidebar、Markdown Processor、Editor、Settings、Status Bar、Workspace 与 Compute Provider 扩展点。 |
+| **分发与恢复** | Local、Static、Self-hosted Web、可选 PWA；未来 Schema 只读降级、应用级错误恢复和大 Workspace 性能门。 |
 
-TensorNote v0.7.0 在 `/database` 提供基于 Markdown Frontmatter 的结构化知识视图：
+## 界面预览
 
-- `PropertyIndex` 在运行时从当前 Workspace 的属性重建索引；Markdown Frontmatter 是唯一数据源，不引入 SQL 或私有数据库。
-- 支持 `=`、`!=`、大小写无关的属性键，以及用 `AND` 组合字符串、数字、布尔值、`null` 和数组成员条件。
-- 同一查询可在 Table、Card、List 三种视图切换，并可通过 `/database?q=...&view=...` 复制链接或保存书签。
-- 编辑并保存源 Markdown 后刷新 Workspace，即可从源文件重建属性索引。
+所有图片均来自本仓库当前 `v1.0.0` 候选版的真实浏览器流程，而非设计稿。
 
-完整的属性模板、查询引号规则、类型行为、URL 分享、安全边界和已知限制见 [Structured Knowledge 使用指南](docs/STRUCTURED_KNOWLEDGE.md)。
+| 启动与知识浏览 | 笔记阅读 |
+| --- | --- |
+| [![Home](docs/images/screenshots/01-home.png)](docs/images/screenshots/01-home.png)<br>打开本地文件夹、内置示例或公开 GitHub Workspace。 | [![Reading](docs/images/screenshots/04-note-reading.png)](docs/images/screenshots/04-note-reading.png)<br>渲染 Markdown、KaTeX、Mermaid、Callout、链接、属性与实验卡片。 |
 
-## Extension Platform
+| 独立分栏 | 可执行实验 |
+| --- | --- |
+| [![Split Workbench](docs/images/screenshots/05-split-workbench.png)](docs/images/screenshots/05-split-workbench.png)<br>每个阅读编辑区拥有独立标签、历史、焦点和滚动状态。 | [![Python Lab](docs/images/screenshots/06-python-lab.png)](docs/images/screenshots/06-python-lab.png)<br>从笔记直接打开多 Cell Lab，并共享可控的 Compute Session。 |
 
-TensorNote v0.6.0 支持官方扩展和用户主动选择的本地扩展：
+| 知识空间 | 结构化 Database |
+| --- | --- |
+| [![Knowledge](docs/images/screenshots/03-knowledge.png)](docs/images/screenshots/03-knowledge.png)<br>浏览标签、属性、链接关系和待修复的知识连接。 | [![Database](docs/images/screenshots/08-structured-database.png)](docs/images/screenshots/08-structured-database.png)<br>查询 Frontmatter，并切换 Table、Card 和 List。 |
 
-- `Extension API v1` 覆盖 Command、View、Sidebar、Markdown Processor、CodeMirror Editor Extension、Settings、Status Bar Item、Workspace Provider 与 Compute Provider。
-- Manifest 声明版本与权限，Runtime 管理 `load → activate → deactivate → dispose` 生命周期。
-- 本地插件在权限确认前只读取 Manifest，确认后才加载脚本；当前没有公共在线插件市场。
-- 内置官方 `Focus Mode` 扩展，可从侧栏、状态栏或 Command Palette 切换。
+设置统一收纳外观、编辑器、Compute、扩展与平台版本信息：[查看设置截图](docs/images/screenshots/07-settings.png)。
 
-本地插件格式、完整 API 与安全边界见 [Extension Platform 使用与开发指南](docs/EXTENSIONS.md)。
+## Workspace 类型
 
-## Workbench
+| 来源 | 阅读 | 编辑 | Python Lab | Git 工作台 |
+| --- | :---: | :---: | :---: | :---: |
+| 本地文件夹 | ✓ | ✓ | 显式授权后 | 可选 Bridge |
+| 内置示例 | ✓ | — | 仅阅读定义 | — |
+| 公开 GitHub Repository | ✓ | — | 信任当前 Revision 后 | — |
 
-TensorNote v0.5.0 将阅读器扩展为可组合的 Knowledge IDE：
-
-- 多标签、固定标签、最近文件、前进/后退历史，以及主/次窗格拆分。
-- 左侧 Files 与 Search 入口；右侧可切换 Properties、Outline、Backlinks、Graph 与 Python Lab 上下文。
-- `Ctrl/Cmd + P` Command Palette 统一调用打开笔记、创建笔记、导航、图谱、侧栏、计算和编辑命令；`Ctrl/Cmd + K` 保留全局搜索，在 CodeMirror 编辑器内用于插入链接。
-- 编辑模式新增 Markdown source 工具栏：标题、行内格式、链接、引用、Callout、列表、代码块、表格、分隔线和数学块。工具栏、快捷键与 Command Palette 共用同一命令实现。
-
-v0.8.1 进一步完成工作台与写作体验硬化：侧栏控制不再重复且始终可恢复；Workspace 卡片可刷新或切换工作区；普通编辑器只显示正文，YAML Frontmatter 由独立 Properties 面板管理；格式工具栏使用图标并修复空行标题插入。
-
-v0.8.2 为 v0.9.0 建立兼容与迁移边界：持久设置具备显式版本和数据清洗迁移；Extension Manifest 可声明 API 主版本；较新的 Workspace Schema 会保留 Markdown 阅读能力，同时自动禁用写入、Git 与执行。
-
-v0.8.3 增加非破坏式恢复层：未保存 Markdown 草稿写入浏览器恢复存储，重新打开时由用户决定恢复或丢弃；保存与外部修改仍受文件基线冲突保护；应用级渲染异常进入可重新加载、返回主页和复制诊断的恢复界面。详见[恢复与故障处理](docs/RECOVERY.md)。
-
-v0.8.4 增加 Static、Local、Self-hosted 三种 Deployment Adapter、可安装 PWA、自托管容器与手动 GitHub Pages 工作流，并为 1,000/10,000 笔记、大 Markdown 和大 Asset 列表建立性能门。详见[分发与部署](docs/DISTRIBUTION.md)。
-
-v0.9.0 汇总兼容迁移、非破坏式恢复、分发适配、依赖安全与大 Workspace 性能硬化；应用路由、Built-in Workspace、编辑器、Jupyter 和重型视图均按需加载。完整验收与限制见[Distribution & Hardening](docs/HARDENING.md)。
-
-v0.9.1 把编辑体验提升为首要优化面：主、次 Pane 拥有独立标签与历史，拆分不会再复制当前笔记；Markdown 标题渲染、Scratch Lab 回跳和紧凑双窗格阅读得到修复；常用格式动作保持单行图标工具栏，低频命令进入溢出菜单。Workspace 切换入口移到侧栏左上角，外观、编辑器、Jupyter、扩展与版本信息集中到新的 `/settings` 页面。本阶段只提交源码，不创建 Tag 或 GitHub Release。
-
-v0.9.2 进一步把工作台收敛为更少、更明确的操作：Pane 可以分别关闭，关闭主 Pane 时会提升另一侧，关闭最后一个 Pane 进入可恢复的空工作台；Lab 会排除右栏冲突并按笔记与实验联合重建。侧栏取消重复入口与底部来源卡片，工作区来源和读写能力改为顶部标签，Recent Files 可折叠。浅色主题采用白色内容面，淡绿仅用于组件和交互状态；顶栏仅保留图标化的命令与 Scratch 入口。本阶段只提交源码，不创建 Tag 或 GitHub Release。
-
-v0.9.3 将每个 Pane 重构成完整的阅读编辑区：Pane 自己拥有标签操作栏和独立滚动展示区，焦点决定右侧上下文栏及后续笔记相关命令的对象。拆分与上下文栏操作提升至顶栏；设置改为自动保存、可从空白处或关闭按钮退出的弹窗，命令面板则收敛为无背景虚化的 VS Code 式顶部浮层。Files 与 Extensions 也和 Recent Files 一样可折叠。本阶段只提交源码，不创建 Tag 或 GitHub Release。
-
-v1.0.0 将现有能力收敛为首个稳定平台基线：Workspace Repository Schema、WorkspaceProvider、ComputeProvider、Extension API、Executable Markdown 和 Settings / Secret Model 均固定为 v1，并通过统一的 `src/platform` 入口导出。1.x 会保持这些契约向后兼容；必须破坏兼容的变化进入新的主版本。当前阶段先提交源码候选，最终试用确认后才创建 Tag 与 GitHub Release。
-
-仓库同时提供可安装的 [`$tensornote-knowledge-workspace`](skills/tensornote-knowledge-workspace/SKILL.md) Skill。智能体可以按统一 Frontmatter、链接、Assets 与多 Cell Lab 规格创建知识库，并通过无网络依赖的校验脚本检查 Workspace；安装、调用和兼容智能体接入方式见[智能体接口说明](docs/AGENT_INTEGRATION.md)。
-
-详细的布局、命令与快捷键见 [Workbench 使用说明](docs/WORKBENCH.md)。
+本地创作依赖支持 [File System Access API](https://developer.mozilla.org/docs/Web/API/File_System_API) 的桌面 Chromium 浏览器。Safari/Firefox 或权限受限环境仍可使用只读来源。
 
 ## 快速开始
 
-首次配置请先阅读[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)，其中包含 Conda、标准 `venv`、`uv`、Jupyter Kernel、Token/CORS 和每日启动顺序。
+### 环境要求
 
-已有安装如何拉取更新、开发新功能和发布新版本，请阅读[开发与版本更新指南](docs/DEVELOPMENT.md)。
+- Node.js 22 或更新版本
+- pnpm 11（仓库固定为 `pnpm@11.24.0`）
+- 桌面 Chrome 或 Edge；本地目录读写时必须
+- Python 3.10+ 与 Jupyter Server；仅运行 Python Lab 时需要
 
-```bash
-pnpm install
-pnpm dev
-```
-
-打开 <http://localhost:5173>。
-
-首页可以：
-
-- 打开本地 Markdown 文件夹（Chrome / Edge 的 File System Access API）。
-- 打开内置的 AI Learning Notes 示例 Workspace。
-- 输入 `owner/repository`、完整 GitHub URL 和可选 Ref，读取公开仓库。
-- 通过 `/open/github/{owner}/{repo}?ref={branch}` 直接打开公开仓库。
-
-## 本地创作
-
-本地 Workspace 在支持 File System Access API 的浏览器中提供：
-
-- Reading、Editing 和 Split 三种模式。
-- CodeMirror 6 Markdown 编辑器、Undo / Redo 与 `Ctrl/Cmd + S`。
-- Dirty State、离开保护、外部文件变化检测和保存冲突保护。
-- 新建笔记/文件夹、重命名、移动、删除和复制。
-- 粘贴图片、拖放文件或通过 Asset 按钮上传到 `assets/`。
-- 可视化 Frontmatter 属性编辑；属性仍保存在 Markdown 中。
-- Python Lab 修改后使用 `Save to note` 写回原始 executable Fence。
-- 对已经初始化为 Git 仓库的目录，可选启动 Local Git Bridge，在应用内检查 Diff、暂存并提交。
-
-内置和 GitHub Workspace 仍保持只读，不显示写入入口。
-
-## 知识系统
-
-TensorNote 会在打开或保存 Workspace 时，从 Markdown 重建统一 `KnowledgeIndex`：
-
-- `[[WikiLink]]`、`[[Note#Heading|显示文字]]` 与标准 Markdown 链接。
-- `![[Embedded Note]]` 和 `![[Note#Heading]]` 笔记嵌入。
-- Frontmatter `aliases`、`tags`、任意 Properties 与正文 `#inline-tag`。
-- 当前笔记的 Backlinks、Outgoing Links、Outline 与一跳 Local Graph。
-- Search v2 按 Title、Alias、Tag、Heading、Path、Property 和 Body 加权检索。
-- Knowledge 页面集中浏览 Tag Atlas、Properties、关联笔记和未解析链接。
-
-示例：
-
-```markdown
----
-title: Self-Attention
-aliases: [Scaled Dot-Product Attention]
-tags: [transformer, attention]
-status: growing
----
-
-继续阅读 [[Multi-Head Attention#核心结构|多头注意力]]。
-
-![[Transformer 学习地图#学习路径]]
-```
-
-索引只存在于运行时，可以随时从 Markdown 重新生成，不会创建专有知识数据库。
-
-完整语法、链接解析规则和重命名注意事项见[知识系统使用说明](docs/KNOWLEDGE_SYSTEM.md)。
-
-## Compute Platform
-
-原有单一 Jupyter 连接已升级为通用 Compute Layer：
-
-- 保存多个 Compute Profile，例如 Local Python、Laptop GPU、Lab RTX4090、Remote Server 和 Jetson。
-- 每个 Profile 可选择 Per note、Per workspace 或 Manual Session Scope。
-- Lab 支持 Run、Run All、Run Above、Run Below、Interrupt、Restart、Restart & Run All 和 Clear Outputs。
-- Markdown 编辑器提供独立的“实验”工具：可配置实验标识、运行级别与多个 Cell，并把选中代码直接带入第一个 Cell。
-- Scratch Lab 中的临时代码不会自动写入 Markdown；确认后才使用 `Insert into note` 生成可移植的 executable Fence。
-- 自动检测 Workspace 声明或根目录中的 `requirements.txt`、`pyproject.toml` 与 `environment.yml`，只提示、不静默安装。
-- 内置连接诊断依次检查 Browser、Server、Authentication、CORS、Kernel 与 WebSocket。
-
-完整配置、生命周期与故障排查见 [Compute Platform 使用说明](docs/COMPUTE_PLATFORM.md)。
-
-生产检查：
+### 启动应用
 
 ```bash
-pnpm test
-pnpm lint
-pnpm build
+git clone https://github.com/AaronChou313/tensornote.git
+cd tensornote
+corepack enable
+pnpm install --frozen-lockfile
+pnpm dev --host localhost --port 5173 --strictPort
 ```
 
-## 配置 Compute Profile
+打开 <http://localhost:5173>，然后选择：
 
-先激活需要使用的 Conda 或 venv 环境，并确保该环境已安装 Jupyter Server：
+1. **Open local workspace**：选择自己的 Markdown 文件夹；
+2. **AI Learning Notes**：立即体验随仓库提供的完整示例；
+3. **GitHub repository**：输入 `owner/repository`、URL 与可选 Ref，读取公开仓库。
 
-```bash
-conda activate your-env
-jupyter server --ServerApp.allow_origin=http://localhost:5173
-```
+完整的 Conda、`venv`、`uv`、Jupyter Kernel、CORS 与每日启动顺序见[环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)。
 
-保留 Jupyter 的 Token 身份验证。运行后，从终端输出或下面的命令获取 Server URL 与 Token：
+### 每日需要启动什么
 
-```bash
-jupyter server list
-```
+| 终端 | 什么时候需要 | 命令 |
+| --- | --- | --- |
+| 1 · TensorNote | 总是 | `pnpm dev --host localhost --port 5173 --strictPort` |
+| 2 · Jupyter | 运行 Python Lab | `jupyter server --ServerApp.allow_origin=http://localhost:5173` |
+| 3 · Git Bridge | 在应用内使用本地 Git | `pnpm git:bridge -- --workspace /absolute/path/to/workspace` |
 
-点击顶部 Kernel 状态，或在任意 Lab 中点击齿轮，打开 Compute 设置。默认 `Local Python` Profile 填写：
+Jupyter 应保留 Token 验证，不要使用 `allow_origin=*`。通过 `jupyter server list` 获取 Server URL 与 Token，再到“设置 → 计算与 Jupyter”配置 Compute Profile。
 
-- Server URL，默认 `http://127.0.0.1:8888`
-- Token
-- Kernel Name；按完整手册注册后填写 `tensornote`
-
-先运行 `Connection diagnostics`，全部关键检查通过后再执行 Cell。第一次运行时才会创建 Kernel；何时关闭由 Profile 的 Session Scope 决定。
-
-## 可执行 Markdown 语法
+## Workspace 规格
 
 Workspace 根目录可选放置 `tensornote.yaml`：
 
@@ -217,62 +141,138 @@ environment:
     - requirements.txt
 ```
 
-没有配置文件时，TensorNote 仍会尝试把目录作为普通 Markdown Workspace 打开，但默认不授予可执行能力。
+没有 Manifest 时仍可作为普通 Markdown 文件夹打开，但执行能力默认关闭。用户可以在“设置 → 计算与 Jupyter”按设备、按 Workspace 临时授权；本地偏好不会改写仓库配置。
 
-如需在当前设备临时授权，可以打开“设置 → 计算与 Jupyter”，开启“允许当前 Workspace 执行代码”。该偏好按 Workspace 保存在浏览器中，不会改写或替代仓库里的 `tensornote.yaml`。
+一篇可连接的笔记可以保持完全标准的 Markdown：
 
-普通 Python Fence 只用于展示：
+```markdown
+---
+title: Self-Attention
+aliases: [Scaled Dot-Product Attention]
+tags: [transformer, attention]
+status: growing
+---
 
-````markdown
-```python
-x = 1
+继续阅读 [[Multi-Head Attention#核心结构|多头注意力]]。
+
+> [!intuition]
+> Attention 让每个 Token 根据当前任务重新组合上下文。
 ```
-````
 
-带 `exec` 的 Fence 会被解析成 Python Lab：
+知识系统的完整语法见[知识系统使用说明](docs/KNOWLEDGE_SYSTEM.md)，属性查询见[Structured Knowledge 使用指南](docs/STRUCTURED_KNOWLEDGE.md)。
+
+## Python Lab
+
+普通 Python fence 只负责展示；增加 `exec` 和元数据后，TensorNote 会把同一 `lab` 的 Cell 聚合成可执行实验：
 
 ````markdown
-```python exec lab="self-attention" cell="1" title="构造输入"
+```python exec lab="attention-shapes" cell="1" title="构造输入" difficulty="basic"
 import torch
 X = torch.randn(4, 8)
 ```
+
+```python exec lab="attention-shapes" cell="2" title="检查形状" difficulty="basic"
+assert X.shape == (4, 8)
+print(X.shape)
+```
 ````
 
-同一 `lab` 的 Cell 会按 `cell` 排序并折叠成一张 Lab Card。
+编辑器中的“实验”工具可以创建 Lab、设置实验标识与难度、添加多个 Cell，并把选中代码带入第一个 Cell。Scratch Lab 的代码只有在用户点击 **Insert into note** 后才会写入 Markdown。
 
-## Callout
+运行代码还需要同时满足：Workspace 允许执行、用户连接自己的 Compute Profile；GitHub 来源还要信任当前 Commit Revision。详见 [Compute Platform 使用说明](docs/COMPUTE_PLATFORM.md)。
 
-```markdown
-> [!intuition]
-> 这里写直觉理解。
+## 架构与稳定契约
+
+```mermaid
+flowchart LR
+  Source["Local / Built-in / GitHub"] --> WP["WorkspaceProvider v1"]
+  WP --> Index["Knowledge + Property Index"]
+  Index --> Workbench["Workbench + Editor + Views"]
+  Workbench --> Runtime["Compute Runtime"]
+  Runtime --> CP["ComputeProvider v1"]
+  CP --> Jupyter["Jupyter Server"]
+  Extensions["Extension API v1"] --> Workbench
 ```
 
-支持 `intuition`、`important`、`pitfall`、`bridge`、`question`、`remember`。
+v1 公共入口是 [`src/platform/index.ts`](src/platform/index.ts)。稳定范围包括：
 
-## 目录结构
+- Workspace Repository Schema v1
+- WorkspaceProvider API v1
+- ComputeProvider API v1
+- Extension API v1
+- Executable Markdown Syntax v1
+- Settings / Secret Model v1
 
-```text
-tensornote/
-├── src/                 React 应用
-│   ├── components/      阅读与 Lab UI
-│   ├── content/         Markdown、Lab Parser 与 KnowledgeIndex
-│   ├── compute/         ComputeProvider、Profile、Scope 与诊断
-│   ├── extensions/      Extension API、Manifest、权限与生命周期
-│   ├── git/             Local Git Bridge 客户端与协议类型
-│   ├── jupyter/         Jupyter Provider 的底层 Client
-│   ├── platform/        v1 稳定契约的公开导出入口
-│   ├── workspace/       Schema、统一加载器与 Providers
-│   └── store/           Workspace、界面、进度与连接配置
-├── scripts/             Local Git Bridge 与协议测试
-├── notes/               唯一知识源，共 35 篇 V1 笔记
-├── assets/
-│   ├── images/
-│   ├── diagrams/
-│   └── sketches/
-├── docs/                安装、配置与使用文档
-└── public/
+契约、兼容策略和 Secret 边界见 [Platform Contracts](docs/PLATFORM_CONTRACTS.md)，整体模块见[架构说明](docs/ARCHITECTURE.md)。
+
+## 分发
+
+生产构建：
+
+```bash
+pnpm build
+pnpm preview
 ```
 
-即使 Web App 停止维护，`notes/` 仍可由 VS Code、Obsidian、GitHub 或普通 Markdown 阅读器直接使用。
+Self-hosted Web：
 
-实现边界见 [TensorNote 架构说明](docs/ARCHITECTURE.md)，近期开发范围见[产品路线图](docs/ROADMAP.md)，环境配置见[完整环境配置与使用手册](docs/ENVIRONMENT_SETUP.md)。
+```bash
+docker compose up --build -d
+```
+
+仓库也提供 Static Base Path、手动 GitHub Pages Workflow 与 PWA。部署变量、Nginx 容器和离线边界见[分发与部署](docs/DISTRIBUTION.md)。
+
+## 智能体接口
+
+仓库内置可安装的 [`$tensornote-knowledge-workspace`](skills/tensornote-knowledge-workspace/SKILL.md) Skill，告诉智能体如何：
+
+- 设计 Workspace、目录、Frontmatter、链接与 Assets；
+- 编写带明确状态依赖的多 Cell Python Lab；
+- 使用 Conda、`venv` 或 `uv` 配置并运行 TensorNote/Jupyter；
+- 通过确定性脚本校验 Schema、ID、链接、资源与 Lab 元数据。
+
+```bash
+node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs /path/to/workspace --strict
+```
+
+安装、调用示例、模板与安全边界见[智能体接口说明](docs/AGENT_INTEGRATION.md)。
+
+## 开发与质量门
+
+```bash
+pnpm check
+pnpm test:performance
+pnpm audit --prod --audit-level high
+
+VITE_TENSORNOTE_DEPLOYMENT=static \
+VITE_BASE_PATH=/tensornote/ \
+pnpm build
+```
+
+`pnpm check` 顺序执行测试、ESLint 与 TypeScript/Vite Build。CI 还验证内置 Workspace、严格模板、Static Build 与 Docker 镜像。
+
+| 文档 | 内容 |
+| --- | --- |
+| [Workbench](docs/WORKBENCH.md) | 布局、Pane、Tabs、命令、编辑与快捷键 |
+| [Environment Setup](docs/ENVIRONMENT_SETUP.md) | Conda/venv/uv、Jupyter、每日启动与故障排查 |
+| [Compute Platform](docs/COMPUTE_PLATFORM.md) | Profile、Session Scope、执行、诊断与安全 |
+| [Git & Sync](docs/GIT_AND_SYNC.md) | Local Git Bridge、Diff、Stage 与 Commit |
+| [Extensions](docs/EXTENSIONS.md) | Manifest、权限、API 与示例扩展 |
+| [Recovery](docs/RECOVERY.md) | 草稿恢复、冲突保护与错误边界 |
+| [Development](docs/DEVELOPMENT.md) | 更新功能、版本流程与发布规范 |
+| [Hardening](docs/HARDENING.md) | 兼容、性能、安全和分发限制 |
+
+## 参与贡献
+
+欢迎提交可复现的问题、文档改进和小而清晰的 Pull Request。开始前请阅读：
+
+- [贡献指南](CONTRIBUTING.md)
+- [支持与问题反馈](SUPPORT.md)
+- [安全策略](SECURITY.md)
+- [社区行为准则](CODE_OF_CONDUCT.md)
+
+功能路线以 [Roadmap](docs/ROADMAP.md) 和 [v1 发布计划](docs/V1_RELEASE_PLAN.md)为准。重大平台变化应先讨论，再修改稳定契约。
+
+## License
+
+当前仓库尚未提交 `LICENSE`。在维护者为 v1.0.0 选择并加入许可证前，请不要假定获得复制、修改或再分发授权。正式公开发布前应明确选择（通常为 MIT 或 Apache-2.0）并同步本节与仓库元数据。

@@ -1,0 +1,51 @@
+name: Feature request
+description: Propose a focused user-facing improvement
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What task is blocked or unnecessarily difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the smallest useful result, not only a preferred UI control.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current workaround
+  - type: dropdown
+    id: area
+    attributes:
+      label: Product area
+      options:
+        - Authoring and Markdown
+        - Knowledge and Database
+        - Workbench and navigation
+        - Python Lab and Compute
+        - Workspace providers
+        - Git and Sync
+        - Extensions
+        - Distribution and PWA
+        - Documentation and Agent Skill
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility or migration impact
+      description: Required for changes to v1 platform contracts, persisted settings, or Workspace files.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and the roadmap.
+          required: true

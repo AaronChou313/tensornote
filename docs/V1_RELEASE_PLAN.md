@@ -93,4 +93,6 @@ docker build -t tensornote:v1.0.0 .
 - Static `/tensornote/` Base Path 生产构建与 `git diff --check` 通过。
 - 当前机器未安装 Docker，未执行 Compose 与镜像构建；这不改变 Web 源码候选状态，正式容器发布环境仍应复核。
 - 浏览器已确认 Home、Workspace、双 Pane、Lab、Command Palette、Settings About、浅色与深色主题；About 显示 v1.0.0 和六项稳定契约。
+- 真实浏览器流程快照已保存到 `docs/images/screenshots/` 并用于 README；贡献、安全、支持、Issue/PR 模板与 CI 开源协作入口已补齐。
 - `tensornote-knowledge-workspace` Skill 通过结构校验；新 Workspace 模板严格模式零错误零警告；当前内置知识库无阻塞错误。
+- 最终 GitHub Release 前仍需由维护者选择并提交明确的 `LICENSE`。

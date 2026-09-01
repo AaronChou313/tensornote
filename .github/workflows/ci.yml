@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm test:performance
+      - run: pnpm audit --prod --audit-level high
+      - name: Validate bundled workspace
+        run: node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs .
+      - name: Validate workspace template
+        run: node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs skills/tensornote-knowledge-workspace/assets/workspace-template --strict
+      - name: Build static deployment
+        run: pnpm build
+        env:
+          VITE_TENSORNOTE_DEPLOYMENT: static
+          VITE_BASE_PATH: /tensornote/
+
+  container:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker build -t tensornote:ci .
