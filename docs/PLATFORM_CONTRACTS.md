@@ -95,7 +95,7 @@ print(x.mean())
 
 ## 8. 发布承诺
 
-v1.0.0 Release Gate 包含全量测试、Lint、Local/Static 构建、性能门、生产依赖审计、PWA 版本一致性和关键浏览器流程。源码候选通过后先提交和推送；Git Tag 与 GitHub Release 只在最终试用确认后创建。
+v1.0.0 Release Gate 包含全量测试、Lint、Local/Static 构建、性能门、生产依赖审计、PWA 版本一致性和关键浏览器流程。最终试用确认后以 Apache License 2.0 创建 Git Tag 与 GitHub Release；后续 1.x 必须保持这些契约向后兼容。
 
 ## 9. 智能体接口
 

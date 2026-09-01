@@ -23,9 +23,9 @@
 - `v0.9.4–v0.9.6 — Workbench Visual Polish`：已完成源码阶段；稳定 Lab 回跳、阅读布局、标签与 Pane 操作手感，不单独创建 Release 或 Tag。
 - `v0.9.7 — Executable Lab Authoring`：已完成源码阶段；新增响应式编辑工具栏和多 Cell 实验插入流程，不单独创建 Release 或 Tag。
 - `v0.9.8 — Workspace Execution Permission`：已完成源码阶段；新增按 Workspace 保存的本机执行授权，同时保留 GitHub Revision 与未来 Schema 安全边界，不单独创建 Release 或 Tag。
-- `v1.0.0 — Stable Platform`：源码候选已完成；六项核心契约、版本一致性、首批主流程、分发、安全、性能与文档验收均已落地，等待最终试用确认后再创建正式 Release。
+- `v1.0.0 — Stable Platform`：已完成并正式发布；六项核心契约、版本一致性、首批主流程、分发、安全、性能、开源协议与文档验收均已落地。
 
-## v1.0.0 — Stable Platform（源码候选已完成）
+## v1.0.0 — Stable Platform（已发布）
 
 v1.0.0 不以继续增加功能为目标。它表示 TensorNote 的内容格式、Provider 边界、扩展面和用户配置模型已经形成首个可长期兼容的稳定基线。完整执行清单见 [v1.0.0 发布计划](V1_RELEASE_PLAN.md)。
 
@@ -51,13 +51,13 @@ v1.0.0 不以继续增加功能为目标。它表示 TensorNote 的内容格式�
 - `pnpm check`、`pnpm test:performance`、生产依赖高危漏洞审计和 Local/Static 生产构建全部通过。
 - 浏览器覆盖 Home、Workspace、笔记、编辑器、分栏、设置、Lab、明暗主题与窄屏关键路径。
 - README、环境配置、平台契约、架构、路线图、版本号、PWA 缓存和 Release Notes 保持一致。
-- 源码候选可以提交并推送；只有上述验收全部完成后才创建 `v1.0.0` Git Tag 与 GitHub Release。
+- 上述验收全部完成后创建 `v1.0.0` Git Tag 与 GitHub Release，并以 Apache License 2.0 发布。
 
-### 候选验收记录
+### 正式验收记录
 
 - `pnpm check`：30 个测试文件、102 项测试，ESLint 与 Local 生产构建全部通过。
 - `pnpm test:performance`：3 项性能预算全部通过；生产依赖高危漏洞审计无已知漏洞。
-- Static `/tensornote/` Base Path 生产构建与 `git diff --check` 通过；当前验收机器未安装 Docker，因此容器配置留待有 Docker 的发布环境复核。
+- Static `/tensornote/` Base Path 生产构建与 `git diff --check` 通过；GitHub Actions Linux 环境完成 Compose 配置和 Docker 镜像构建。
 - 浏览器确认 Home、Workspace、独立分栏、Lab Drawer、Command Palette、Settings About、明暗主题与 v1.0.0 契约信息。
 - 智能体接口通过 Skill 结构校验、模板严格校验与当前 35 篇内置知识库兼容性校验。
 

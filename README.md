@@ -11,7 +11,8 @@
 
 <p align="center">
   <a href="https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml"><img src="https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <img src="https://img.shields.io/badge/release-v1.0.0%20candidate-4f8062" alt="v1.0.0 candidate">
+  <a href="https://github.com/AaronChou313/tensornote/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/release-v1.0.0-4f8062" alt="v1.0.0"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-5d7869" alt="Apache-2.0"></a>
   <img src="https://img.shields.io/badge/Node.js-22%2B-43853d" alt="Node.js 22+">
   <img src="https://img.shields.io/badge/pnpm-11-f69220" alt="pnpm 11">
   <img src="https://img.shields.io/badge/React-19-149eca" alt="React 19">
@@ -31,7 +32,7 @@
 
 TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。知识正文、属性、链接和实验定义都保存在可读、可迁移、适合 Git 的文件中；索引、图谱和 Database 可以随时从源文件重建。应用不把知识锁进私有数据库，也不会在未授权时执行代码。
 
-当前源码为 **v1.0.0 候选版**。六项稳定平台契约和 Release Gate 已完成，等待最终试用确认后再创建 `v1.0.0` Tag 与 GitHub Release；最近正式 Release 仍为 `v0.9.0`。详见 [v1.0.0 发布计划](docs/V1_RELEASE_PLAN.md)与[发布说明](docs/releases/v1.0.0.md)。
+当前稳定版本为 **v1.0.0 — Stable Platform**。六项平台契约、Release Gate、浏览器主流程、Static 与容器分发均已完成验证。详见 [v1.0.0 发布计划](docs/V1_RELEASE_PLAN.md)与[发布说明](docs/releases/v1.0.0.md)。
 
 ## 为什么是 TensorNote
 
@@ -56,7 +57,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 
 ## 界面预览
 
-所有图片均来自本仓库当前 `v1.0.0` 候选版的真实浏览器流程，而非设计稿。
+所有图片均来自本仓库 `v1.0.0` 的真实浏览器流程，而非设计稿。
 
 | 启动与知识浏览 | 笔记阅读 |
 | --- | --- |
@@ -275,4 +276,4 @@ pnpm build
 
 ## License
 
-当前仓库尚未提交 `LICENSE`。在维护者为 v1.0.0 选择并加入许可证前，请不要假定获得复制、修改或再分发授权。正式公开发布前应明确选择（通常为 MIT 或 Apache-2.0）并同步本节与仓库元数据。
+TensorNote 使用 [Apache License 2.0](LICENSE) 发布。Copyright 2026 AaronChou313。该许可证允许商业使用、修改与再分发，并包含明确的专利授权；项目名称与 Logo 的商标权不随许可证自动授予。第三方依赖信息见 [Third-party notices](THIRD_PARTY_NOTICES.md)。

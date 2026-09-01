@@ -9,6 +9,7 @@ import {
   Plus,
 } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
+import logoSquare from '../../assets/images/TensorNote_logo.png'
 import logoWide from '../../assets/images/TensorNote_logo_wide.png'
 import { Button } from '../components/ui/Button'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
@@ -83,7 +84,10 @@ export function HomePage() {
   return (
     <main className="workspace-home">
       <header className="landing-nav">
-        <div className="brand-compact"><span>T</span><strong>TensorNote</strong></div>
+        <div className="brand-compact">
+          <span className="brand-compact__logo"><img src={logoSquare} alt="" aria-hidden="true" /></span>
+          <strong>TensorNote</strong>
+        </div>
         <div className="landing-nav__runtime"><span>{deploymentAdapter.label}</span></div>
       </header>
 

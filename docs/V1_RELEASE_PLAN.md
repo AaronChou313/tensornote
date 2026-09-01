@@ -1,6 +1,6 @@
 # TensorNote v1.0.0 发布计划
 
-状态：源码候选已完成，等待最终试用确认
+状态：已完成并正式发布
 
 目标：首个稳定平台版本
 
@@ -14,7 +14,7 @@ TensorNote v1.0.0 完成时，应当同时满足：
 2. 本地创作、Web 阅读、Web 可执行阅读和 Self-hosted 四条主流程都有实现与验证依据。
 3. 用户内容仍只保存在 Markdown、Assets 与 Workspace 配置中；浏览器状态和 Secret 不混入知识库。
 4. 版本号、About、PWA 缓存、Git Bridge、README、架构与 Release Notes 一致。
-5. 完整 Release Gate 通过，工作树干净，候选提交已推送到 `origin/main`。
+5. 完整 Release Gate 通过，工作树干净，发布提交与 `v1.0.0` Tag 已推送到远端。
 6. 智能体可以通过仓库内置 Skill 按同一 v1 契约撰写、配置、运行和校验 Workspace。
 
 ## 2. 核心契约清单
@@ -46,7 +46,7 @@ TensorNote v1.0.0 完成时，应当同时满足：
 
 - 发布 Platform Contracts、安装配置、架构、限制和升级承诺。
 - 验证 Local、Static、Self-hosted 构建面和 PWA 更新策略。
-- 准备 `docs/releases/v1.0.0.md`；在源码候选验收前不创建 Tag 或 Release。
+- 发布 `docs/releases/v1.0.0.md`，并在全部验收通过后创建 Tag 与 Release。
 - 提供 Agent Interface、可复制模板与无网络依赖的 Workspace 校验器。
 
 ## 4. 自动化 Release Gate
@@ -81,18 +81,18 @@ docker build -t tensornote:v1.0.0 .
 
 ## 6. 发布决策
 
-- 本轮先提交并推送 v1.0.0 源码候选。
-- 不自动创建 GitHub Release 或 Tag。
-- 候选由用户完成最终试用确认后，再执行 `v1.0.0` Tag 与 GitHub Release。
+- 用户已完成最终试用确认，并选择 Apache License 2.0。
+- Release Gate、Linux CI、Static Build、Compose 与 Docker 镜像均通过后创建 `v1.0.0` Tag 与 GitHub Release。
+- 后续 `1.x` 更新保持六项 v1 契约向后兼容；破坏性变化进入新的主版本。
 
-## 7. 候选验收结果
+## 7. 正式验收结果
 
 - `pnpm check`：30 个测试文件、102 项测试，ESLint 与 Local 生产构建通过。
 - `pnpm test:performance`：3 项性能预算通过。
 - `pnpm audit --prod --audit-level high`：无已知漏洞。
 - Static `/tensornote/` Base Path 生产构建与 `git diff --check` 通过。
-- 当前机器未安装 Docker，未执行 Compose 与镜像构建；这不改变 Web 源码候选状态，正式容器发布环境仍应复核。
+- GitHub Actions Linux 环境完成 Compose 配置与 Docker 镜像构建。
 - 浏览器已确认 Home、Workspace、双 Pane、Lab、Command Palette、Settings About、浅色与深色主题；About 显示 v1.0.0 和六项稳定契约。
 - 真实浏览器流程快照已保存到 `docs/images/screenshots/` 并用于 README；贡献、安全、支持、Issue/PR 模板与 CI 开源协作入口已补齐。
 - `tensornote-knowledge-workspace` Skill 通过结构校验；新 Workspace 模板严格模式零错误零警告；当前内置知识库无阻塞错误。
-- 最终 GitHub Release 前仍需由维护者选择并提交明确的 `LICENSE`。
+- Apache License 2.0、NOTICE、项目元数据与第三方依赖许可证清单已完成。

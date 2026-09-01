@@ -1,6 +1,7 @@
 {
   "name": "tensornote",
   "private": true,
+  "license": "Apache-2.0",
   "description": "Local-first, Markdown-first executable knowledge workspace.",
   "homepage": "https://github.com/AaronChou313/tensornote#readme",
   "repository": {
