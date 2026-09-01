@@ -698,7 +698,7 @@ mod tests {
 
     #[test]
     fn rejects_traversal_hidden_paths_and_symlink_escape() {
-        let (temp, registry, registration) = registered_workspace();
+        let (_temp, registry, registration) = registered_workspace();
         let root = registry.root(&registration.workspace_id).expect("root");
         assert!(resolve_for_write(&root, "../outside.md").is_err());
         assert!(resolve_for_write(&root, ".git/config").is_err());
@@ -706,7 +706,7 @@ mod tests {
         #[cfg(unix)]
         {
             use std::os::unix::fs::symlink;
-            let outside = temp.path().join("outside");
+            let outside = _temp.path().join("outside");
             fs::create_dir(&outside).expect("outside");
             symlink(&outside, root.join("escape")).expect("symlink");
             assert!(resolve_for_write(&root, "escape/file.md").is_err());
