@@ -1574,7 +1574,10 @@ mod tests {
                 &format!("created {}", secret_path.display()),
                 &[temp.path().to_path_buf()]
             ),
-            "created $TENSORNOTE_DATA/managed-environments/example"
+            format!(
+                "created $TENSORNOTE_DATA{separator}managed-environments{separator}example",
+                separator = std::path::MAIN_SEPARATOR
+            )
         );
     }
 
