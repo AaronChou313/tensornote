@@ -25,6 +25,12 @@
 - `v0.9.8 — Workspace Execution Permission`：已完成源码阶段；新增按 Workspace 保存的本机执行授权，同时保留 GitHub Revision 与未来 Schema 安全边界，不单独创建 Release 或 Tag。
 - `v1.0.0 — Stable Platform`：已完成并正式发布；六项核心契约、版本一致性、首批主流程、分发、安全、性能、开源协议与文档验收均已落地。
 
+## 下一代 v1.x 路线（规划中）
+
+v1.0.0 之后，TensorNote 将沿“双宿主、双来源、开放发布”方向演进：Web 继续承担无需安装的公开阅读与远程执行入口，Tauri Desktop 为本地创作增加原生文件、Python 环境检测和 Jupyter 生命周期能力；Workspace 与 Compute 继续各自支持本地/远程组合。完整愿景、架构、版本拆分、安全边界和验收门见 [TensorNote 下一代产品与架构规划](NEXT_GENERATION_PLAN.md)。
+
+该路线不得破坏下方已经发布的 v1 契约。HostAdapter、Native Workspace、Runtime Assistant、Pages 发布和 Remote Compute Connector 都必须以可选、能力驱动的方式增量接入。
+
 ## v1.0.0 — Stable Platform（已发布）
 
 v1.0.0 不以继续增加功能为目标。它表示 TensorNote 的内容格式、Provider 边界、扩展面和用户配置模型已经形成首个可长期兼容的稳定基线。完整执行清单见 [v1.0.0 发布计划](V1_RELEASE_PLAN.md)。

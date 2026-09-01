@@ -262,6 +262,7 @@ pnpm build
 | [Recovery](docs/RECOVERY.md) | 草稿恢复、冲突保护与错误边界 |
 | [Development](docs/DEVELOPMENT.md) | 更新功能、版本流程与发布规范 |
 | [Hardening](docs/HARDENING.md) | 兼容、性能、安全和分发限制 |
+| [Next Generation Plan](docs/NEXT_GENERATION_PLAN.md) | Web/Desktop 双宿主、本地/远程 Workspace 与 Compute、开放知识发布生态 |
 
 ## 参与贡献
 
@@ -272,7 +273,7 @@ pnpm build
 - [安全策略](SECURITY.md)
 - [社区行为准则](CODE_OF_CONDUCT.md)
 
-功能路线以 [Roadmap](docs/ROADMAP.md) 和 [v1 发布计划](docs/V1_RELEASE_PLAN.md)为准。重大平台变化应先讨论，再修改稳定契约。
+功能路线以 [Roadmap](docs/ROADMAP.md)、[下一代规划](docs/NEXT_GENERATION_PLAN.md)和 [v1 发布计划](docs/V1_RELEASE_PLAN.md)为准。重大平台变化应先讨论，再修改稳定契约。
 
 ## License
 
