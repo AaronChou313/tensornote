@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-platform-info"
+description = "Allows the bundled main window to read non-sensitive OS, architecture and family constants."
+commands.allow = ["platform_info"]

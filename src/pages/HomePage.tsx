@@ -17,6 +17,7 @@ import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceP
 import { pickLocalWorkspace } from '../workspace/providers/LocalWorkspaceProvider'
 import type { RecentWorkspace, WorkspaceProvider } from '../workspace/types'
 import { deploymentAdapter } from '../deployment/config'
+import { getHostAdapter } from '../host/runtime'
 
 function parseGitHubRepository(value: string) {
   const normalized = value.trim().replace(/\.git$/, '').replace(/\/$/, '')
@@ -80,6 +81,10 @@ export function HomePage() {
   }
 
   const busy = status === 'loading'
+  const hostAdapter = getHostAdapter()
+  const visibleRecentWorkspaces = deploymentAdapter.capabilities.localDirectory
+    ? recentWorkspaces
+    : recentWorkspaces.filter((recent) => recent.type !== 'local')
 
   return (
     <main className="workspace-home">
@@ -88,7 +93,7 @@ export function HomePage() {
           <span className="brand-compact__logo"><img src={logoSquare} alt="" aria-hidden="true" /></span>
           <strong>TensorNote</strong>
         </div>
-        <div className="landing-nav__runtime"><span>{deploymentAdapter.label}</span></div>
+        <div className="landing-nav__runtime"><span>{hostAdapter.label}</span></div>
       </header>
 
       <div className="workspace-home__content">
@@ -107,23 +112,23 @@ export function HomePage() {
         )}
 
         <section className="workspace-actions" aria-label="打开 Workspace">
-          <button className="workspace-action workspace-action--primary" onClick={() => void openLocal()} disabled={busy}>
+          {deploymentAdapter.capabilities.localDirectory && <button className="workspace-action workspace-action--primary" onClick={() => void openLocal()} disabled={busy}>
             <span className="workspace-action__icon"><FolderOpen size={23} weight="duotone" /></span>
             <span><strong>Open local workspace</strong><small>选择电脑上的 Markdown 文件夹</small></span>
             <ArrowRight size={17} />
-          </button>
+          </button>}
 
-          <button className="workspace-action" onClick={() => void openBundled()} disabled={busy}>
+          <button className={`workspace-action${deploymentAdapter.capabilities.localDirectory ? '' : ' workspace-action--primary'}`} onClick={() => void openBundled()} disabled={busy}>
             <span className="workspace-action__icon"><BookOpenText size={23} weight="duotone" /></span>
             <span><strong>AI Learning Notes</strong><small>打开随 TensorNote 提供的示例 Workspace</small></span>
             <ArrowRight size={17} />
           </button>
 
-          <button className="workspace-action" onClick={() => void openLocal()} disabled={busy}>
+          {deploymentAdapter.capabilities.localDirectory && <button className="workspace-action" onClick={() => void openLocal()} disabled={busy}>
             <span className="workspace-action__icon"><Plus size={22} /></span>
             <span><strong>New workspace</strong><small>选择一个新建或空文件夹，从第一篇笔记开始</small></span>
             <ArrowRight size={17} />
-          </button>
+          </button>}
         </section>
 
         <section className="github-open">
@@ -138,11 +143,11 @@ export function HomePage() {
           </form>
         </section>
 
-        {recentWorkspaces.length > 0 && (
+        {visibleRecentWorkspaces.length > 0 && (
           <section className="recent-workspaces">
             <div className="section-heading"><ClockCounterClockwise size={17} /><h2>Recent workspaces</h2></div>
             <div className="recent-list">
-              {recentWorkspaces.map((recent) => (
+              {visibleRecentWorkspaces.map((recent) => (
                 <button key={recent.id} onClick={() => void reopen(recent)} disabled={busy}>
                   <span className="recent-mark">{recent.name.slice(0, 1).toUpperCase()}</span>
                   <span><strong>{recent.name}</strong><small>{recent.detail || recent.sourceLabel}</small></span>

@@ -316,6 +316,15 @@ Git Bridge (fixed repository root)
 - v1.x 允许添加可选字段、可选方法与新贡献点，但不得改变既有字段含义或放宽安全默认值。必须破坏兼容的变化只进入新的主版本。
 - 详细的契约、兼容策略和数据归属见 [Platform Contracts](PLATFORM_CONTRACTS.md)。
 
+## v1.1.0 Dual Host Foundation
+
+- `src/host/` 是 Web 与 Desktop 的宿主能力边界；`HostAdapter` 描述运行容器，不替代 WorkspaceProvider 或 ComputeProvider。
+- `WebHostAdapter` 不声明任何原生能力；`TauriHostAdapter` 当前只声明 `desktopShell`，文件系统、环境发现、进程管理、原生 Git、文件关联与自动更新全部保持关闭。
+- `src/main.tsx` 在 React 挂载前安装 HostAdapter。组件读取 capability，不允许散落检测 `window.__TAURI__`、User Agent 或操作系统分支。
+- `src-tauri/` 只承载 Tauri 2 壳、窗口配置和受审 IPC。首阶段唯一命令 `platform_info` 无参数、只返回 OS/Arch/Family；没有 Shell、文件系统或进程插件。
+- Web/Static 构建不导入 Desktop 命令实现；Desktop 通过动态边界加载 Tauri API，并继续复用同一 Workspace、Knowledge、Workbench、Editor 与 Compute 核心。
+- 详细决策和安全面分别见 [ADR 0001](adr/0001-dual-host-and-host-adapter.md) 与 [ADR 0002](adr/0002-tauri-security-surface.md)。
+
 ## 版本更新规则
 
 每个版本至少同步更新：

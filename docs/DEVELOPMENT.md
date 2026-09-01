@@ -129,7 +129,28 @@ pnpm test:performance
 - 页面切换时 Kernel 生命周期
 - 标签/固定/拆分窗格、Command Palette、明暗主题和窄屏侧栏
 
-### 2.4 提交并合并
+### 2.4 Desktop 开发
+
+v1.1.0 起，Desktop 使用 Tauri 2 并复用同一个 `src/`。先安装 Rust stable；macOS Homebrew 用户可运行 `brew install rust`。确认：
+
+```bash
+rustc --version
+cargo --version
+rustfmt --version
+cargo clippy --version
+```
+
+启动和验证：
+
+```bash
+pnpm dev:desktop
+pnpm check:desktop
+pnpm exec tauri build --no-bundle
+```
+
+构建当前平台 `.app`/安装资产使用 `pnpm build:desktop`。Host 能力必须进入 `src/host/`，Tauri IPC 必须在 `src-tauri/permissions/` 声明并更新安全 ADR。不得让共享 React、Workspace 或 Compute 核心直接依赖 Tauri，也不得为方便而加入任意 Shell 命令。
+
+### 2.5 提交并合并
 
 ```bash
 git status

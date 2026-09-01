@@ -13,4 +13,19 @@ describe('deployment configuration', () => {
   it('keeps self-hosted capability claims within the implemented browser runtime', () => {
     expect(resolveDeploymentConfig({ mode: 'self-hosted', pwa: 'false' })).toMatchObject({ mode: 'self-hosted', router: 'browser', pwa: false, capabilities: { remoteWorkspace: true, serverWorkspace: false } })
   })
+
+  it('uses hash routing and only claims implemented capabilities in desktop mode', () => {
+    expect(resolveDeploymentConfig({ mode: 'desktop' })).toEqual({
+      mode: 'desktop',
+      label: 'Desktop',
+      router: 'hash',
+      pwa: false,
+      capabilities: {
+        localDirectory: false,
+        gitBridge: false,
+        remoteWorkspace: true,
+        serverWorkspace: false,
+      },
+    })
+  })
 })

@@ -1,4 +1,4 @@
-export type DeploymentMode = 'static' | 'local' | 'self-hosted'
+export type DeploymentMode = 'static' | 'local' | 'self-hosted' | 'desktop'
 
 export interface DeploymentAdapter {
   mode: DeploymentMode
@@ -14,14 +14,15 @@ export interface DeploymentAdapter {
 }
 
 export function resolveDeploymentConfig(input: { mode?: string; pwa?: string } = {}): DeploymentAdapter {
-  const mode: DeploymentMode = input.mode === 'static' || input.mode === 'self-hosted' ? input.mode : 'local'
+  const mode: DeploymentMode = input.mode === 'static' || input.mode === 'self-hosted' || input.mode === 'desktop' ? input.mode : 'local'
+  const desktop = mode === 'desktop'
   return {
     mode,
-    label: mode === 'static' ? 'Static Web' : mode === 'self-hosted' ? 'Self-hosted Web' : 'Local Web',
-    router: mode === 'static' ? 'hash' : 'browser',
-    pwa: input.pwa !== 'false',
+    label: mode === 'static' ? 'Static Web' : mode === 'self-hosted' ? 'Self-hosted Web' : desktop ? 'Desktop' : 'Local Web',
+    router: mode === 'static' || desktop ? 'hash' : 'browser',
+    pwa: !desktop && input.pwa !== 'false',
     capabilities: {
-      localDirectory: true,
+      localDirectory: !desktop,
       gitBridge: mode === 'local',
       remoteWorkspace: true,
       serverWorkspace: false,

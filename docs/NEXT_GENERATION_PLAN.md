@@ -1,6 +1,6 @@
 # TensorNote 下一代产品与架构规划
 
-状态：规划初稿
+状态：执行中；`v1.1.0` 源码阶段已完成
 
 基线：`v1.0.0 — Stable Platform`
 
@@ -428,6 +428,15 @@ Python → Environment → Jupyter Server → Kernel → Workspace Permission �
 - CI 至少完成 Web Gate 与各平台 Desktop compile/bundle smoke。
 
 验收：同一 Workspace 在 Web/Desktop 的文档、知识索引和 Lab 解析结果一致；Web bundle 不包含 Desktop command API。
+
+完成记录（2026-09-01）：
+
+- `src/host/` 已提供统一 HostAdapter、Web/Tauri 实现和启动期注入；React 页面只读取 capability。
+- `src-tauri/` 已提供 Tauri 2 最小宿主。当前唯一 IPC 是无参数、只读的 `platform_info`，没有 Shell、文件系统或进程管理权限。
+- Static Web 和 Desktop 使用独立构建模式；Static 产物已验证不包含 Tauri IPC 符号。
+- Desktop 当前仅开放 Built-in/GitHub Workspace 与既有 Compute 能力；原生本地 Workspace 明确留给 v1.2.0，避免把浏览器目录能力误报为原生能力。
+- CI 增加 macOS、Windows、Linux 的 Rust fmt/clippy/test 与 Tauri compile smoke；本机已完成 macOS `.app` 构建与真实界面验收。
+- 本阶段只提交并推送源码，不创建 Git Tag 或 GitHub Release；可签名安装包仍由 v1.6.0 分发阶段负责。
 
 ### v1.2.0 — Native Local Workspace
 

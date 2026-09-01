@@ -3,7 +3,7 @@ import { CheckCircle, Cpu, Gear, Info, Moon, NotePencil, PaintBrush, Plus, Pulse
 import { useSearchParams } from 'react-router-dom'
 import { computeRuntime } from '../compute/ComputeRuntime'
 import { computeProfileTemplates, type ComputeSessionScope, type DiagnosticCheck } from '../compute/types'
-import { deploymentAdapter } from '../deployment/config'
+import { getHostAdapter } from '../host/runtime'
 import { useExtensionRecords, useExtensionRuntime } from '../extensions/ExtensionContext'
 import {
   COMPUTE_PROVIDER_API_VERSION,
@@ -106,7 +106,7 @@ function AboutSettings() {
   const session = useWorkspaceStore((state) => state.session)
   const facts = useMemo(() => [
     ['TensorNote', `v${TENSORNOTE_VERSION}`],
-    ['Runtime', deploymentAdapter.label],
+    ['Runtime', getHostAdapter().label],
     ['Workspace', session?.manifest.workspace.name ?? 'None'],
     ['Provider', session?.descriptor.sourceLabel ?? 'None'],
   ], [session])

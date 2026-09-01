@@ -1,6 +1,6 @@
 # TensorNote 分发与部署
 
-TensorNote v0.8.4 起用 `DeploymentAdapter` 明确区分 Static Web、Local Web 与 Self-hosted Web。三种模式共享同一 React、Workspace、Document、Compute 与 Extension 代码，不复制业务逻辑。
+TensorNote v0.8.4 起用 `DeploymentAdapter` 明确区分 Static Web、Local Web 与 Self-hosted Web；v1.1.0 再通过 `HostAdapter` 加入 Tauri Desktop。四种模式共享同一 React、Workspace、Document、Compute 与 Extension 代码，不复制业务逻辑。
 
 ## 1. Local Web
 
@@ -70,13 +70,35 @@ PWA 离线能力只覆盖应用 Shell 和已经缓存的同源资源：
 
 | 变量 | 值 | 说明 |
 | --- | --- | --- |
-| `VITE_TENSORNOTE_DEPLOYMENT` | `local` / `static` / `self-hosted` | 选择 Deployment Adapter；默认 `local` |
+| `VITE_TENSORNOTE_DEPLOYMENT` | `local` / `static` / `self-hosted` / `desktop` | 选择 Deployment Adapter；默认 `local` |
 | `VITE_BASE_PATH` | `/` 或 `/repository/` | Vite 资源与 Service Worker Scope 前缀 |
 | `VITE_TENSORNOTE_PWA` | `false` 或省略 | 是否注册 Service Worker |
 
 这些变量在构建时固定。改变后必须重新执行 `pnpm build`。
 
-## 6. 性能验证
+## 6. Desktop 源码阶段
+
+Desktop 需要 Rust stable、Cargo 和当前平台的 Tauri 系统依赖。macOS 使用 Homebrew Rust 即可：
+
+```bash
+rustc --version
+cargo --version
+pnpm install --frozen-lockfile
+pnpm dev:desktop
+```
+
+构建当前平台应用：
+
+```bash
+pnpm check:desktop
+pnpm build:desktop
+```
+
+`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。v1.1.0 的 Desktop 是双宿主源码基础：支持 Built-in/GitHub Workspace 和已有 Jupyter 连接，但还没有原生本地目录 Provider。原生本地读写属于 v1.2.0，环境检测和 Jupyter 生命周期属于 v1.3.0。当前产物未签名、公证，也不作为正式安装包发布。
+
+Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移。
+
+## 7. 性能验证
 
 运行专用门：
 

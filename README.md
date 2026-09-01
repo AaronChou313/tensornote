@@ -32,7 +32,7 @@
 
 TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。知识正文、属性、链接和实验定义都保存在可读、可迁移、适合 Git 的文件中；索引、图谱和 Database 可以随时从源文件重建。应用不把知识锁进私有数据库，也不会在未授权时执行代码。
 
-当前稳定版本为 **v1.0.0 — Stable Platform**。六项平台契约、Release Gate、浏览器主流程、Static 与容器分发均已完成验证。详见 [v1.0.0 发布计划](docs/V1_RELEASE_PLAN.md)与[发布说明](docs/releases/v1.0.0.md)。
+当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已进入 **v1.1.0 — Dual Host Foundation** 源码阶段：同一 React 核心现可运行于 Web 与 Tauri Desktop；尚不提供签名安装包。详见[下一代规划](docs/NEXT_GENERATION_PLAN.md)与[v1.1.0 源码阶段说明](docs/releases/v1.1.0.md)。
 
 ## 为什么是 TensorNote
 
@@ -91,6 +91,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 - pnpm 11（仓库固定为 `pnpm@11.24.0`）
 - 桌面 Chrome 或 Edge；本地目录读写时必须
 - Python 3.10+ 与 Jupyter Server；仅运行 Python Lab 时需要
+- Rust stable 与 Cargo；仅开发或构建 Desktop 时需要
 
 ### 启动应用
 
@@ -223,6 +224,16 @@ docker compose up --build -d
 
 仓库也提供 Static Base Path、手动 GitHub Pages Workflow 与 PWA。部署变量、Nginx 容器和离线边界见[分发与部署](docs/DISTRIBUTION.md)。
 
+Desktop 源码阶段：
+
+```bash
+pnpm dev:desktop
+pnpm check:desktop
+pnpm build:desktop
+```
+
+v1.1.0 Desktop 当前提供安全的原生壳、Built-in/GitHub Workspace 和既有 Jupyter 连接；原生本地目录读写将在 v1.2.0 接入，Conda/venv/uv 检测与 Jupyter 一键启停将在 v1.3.0 接入。当前 `.app`/可执行文件未签名，不作为正式安装包发布。
+
 ## 智能体接口
 
 仓库内置可安装的 [`$tensornote-knowledge-workspace`](skills/tensornote-knowledge-workspace/SKILL.md) Skill，告诉智能体如何：
@@ -244,10 +255,10 @@ node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs /path/
 pnpm check
 pnpm test:performance
 pnpm audit --prod --audit-level high
+pnpm check:desktop
 
-VITE_TENSORNOTE_DEPLOYMENT=static \
 VITE_BASE_PATH=/tensornote/ \
-pnpm build
+pnpm build:web
 ```
 
 `pnpm check` 顺序执行测试、ESLint 与 TypeScript/Vite Build。CI 还验证内置 Workspace、严格模板、Static Build 与 Docker 镜像。

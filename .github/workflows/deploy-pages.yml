@@ -26,9 +26,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test && pnpm lint
-      - run: pnpm build
+      - run: pnpm build:web
         env:
-          VITE_TENSORNOTE_DEPLOYMENT: static
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

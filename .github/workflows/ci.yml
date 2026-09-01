@@ -37,10 +37,51 @@ jobs:
       - name: Validate workspace template
         run: node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs skills/tensornote-knowledge-workspace/assets/workspace-template --strict
       - name: Build static deployment
-        run: pnpm build
+        run: pnpm build:web
         env:
-          VITE_TENSORNOTE_DEPLOYMENT: static
           VITE_BASE_PATH: /tensornote/
+
+  desktop:
+    name: Desktop build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux desktop dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            curl \
+            file \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            libwebkit2gtk-4.1-dev \
+            libxdo-dev \
+            patchelf \
+            wget
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:desktop
+      - run: pnpm exec tauri build --no-bundle
 
   container:
     runs-on: ubuntu-latest

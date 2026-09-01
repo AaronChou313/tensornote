@@ -7,17 +7,28 @@ import { App } from './App'
 import { RecoveryBoundary } from './recovery/RecoveryBoundary'
 import { deploymentAdapter } from './deployment/config'
 import { registerServiceWorker } from './deployment/registerServiceWorker'
+import { createHostAdapter, installHostAdapter } from './host/runtime'
 
 const Router = deploymentAdapter.router === 'hash' ? HashRouter : BrowserRouter
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <RecoveryBoundary>
-      <Router>
-        <App />
-      </Router>
-    </RecoveryBoundary>
-  </StrictMode>,
-)
+async function bootstrap() {
+  const hostAdapter = await createHostAdapter({
+    kind: import.meta.env.VITE_TENSORNOTE_HOST,
+    webLabel: deploymentAdapter.label,
+  })
+  installHostAdapter(hostAdapter)
 
-registerServiceWorker()
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <RecoveryBoundary>
+        <Router>
+          <App />
+        </Router>
+      </RecoveryBoundary>
+    </StrictMode>,
+  )
+
+  registerServiceWorker()
+}
+
+void bootstrap()
