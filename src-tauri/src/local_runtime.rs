@@ -1569,15 +1569,13 @@ mod tests {
         let secret_path = temp.path().join("managed-environments/example");
         let id = opaque_id("python", &secret_path.to_string_lossy());
         assert!(!id.contains(temp.path().to_string_lossy().as_ref()));
+        let redacted = redact(
+            &format!("created {}", secret_path.display()),
+            &[temp.path().to_path_buf()],
+        );
         assert_eq!(
-            redact(
-                &format!("created {}", secret_path.display()),
-                &[temp.path().to_path_buf()]
-            ),
-            format!(
-                "created $TENSORNOTE_DATA{separator}managed-environments{separator}example",
-                separator = std::path::MAIN_SEPARATOR
-            )
+            redacted.replace('\\', "/"),
+            "created $TENSORNOTE_DATA/managed-environments/example"
         );
     }
 
