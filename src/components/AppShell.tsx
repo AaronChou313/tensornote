@@ -22,6 +22,7 @@ import { SettingsDialog } from './workbench/SettingsDialog'
 import { useGitStore } from '../store/useGitStore'
 import { deploymentAdapter } from '../deployment/config'
 import { getHostAdapter } from '../host/runtime'
+import { PublishDialog } from './publishing/PublishDialog'
 
 const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: module.LabDrawer })))
 
@@ -131,6 +132,7 @@ export function AppShell() {
       registry.register({ id: 'workspace.overview', label: 'Open workspace overview', category: 'Workspace', execute: () => navigate('/workspace') }),
       registry.register({ id: 'workspace.refresh', label: 'Refresh workspace files', category: 'Workspace', execute: () => useWorkspaceStore.getState().refreshWorkspace().then(() => undefined) }),
       registry.register({ id: 'workspace.switch', label: 'Switch workspace', category: 'Workspace', description: 'Close the current workspace and return to the start page', execute: async () => { await switchWorkspace() } }),
+      registry.register({ id: 'workspace.share', label: 'Share or publish workspace', category: 'Workspace', description: 'Copy a revision-pinned link or inspect publication readiness', execute: () => useAppStore.getState().setPublishOpen(true) }),
       registry.register({ id: 'view.graph', label: 'Open graph', category: 'View', execute: () => navigate('/knowledge') }),
       registry.register({ id: 'view.database', label: 'Open database', category: 'View', description: 'Browse structured note properties', execute: () => navigate('/database') }),
       registry.register({ id: 'view.settings', label: 'Open settings', category: 'View', description: 'Appearance, editor, compute and extensions', execute: () => useAppStore.getState().setSettingsOpen(true) }),
@@ -165,6 +167,20 @@ export function AppShell() {
       noteId: noteId ? decodeURIComponent(noteId) : undefined,
     })
   }, [location.pathname, profile, session])
+
+  useEffect(() => {
+    if (!session) return
+    const root = document.documentElement
+    const previousTitle = document.title
+    const previousAccent = root.style.getPropertyValue('--accent')
+    document.title = `${session.manifest.publishing.title || session.manifest.workspace.name} · TensorNote`
+    if (session.manifest.publishing.accent) root.style.setProperty('--accent', session.manifest.publishing.accent)
+    return () => {
+      document.title = previousTitle
+      if (previousAccent) root.style.setProperty('--accent', previousAccent)
+      else root.style.removeProperty('--accent')
+    }
+  }, [session])
 
   useEffect(() => {
     if (!session) return
@@ -204,6 +220,7 @@ export function AppShell() {
         <SearchDialog />
         <CommandPalette />
         <SettingsDialog />
+        <PublishDialog />
         <Suspense fallback={null}><LabDrawer /></Suspense>
         <ExtensionManagerDialog />
         <ExtensionViewDialog />

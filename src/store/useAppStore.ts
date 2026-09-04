@@ -16,6 +16,7 @@ interface AppState {
   sidebarOpen: boolean
   searchOpen: boolean
   commandPaletteOpen: boolean
+  publishOpen: boolean
   settingsOpen: boolean
   settingsSection: SettingsSection
   newNoteRequestNonce: number
@@ -35,6 +36,7 @@ interface AppState {
   setSidebarOpen: (open: boolean) => void
   setSearchOpen: (open: boolean) => void
   setCommandPaletteOpen: (open: boolean) => void
+  setPublishOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean, section?: SettingsSection) => void
   requestNewNote: () => void
   setActiveLabId: (id: string | null) => void
@@ -60,6 +62,7 @@ export const useAppStore = create<AppState>()(
       sidebarOpen: false,
       searchOpen: false,
       commandPaletteOpen: false,
+      publishOpen: false,
       settingsOpen: false,
       settingsSection: 'appearance',
       newNoteRequestNonce: 0,
@@ -79,6 +82,7 @@ export const useAppStore = create<AppState>()(
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       setSearchOpen: (searchOpen) => set({ searchOpen }),
       setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
+      setPublishOpen: (publishOpen) => set({ publishOpen }),
       setSettingsOpen: (settingsOpen, section) => set((state) => ({ settingsOpen, ...(section ? { settingsSection: section } : {}), ...(settingsOpen ? {} : { settingsSection: state.settingsSection }) })),
       requestNewNote: () => set((state) => ({ newNoteRequestNonce: state.newNoteRequestNonce + 1 })),
       setActiveLabId: (activeLabId) => set({ activeLabId, ...(activeLabId ? {} : { activeLabNoteId: null }) }),
@@ -97,6 +101,7 @@ export const useAppStore = create<AppState>()(
         sidebarOpen: false,
         searchOpen: false,
         commandPaletteOpen: false,
+        publishOpen: false,
         settingsOpen: false,
         settingsSection: 'appearance',
         activeLabId: null,

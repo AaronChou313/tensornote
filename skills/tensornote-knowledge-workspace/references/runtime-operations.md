@@ -10,7 +10,8 @@
 6. Daily startup and shutdown
 7. Git Bridge
 8. Build and deployment
-9. Troubleshooting
+9. Publish a public Workspace
+10. Troubleshooting
 
 ## 1. Process model
 
@@ -156,7 +157,13 @@ docker compose up --build -d
 
 Static and self-hosted modes share the same web runtime. Server-mounted Workspace access is not implied.
 
-## 9. Troubleshooting
+## 9. Publish a public Workspace
+
+Add a root License and a `publishing` block with `title`, `description`, `defaultNote`, and optional safe relative `logo` / six-digit `accent`. Copy `assets/publish-tensornote.yml` to `.github/workflows/publish-tensornote.yml`, enable GitHub Actions as the Pages source, and push to `main`.
+
+Before publishing, run the strict Workspace validator and the application repository's publication validator. The Workflow pins the reader to the caller's full commit SHA. Never add Jupyter Tokens, `.env`, private keys, cookies, or provider credentials to make a public example run. Public code still requires each reader's explicit execution permission, GitHub revision trust, and their own Compute Provider.
+
+## 10. Troubleshooting
 
 - Port 5173 changes: restart with `--strictPort` and keep Jupyter `allow_origin` identical.
 - Server unreachable: confirm Jupyter is still running on `127.0.0.1:8888`.

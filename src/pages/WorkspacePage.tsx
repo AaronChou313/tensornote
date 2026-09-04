@@ -4,6 +4,7 @@ import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { createDocumentTemplate } from '../content/document'
 import { joinWorkspacePath } from '../workspace/path'
 import { Button } from '../components/ui/Button'
+import { WorkspaceImage } from '../components/WorkspaceImage'
 
 export function WorkspacePage() {
   const navigate = useNavigate()
@@ -26,9 +27,10 @@ export function WorkspacePage() {
     <main className="workspace-overview">
       <div className="workspace-overview__inner">
         <header>
+          {session.manifest.publishing.logo && <div className="workspace-public-logo"><WorkspaceImage src={session.manifest.publishing.logo} alt="" documentPath="tensornote.yaml" resolveAssetUrl={useWorkspaceStore.getState().provider?.resolveAssetUrl.bind(useWorkspaceStore.getState().provider)} /></div>}
           <span className="workspace-kicker">Workspace</span>
-          <h1>{session.manifest.workspace.name}</h1>
-          <p>{session.manifest.workspace.description || '一个保持 Markdown 可移植性的 TensorNote Workspace。'}</p>
+          <h1>{session.manifest.publishing.title || session.manifest.workspace.name}</h1>
+          <p>{session.manifest.publishing.description || session.manifest.workspace.description || '一个保持 Markdown 可移植性的 TensorNote Workspace。'}</p>
           <div className="source-line">
             <span className={`source-dot source-dot--${session.descriptor.type}`} />
             {session.descriptor.sourceLabel}

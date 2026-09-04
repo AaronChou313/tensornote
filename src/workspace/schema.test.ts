@@ -24,6 +24,12 @@ features:
   executable: true
 environment:
   files: [requirements-dev.txt, ./env/environment.yml]
+publishing:
+  title: Public Demo
+  description: A reproducible knowledge product
+  logo: ./media/logo.png
+  accent: '#5A8F69'
+  defaultNote: welcome
 futureField:
   enabled: true
 extensions:
@@ -37,9 +43,22 @@ extensions:
       assets: { root: 'media' },
       features: { executable: true },
       environment: { files: ['requirements-dev.txt', 'env/environment.yml'] },
+      publishing: { title: 'Public Demo', description: 'A reproducible knowledge product', logo: 'media/logo.png', accent: '#5a8f69', defaultNote: 'welcome' },
       extensions: { graph: 'custom' },
     })
     expect(manifest).not.toHaveProperty('futureField')
+  })
+
+  it('drops unsafe or malformed publishing presentation values', () => {
+    const manifest = parseWorkspaceManifest(`
+schemaVersion: 1
+publishing:
+  logo: ../private/logo.png
+  accent: green
+  defaultNote: start
+`)
+
+    expect(manifest.publishing).toEqual({ defaultNote: 'start' })
   })
 
   it('rejects an invalid schema version', () => {

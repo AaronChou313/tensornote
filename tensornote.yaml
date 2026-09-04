@@ -19,3 +19,10 @@ features:
 environment:
   files:
     - requirements-jupyter.txt
+
+publishing:
+  title: AI Learning Notes
+  description: 从深度学习基础到 Transformer、ViT 与 CLIP 的可执行学习知识库
+  logo: assets/images/TensorNote_logo_wide.png
+  accent: '#4f8061'
+  defaultNote: deep-learning-overview

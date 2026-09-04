@@ -19,4 +19,10 @@ features:
 environment:
   files: []
 
+publishing:
+  title: My Knowledge Base
+  description: Portable Markdown knowledge workspace
+  accent: '#4f8061'
+  defaultNote: start-here
+
 extensions: {}

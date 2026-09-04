@@ -93,6 +93,12 @@ print(x.mean())
 
 本机执行授权不会改写 `tensornote.yaml`，也不会替代 GitHub 固定 Revision 的信任检查。诊断信息不得包含 Markdown 正文或未脱敏 Secret。
 
+## 公开发布投影（v1.4.0）
+
+Workspace Schema v1 允许新增可选 `publishing` 块，其中只有 `title`、`description`、Workspace 相对 `logo`、六位十六进制 `accent` 与稳定 `defaultNote` ID。该块是向后兼容的展示元数据，不改变 WorkspaceProvider API v1、执行权限、GitHub Revision trust 或 Settings/Secret 分类。
+
+公开分享 URL 必须绑定 GitHub Provider 实际解析的完整 commit SHA；分支名只能用于首次发现。Repository-owned Pages 仍实例化既有 GitHubWorkspaceProvider，不复制或提升来源能力。Desktop 深链只允许同一固定 GitHub 来源格式，不接受本地路径、Shell、Token、Compute Profile 或授权状态。
+
 ## 8. 发布承诺
 
 v1.0.0 Release Gate 包含全量测试、Lint、Local/Static 构建、性能门、生产依赖审计、PWA 版本一致性和关键浏览器流程。最终试用确认后以 Apache License 2.0 创建 Git Tag 与 GitHub Release；后续 1.x 必须保持这些契约向后兼容。

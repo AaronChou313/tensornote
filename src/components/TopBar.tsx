@@ -1,4 +1,4 @@
-import { Command, Flask, Gear, List, ShieldCheck, ShieldWarning, SidebarSimple } from '@phosphor-icons/react'
+import { Command, Flask, Gear, List, ShareNetwork, ShieldCheck, ShieldWarning, SidebarSimple } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
@@ -12,6 +12,7 @@ export function TopBar() {
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
   const setSettingsOpen = useAppStore((state) => state.setSettingsOpen)
+  const setPublishOpen = useAppStore((state) => state.setPublishOpen)
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
   const setLeftSidebar = useWorkbenchStore((state) => state.setSidebar)
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
@@ -33,6 +34,7 @@ export function TopBar() {
             <button className="trust-status trust-status--pending" onClick={trustActiveWorkspace} title="信任当前 GitHub Revision 后允许执行代码"><ShieldWarning size={14} />Trust to run</button>
           )
         )}
+        <Button variant="ghost" size="icon" className="publish-trigger" onClick={() => setPublishOpen(true)} aria-label="分享 Workspace" title="分享与发布"><ShareNetwork size={18} /></Button>
         <Button variant="ghost" size="icon" className="command-trigger" onClick={() => setCommandPaletteOpen(true)} aria-label="打开命令面板" title="命令面板 (⌘P)"><Command size={18} /></Button>
         <Button variant="ghost" size="icon" className="scratch-trigger" onClick={() => { setActiveLabId(null); setScratchOpen(true) }} aria-label="打开 Scratch Lab" title="Scratch Lab"><Flask size={18} /></Button>
         <Button className="settings-trigger" variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="打开设置" title="设置"><Gear size={18} /><span className={`settings-trigger__status kernel-dot kernel-dot--${kernelStatus}`} /></Button>

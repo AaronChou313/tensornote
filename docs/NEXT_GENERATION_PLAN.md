@@ -1,12 +1,12 @@
 # TensorNote 下一代产品与架构规划
 
-状态：执行中；`v1.3.0` 源码阶段已完成
+状态：执行中；`v1.4.0` 源码阶段已完成
 
 基线：`v1.0.0 — Stable Platform`
 
 规划范围：`v1.1–v1.x`；只有无法保持 v1 契约兼容的变化才进入 `v2.0.0`
 
-更新时间：2026-09-01
+更新时间：2026-09-04
 
 ## 1. 执行摘要
 
@@ -491,6 +491,15 @@ Python → Environment → Jupyter Server → Kernel → Workspace Permission �
 - 公开知识库的来源、只读、信任、资源要求和运行入口统一设计。
 
 验收：第三方仓库只需复制 Workflow 即可发布；更新 Markdown 后 Pages 自动构建，固定 Revision 链接可复现。
+
+完成记录（2026-09-04）：
+
+- GitHub Provider 已解析的完整 commit SHA 成为唯一可复制分享 revision；链接可继续固定当前笔记或由 `publishing.defaultNote` 选择首页。
+- Schema v1 以可选 `publishing` 块承载标题、描述、相对 Logo、Accent 与首页 ID，不保存 Repository 凭据、执行授权或 Compute Secret。
+- 可复用 Workflow 分离检出调用方 Workspace 与 TensorNote Runtime，先执行严格 Workspace/License/Environment/Secret 校验，再把调用方 `${GITHUB_SHA}` 注入 Static Reader 并部署 Pages。
+- 分享面板统一展示只读来源、commit、环境、执行声明与本机信任，并提供固定 Web URL、Badge、Repository、Fork、归档下载和 Desktop 深链。
+- Desktop 使用静态 `tensornote` scheme、受限 GitHub URL 解析与单实例转发；打开不同 Workspace 前继续保护未保存编辑，深链本身不授予远程代码信任。
+- Static 边界扫描拒绝 Deep Link 插件标记；发布能力继续复用 WorkspaceProvider/ComputeProvider，不引入内容服务或远程执行后门。
 
 ### v1.5.0 — Remote Compute Connectors
 

@@ -32,7 +32,7 @@
 
 TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。知识正文、属性、链接和实验定义都保存在可读、可迁移、适合 Git 的文件中；索引、图谱和 Database 可以随时从源文件重建。应用不把知识锁进私有数据库，也不会在未授权时执行代码。
 
-当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已完成 **v1.3.0 — Local Runtime Assistant** 源码阶段：同一 React 核心可运行于 Web 与 Tauri Desktop；Desktop 还可检测本机 Python 工具链、审核后创建最小环境，并一键启停它自己拥有的 Jupyter Server。尚不提供签名安装包。详见[下一代规划](docs/NEXT_GENERATION_PLAN.md)与[v1.3.0 源码阶段说明](docs/releases/v1.3.0.md)。
+当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已完成 **v1.4.0 — Publish & Read Anywhere** 源码阶段：同一 React 核心可运行于 Web 与 Tauri Desktop；公开 Workspace 可以固定 commit 分享、通过可复制 Workflow 发布为 GitHub Pages，并安全跳转 Desktop。尚不提供签名安装包。详见[发布指南](docs/PUBLISHING.md)、[下一代规划](docs/NEXT_GENERATION_PLAN.md)与[v1.4.0 源码阶段说明](docs/releases/v1.4.0.md)。
 
 ## 为什么是 TensorNote
 
@@ -51,6 +51,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 | **多窗格 Workbench** | 独立 Pane、Tabs、History 与滚动状态；左右分栏、焦点上下文、命令面板、设置弹窗、可折叠侧栏与响应式布局。 |
 | **Python Lab** | 多 Cell executable fence、Scratch Lab、Run/Run All/Run Above/Below、Restart、Interrupt、输出管理、Compute Profile 与连接诊断。 |
 | **Local Runtime Assistant** | Desktop 只读发现 Python/Conda/uv/Jupyter/Kernel；先预览计划再创建最小环境，安全启动、查看日志并停止 Owned Jupyter。 |
+| **Publish & Read Anywhere** | 固定 GitHub commit 的分享链接、Badge、Fork/下载/Desktop 深链、公开主题配置、发布前检查与 Repository-owned Pages Workflow。 |
 | **Structured Knowledge** | 从 YAML Frontmatter 重建属性索引，以表达式查询笔记，并在 Table、Card、List 视图之间切换。 |
 | **Git & Sync** | Desktop 原生 Git 或 Local Web 可选 Bridge；查看状态、Diff 与历史，Stage/Unstage 并创建本地 Commit，不暴露任意 Shell。 |
 | **Extension Platform** | Command、View、Sidebar、Markdown Processor、Editor、Settings、Status Bar、Workspace 与 Compute Provider 扩展点。 |
@@ -146,9 +147,27 @@ features:
 environment:
   files:
     - requirements.txt
+publishing:
+  title: My Knowledge Base
+  description: A public executable knowledge product
+  logo: assets/logo.png
+  accent: '#4f8061'
+  defaultNote: start-here
 ```
 
 没有 Manifest 时仍可作为普通 Markdown 文件夹打开，但执行能力默认关闭。用户可以在“设置 → 计算与 Jupyter”按设备、按 Workspace 临时授权；本地偏好不会改写仓库配置。
+
+### 发布为在线知识产品
+
+公开 GitHub Workspace 可以复制一份 Workflow 发布到自己的 GitHub Pages。每次 Push 都会先检查 Workspace、首页、环境声明、License 与明显凭据文件，再把 Reader 固定到该次 commit：
+
+```bash
+mkdir -p .github/workflows
+cp skills/tensornote-knowledge-workspace/assets/publish-tensornote.yml \
+  .github/workflows/publish-tensornote.yml
+```
+
+在线打开后，顶部分享面板可复制当前笔记的固定 Revision URL、Open in TensorNote Badge，并提供 Repository、Fork、下载和 Desktop 深链。完整流程与安全边界见[发布指南](docs/PUBLISHING.md)。
 
 一篇可连接的笔记可以保持完全标准的 Markdown：
 
@@ -276,6 +295,7 @@ pnpm build:web
 | [Git & Sync](docs/GIT_AND_SYNC.md) | Local Git Bridge、Diff、Stage 与 Commit |
 | [Extensions](docs/EXTENSIONS.md) | Manifest、权限、API 与示例扩展 |
 | [Recovery](docs/RECOVERY.md) | 草稿恢复、冲突保护与错误边界 |
+| [Publishing](docs/PUBLISHING.md) | 固定 Revision 分享、Pages Workflow、发布检查、Badge 与 Desktop 深链 |
 | [Development](docs/DEVELOPMENT.md) | 更新功能、版本流程与发布规范 |
 | [Hardening](docs/HARDENING.md) | 兼容、性能、安全和分发限制 |
 | [Next Generation Plan](docs/NEXT_GENERATION_PLAN.md) | Web/Desktop 双宿主、本地/远程 Workspace 与 Compute、开放知识发布生态 |

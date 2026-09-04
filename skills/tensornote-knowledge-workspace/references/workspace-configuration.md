@@ -49,6 +49,13 @@ environment:
   files:
     - requirements.txt
 
+publishing:
+  title: My Knowledge Base
+  description: A public Markdown knowledge product
+  logo: assets/logo.png
+  accent: '#4f8061'
+  defaultNote: start-here
+
 extensions: {}
 ```
 
@@ -60,6 +67,7 @@ Rules:
 - Default `features.executable` to `false` for new or imported content. Enable it only for an intentionally executable repository.
 - Put extension-owned data below `extensions` and preserve unknown fields.
 - A folder without a manifest remains readable with safe defaults and execution disabled.
+- `publishing` is optional for local use. A public Pages candidate should provide a title, description, stable default note ID, optional safe relative logo, and six-digit accent color.
 
 ## 3. Capability and compatibility rules
 

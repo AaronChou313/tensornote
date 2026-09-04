@@ -42,6 +42,7 @@ Read multiple references when a request spans those concerns. Do not infer execu
 - Copy [assets/workspace-template](assets/workspace-template) to start a complete Workspace.
 - Copy [assets/note-template.md](assets/note-template.md) for a conceptual note.
 - Copy [assets/lab-note-template.md](assets/lab-note-template.md) for a multi-cell executable note.
+- Copy [assets/publish-tensornote.yml](assets/publish-tensornote.yml) to `.github/workflows/publish-tensornote.yml` when publishing a public Workspace with GitHub Pages. Add a root License and complete the `publishing` block before enabling the Workflow.
 
 Replace every placeholder, keep IDs unique, and validate after copying.
 

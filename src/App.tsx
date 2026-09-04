@@ -1,8 +1,11 @@
 import { lazy, Suspense, useEffect, type ReactNode } from 'react'
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAppStore } from './store/useAppStore'
 import { HomePage } from './pages/HomePage'
 import { DesktopWorkspaceOpenBridge } from './host/DesktopWorkspaceOpenBridge'
+import { DesktopDeepLinkBridge } from './host/DesktopDeepLinkBridge'
+import { deploymentAdapter } from './deployment/config'
+import { createGitHubOpenPath, isPinnedGitHubRevision } from './publishing/links'
 
 const AppShell = lazy(() => import('./components/AppShell').then((module) => ({ default: module.AppShell })))
 const GitHubOpenPage = lazy(() => import('./pages/GitHubOpenPage').then((module) => ({ default: module.GitHubOpenPage })))
@@ -34,6 +37,10 @@ function RouteScrollReset() {
 
 export function App() {
   const theme = useAppStore((state) => state.theme)
+  const published = deploymentAdapter.publishedWorkspace
+  const publishedPath = published && isPinnedGitHubRevision(published.revision)
+    ? createGitHubOpenPath(published)
+    : null
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -43,8 +50,9 @@ export function App() {
     <>
       <RouteScrollReset />
       <DesktopWorkspaceOpenBridge />
+      <DesktopDeepLinkBridge />
       <Routes>
-        <Route index element={<HomePage />} />
+        <Route index element={publishedPath ? <Navigate to={publishedPath} replace /> : <HomePage />} />
         <Route path="open/github/:owner/:repo" element={deferred(<GitHubOpenPage />)} />
         <Route element={deferred(<AppShell />)}>
           <Route path="workspace" element={deferred(<WorkspacePage />)} />

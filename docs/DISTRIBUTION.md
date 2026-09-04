@@ -27,7 +27,7 @@ pnpm preview
 
 根域部署时把 `VITE_BASE_PATH` 设为 `/`。`dist/` 可上传到 GitHub Pages、Cloudflare Pages、Netlify、Vercel Static 或普通静态服务器。
 
-仓库包含 `.github/workflows/deploy-pages.yml`，只允许手动 `workflow_dispatch`，不会因普通 Push 自动发布。首次使用需在 GitHub Repository Settings → Pages 中选择 GitHub Actions，然后手动运行 `Deploy static TensorNote`。
+仓库包含 `.github/workflows/deploy-pages.yml`，用于手动发布 TensorNote 官方 Reader。v1.4.0 另提供 `.github/workflows/publish-workspace.yml` 可复用 Workflow 与 Skill 内的单文件调用模板，让第三方公开知识库在推送 Markdown 后自动校验并部署自己的 Pages。首次使用需在 GitHub Repository Settings → Pages 中选择 GitHub Actions；完整步骤见[发布 TensorNote Workspace](PUBLISHING.md)。
 
 Static Web 支持 Built-in/GitHub Workspace、Markdown 阅读、浏览器允许时的本地目录和远程 Jupyter。它不显示 localhost Git Bridge 入口；HTTPS 页面也不能连接 HTTP Jupyter，诊断界面会明确指出 Mixed Content。
 
@@ -73,6 +73,11 @@ PWA 离线能力只覆盖应用 Shell 和已经缓存的同源资源：
 | `VITE_TENSORNOTE_DEPLOYMENT` | `local` / `static` / `self-hosted` / `desktop` | 选择 Deployment Adapter；默认 `local` |
 | `VITE_BASE_PATH` | `/` 或 `/repository/` | Vite 资源与 Service Worker Scope 前缀 |
 | `VITE_TENSORNOTE_PWA` | `false` 或省略 | 是否注册 Service Worker |
+| `VITE_TENSORNOTE_PUBLIC_READER_URL` | HTTPS 根地址 | 分享面板生成固定 Web 链接时使用的 Reader；默认是 TensorNote 官方 Pages |
+| `VITE_TENSORNOTE_PUBLISH_OWNER` | GitHub owner | Repository-owned Reader 自动打开的来源；必须与 repo/revision 同时提供 |
+| `VITE_TENSORNOTE_PUBLISH_REPO` | GitHub repository | Repository-owned Reader 自动打开的来源 |
+| `VITE_TENSORNOTE_PUBLISH_REVISION` | 完整 commit SHA | Repository-owned Reader 固定的内容版本 |
+| `VITE_TENSORNOTE_PUBLISH_NOTE` | 笔记 ID，可选 | 覆盖 `publishing.defaultNote` 的首页 |
 
 这些变量在构建时固定。改变后必须重新执行 `pnpm build`。
 
@@ -94,11 +99,11 @@ pnpm check:desktop
 pnpm build:desktop
 ```
 
-`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。v1.3.0 Desktop 支持 Built-in/GitHub、系统选择器授权的原生本地 Workspace、受限 Native Git，以及 Local Runtime Assistant。环境发现、审核式最小环境创建和 Owned Jupyter 生命周期均由 Rust 类型化白名单命令提供，不依赖浏览器 File System Access API、任意 Shell 或 localhost Bridge。当前产物未签名、公证，也不作为正式安装包发布。
+`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。v1.4.0 Desktop 支持 Built-in/GitHub、系统选择器授权的原生本地 Workspace、受限 Native Git、Local Runtime Assistant，以及只接受固定 GitHub commit 的 `tensornote://` 深链。环境发现、审核式最小环境创建和 Owned Jupyter 生命周期均由 Rust 类型化白名单命令提供，不依赖浏览器 File System Access API、任意 Shell 或 localhost Bridge。当前产物未签名、公证，也不作为正式安装包发布。
 
 Desktop 仍要求用户自行安装系统 Git 才能使用 Native Git。运行 Python Lab 至少需要一个本机 Python；运行时助手可复用已有 Jupyter 环境，或在用户确认后通过检测到的 uv、Conda 或标准 venv 创建最小基础环境。打开目录后可在 Workspace 菜单选择“在文件管理器中显示”；也可把目录或 `.md` / `.markdown` 文件拖入窗口。
 
-Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)、[Native Workspace ADR](adr/0003-native-workspace-capability.md)与 [Local Runtime ADR](adr/0004-local-runtime-assistant.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移；Static build 另有脚本阻止 Native IPC 进入 GitHub Pages 产物。
+Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)、[Native Workspace ADR](adr/0003-native-workspace-capability.md)、[Local Runtime ADR](adr/0004-local-runtime-assistant.md)与[发布 ADR](adr/0005-publish-read-anywhere.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移；Static build 另有脚本阻止 Native IPC 与 Deep Link 插件进入 GitHub Pages 产物。
 
 ## 7. 性能验证
 

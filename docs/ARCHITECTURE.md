@@ -357,6 +357,30 @@ session-only Compute Profile ── existing ComputeRuntime / JupyterComputeProv
 - 自动生成的 Compute Profile 继续使用 ComputeProvider API v1；Token 只进入 `sessionStorage`，Owned Profile 不持久化，Server 停止时同步移除。外部或远程 Jupyter 仍使用既有手动 Profile。
 - Desktop 模块使用构建期开关动态加载；Static 产物扫描新增 `local_runtime_*` 禁止项。完整安全决策见 [ADR 0004](adr/0004-local-runtime-assistant.md)。
 
+## v1.4.0 Publish & Read Anywhere
+
+```text
+Public Workspace Repository
+  ├── Markdown / Assets / tensornote.yaml / License
+  └── thin caller Workflow
+             │ workflow_call
+             ▼
+TensorNote reusable Workflow
+  ├── strict Workspace + publication validation
+  ├── Static Runtime build @ caller commit SHA
+  └── GitHub Pages artifact
+             │
+             ▼
+GitHubWorkspaceProvider ── read-only session ── Share / Fork / Download / Desktop
+```
+
+- `publishing` 是 Schema v1 的可选展示投影，不改变内容、Provider capability、执行授权或 Secret 模型。
+- Static Reader 的 `publishedWorkspace` 由构建变量提供，只负责启动时选择既有 GitHubWorkspaceProvider；内容仍从作者 Repository 的固定 commit 读取。
+- 分享目标由纯函数从 `owner/repo/revision/noteId` 生成，只有完整 40/64 位 Git commit 才能成为可复现 URL。
+- DesktopDeepLinkBridge 通过构建期开关加载官方 Deep Link 插件，只接受固定 GitHub commit；应用运行中由 single-instance 转发，切换前复用未保存内容保护。
+- 发布检查器组合 Agent Skill 的严格 Workspace validator 与 License、Environment、Presentation、Revision 和凭据文件门，不安装依赖、不执行 Lab。
+- 完整决策见 [ADR 0005](adr/0005-publish-read-anywhere.md)，操作流程见[发布指南](PUBLISHING.md)。
+
 ## 版本更新规则
 
 每个版本至少同步更新：

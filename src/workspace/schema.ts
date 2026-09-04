@@ -12,6 +12,7 @@ const defaultManifest: WorkspaceManifest = {
   navigation: { mode: 'filesystem' },
   features: { executable: false },
   environment: { files: [] },
+  publishing: {},
   extensions: {},
 }
 
@@ -45,6 +46,7 @@ export function parseWorkspaceManifestWithCompatibility(source?: string, fallbac
   const navigation = objectValue(parsed.navigation)
   const features = objectValue(parsed.features)
   const environment = objectValue(parsed.environment)
+  const publishing = objectValue(parsed.publishing)
   const declaredSchemaVersion = parsed.schemaVersion
   const sourceVersion = declaredSchemaVersion === undefined ? 0 : Number(declaredSchemaVersion)
 
@@ -74,6 +76,17 @@ export function parseWorkspaceManifestWithCompatibility(source?: string, fallbac
       files: Array.isArray(environment.files)
         ? environment.files.map(String).map(normalizeWorkspacePath).filter(Boolean)
         : [],
+    },
+    publishing: {
+      ...(publishing.title ? { title: String(publishing.title) } : {}),
+      ...(publishing.description ? { description: String(publishing.description) } : {}),
+      ...(typeof publishing.logo === 'string' && !/^[/\\]/.test(publishing.logo) && !publishing.logo.split(/[\\/]+/).includes('..')
+        ? { logo: normalizeWorkspacePath(publishing.logo) }
+        : {}),
+      ...(typeof publishing.accent === 'string' && /^#[0-9a-f]{6}$/i.test(publishing.accent)
+        ? { accent: publishing.accent.toLowerCase() }
+        : {}),
+      ...(publishing.defaultNote ? { defaultNote: String(publishing.defaultNote) } : {}),
     },
     extensions: objectValue(parsed.extensions),
   }, compatibility: {

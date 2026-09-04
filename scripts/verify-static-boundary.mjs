@@ -13,6 +13,8 @@ const forbidden = [
   'take_pending_native_workspace',
   'native-workspace-open',
   'local_runtime_',
+  'deep-link://new-url',
+  '@tauri-apps/plugin-deep-link',
 ]
 
 async function filesIn(directory) {

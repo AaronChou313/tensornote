@@ -1,0 +1,21 @@
+name: Publish with TensorNote
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publish:
+    uses: AaronChou313/tensornote/.github/workflows/publish-workspace.yml@main
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    with:
+      runtime_ref: main

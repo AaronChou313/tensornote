@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "TensorNote",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "identifier": "io.github.aaronchou313.tensornote",
   "build": {
     "frontendDist": "../dist",
@@ -49,6 +49,13 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
+    }
+  },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["tensornote"]
+      }
     }
   }
 }

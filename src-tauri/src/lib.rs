@@ -1,5 +1,7 @@
 use serde::Serialize;
 use tauri::{Emitter, Manager};
+#[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
+use tauri_plugin_deep_link::DeepLinkExt;
 
 mod local_runtime;
 mod native_git;
@@ -24,9 +26,31 @@ fn platform_info() -> HostPlatformInfo {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let app = tauri::Builder::default()
+    let mut builder = tauri::Builder::default();
+
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            if let Some(path) = argv
+                .iter()
+                .skip(1)
+                .map(std::path::PathBuf::from)
+                .find(|path| path.exists())
+            {
+                let registry = app.state::<native_workspace::NativeWorkspaceRegistry>();
+                if let Ok(selection) = registry.register_open_path(&path) {
+                    let _ = app.emit("native-workspace-open", selection);
+                }
+            }
+        }));
+    }
+
+    let app = builder
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
+            #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
+            app.deep_link().register_all()?;
             let registry = native_workspace::NativeWorkspaceRegistry::load(app.handle())?;
             if let Some(path) = std::env::args_os()
                 .skip(1)

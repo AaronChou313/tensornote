@@ -95,6 +95,13 @@ export interface WorkspaceManifest {
   environment: {
     files: string[]
   }
+  publishing: {
+    title?: string
+    description?: string
+    logo?: string
+    accent?: string
+    defaultNote?: string
+  }
   extensions: Record<string, unknown>
 }
 

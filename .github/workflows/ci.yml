@@ -36,6 +36,8 @@ jobs:
         run: node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs .
       - name: Validate workspace template
         run: node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs skills/tensornote-knowledge-workspace/assets/workspace-template --strict
+      - name: Validate publication candidate
+        run: node scripts/validate-publication.mjs --workspace . --owner AaronChou313 --repo tensornote --revision 0123456789abcdef0123456789abcdef01234567
       - name: Build static deployment
         run: pnpm build:web
         env:

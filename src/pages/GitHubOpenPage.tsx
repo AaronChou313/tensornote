@@ -13,15 +13,19 @@ export function GitHubOpenPage() {
   const loadingMessage = useWorkspaceStore((state) => state.loadingMessage)
   const openProvider = useWorkspaceStore((state) => state.openProvider)
   const ref = params.get('ref') || undefined
-  const key = `${owner}/${repo}@${ref || 'default'}`
+  const requestedNote = params.get('note') || undefined
+  const key = `${owner}/${repo}@${ref || 'default'}:${requestedNote || 'overview'}`
 
   useEffect(() => {
     if (!owner || !repo || attempted.current === key) return
     attempted.current = key
     void openProvider(new GitHubWorkspaceProvider(owner, repo, ref))
-      .then(() => navigate('/workspace', { replace: true }))
+      .then((session) => {
+        const noteId = requestedNote || session.manifest.publishing.defaultNote
+        navigate(noteId && session.documentById.has(noteId) ? `/notes/${encodeURIComponent(noteId)}` : '/workspace', { replace: true })
+      })
       .catch(() => undefined)
-  }, [key, navigate, openProvider, owner, ref, repo])
+  }, [key, navigate, openProvider, owner, ref, repo, requestedNote])
 
   return (
     <main className="route-status-page">
