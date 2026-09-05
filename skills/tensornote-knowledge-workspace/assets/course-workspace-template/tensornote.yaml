@@ -1,0 +1,28 @@
+schemaVersion: 1
+
+workspace:
+  name: My TensorNote Course
+  description: A portable learning path with executable experiments
+
+content:
+  root: notes
+
+assets:
+  root: assets
+
+navigation:
+  mode: filesystem
+
+features:
+  executable: true
+
+environment:
+  files: []
+
+publishing:
+  title: My TensorNote Course
+  description: Learn one concept at a time, then verify it with code
+  accent: '#4f8061'
+  defaultNote: course-home
+
+extensions: {}

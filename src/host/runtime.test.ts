@@ -35,8 +35,11 @@ describe('host adapter runtime', () => {
     expect(adapter.capabilities.fileAssociations).toBe(true)
     expect(adapter.capabilities.environmentDiscovery).toBe(true)
     expect(adapter.capabilities.processManagement).toBe(true)
+    expect(adapter.capabilities.autoUpdate).toBe(true)
     expect(adapter.discoverLocalRuntime).toBeTypeOf('function')
     expect(adapter.startOwnedJupyter).toBeTypeOf('function')
+    expect(adapter.checkForUpdate).toBeTypeOf('function')
+    expect(adapter.downloadAndInstallUpdate).toBeTypeOf('function')
   })
 
   it('fails closed when a Web build is asked to start as Desktop', async () => {

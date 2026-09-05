@@ -13,7 +13,7 @@ TensorNote 提供一套可版本管理、可复制安装、可由不同智能体
 | Lab 规格 | `references/executable-labs.md` | Executable Markdown v1、多 Cell 设计、难度、运行条件和安全规则 |
 | 运行手册 | `references/runtime-operations.md` | pnpm、Conda/venv/uv、Jupyter、Kernel、Git Bridge、部署和排障 |
 | 确定性工具 | `scripts/validate-workspace.mjs` | 检查 Schema、路径、Frontmatter、ID、WikiLink、Assets 与 Lab 元数据 |
-| 输出模板 | `assets/` | 完整 Workspace、概念笔记、多 Cell 实验笔记和 GitHub Pages Workflow 模板 |
+| 输出模板 | `assets/` | 通用 Workspace、课程 Workspace、概念笔记、多 Cell 实验笔记和固定版本的 GitHub Pages Workflow 模板 |
 
 TypeScript 集成仍通过 [`src/platform/index.ts`](../src/platform/index.ts) 使用六项稳定 v1 契约；Skill 是面向智能体的操作协议，不替代运行时 API。
 
@@ -101,6 +101,8 @@ pnpm validate:publication -- --workspace /path/to/workspace --owner owner --repo
 ```
 
 它在严格 Workspace 规则之外检查 `publishing` 展示配置、首页 ID、License、声明的环境文件和明显凭据文件。复制 `assets/publish-tensornote.yml` 后，知识库仍需由人确认公开内容和许可证。
+
+课程型知识库优先从 `assets/course-workspace-template` 开始；它展示学习首页、模块前置关系、复习问题与共享状态的多 Cell Lab，但不会替作者选择内容 License。
 
 ## 6. 安全边界
 

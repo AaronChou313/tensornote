@@ -117,6 +117,8 @@ Workspace Schema v1 允许新增可选 `publishing` 块，其中只有 `title`�
 
 v1.0.0 Release Gate 包含全量测试、Lint、Local/Static 构建、性能门、生产依赖审计、PWA 版本一致性和关键浏览器流程。最终试用确认后以 Apache License 2.0 创建 Git Tag 与 GitHub Release；后续 1.x 必须保持这些契约向后兼容。
 
+v1.6.0 为 `HostAdapter` 增加可选的 update check、download/install progress 与 relaunch 方法。Web Adapter 保持 `autoUpdate: false`；Desktop 只有在签名 Release 配置存在时才消费 Updater。此增量不改变 Workspace、Compute、Extension 或 Settings v1 数据格式。
+
 ## 9. 智能体接口
 
 `skills/tensornote-knowledge-workspace/` 将本页的运行时契约转换为智能体可执行的撰写、配置、运行和校验流程。Skill 不另定义内容格式：它必须继续使用 Workspace Schema v1、Executable Markdown Syntax v1 和 Settings / Secret Model v1。

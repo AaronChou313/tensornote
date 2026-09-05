@@ -51,7 +51,7 @@ cp /path/to/tensornote/skills/tensornote-knowledge-workspace/assets/publish-tens
 4. 构建同一套 TensorNote Web Runtime；
 5. 上传并部署 Pages Artifact。
 
-模板源码阶段使用 `runtime_ref: main`。正式 TensorNote v1.4.0 Tag 发布后，公开知识库应把 Workflow 的 `uses` 与 `runtime_ref` 固定到相同版本，避免应用 Runtime 随 `main` 漂移。
+v1.6.0 模板把 Workflow 的 `uses` 与 `runtime_ref` 固定到相同 TensorNote Tag，避免应用 Runtime 随 `main` 漂移。升级 Runtime 时应同时修改这两个值，并先在 Fork 或独立分支运行发布检查。
 
 ## 3. 本地运行发布检查
 
@@ -83,6 +83,7 @@ pnpm validate:publication -- \
 - **Download** 下载当前 commit 的源码归档。
 - **Open in Desktop** 使用受限 `tensornote://open/github/...` 深链；只有已安装并注册 TensorNote Desktop 时生效。
 - **Badge** 可复制到 Workspace README。
+- **Workspace v1 Badge** 声明 Schema、执行授权和可移植 Markdown 兼容边界。
 
 公开内容始终按 GitHub Provider 的只读能力显示。Python 代码不会因为公开而自动执行：作者需要声明 `features.executable: true`，读者需要自己的 Compute Profile，并且必须在本机信任当前 commit revision。
 

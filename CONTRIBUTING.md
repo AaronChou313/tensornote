@@ -68,6 +68,8 @@ pnpm build
 node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs .
 node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs \
   skills/tensornote-knowledge-workspace/assets/workspace-template --strict
+node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs \
+  skills/tensornote-knowledge-workspace/assets/course-workspace-template --strict
 ```
 
 ## Pull Request 清单
@@ -79,3 +81,11 @@ node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs \
 - 不创建 Tag、GitHub Release 或自动部署，除非维护者明确安排发布任务。
 
 维护者可能要求缩小范围、拆分提交或补充迁移与安全说明。合并并不保证立即发布。
+
+## 维护者 Release 流程
+
+1. 同步 package、Cargo、Tauri、About 与 `docs/releases/vX.Y.Z.md`，运行 `pnpm validate:release -- --tag vX.Y.Z`。
+2. 先手动运行 Release Workflow，检查无 Tag 的四平台构建 Artifacts。
+3. 确认 Apple Developer ID、公证、Windows 代码签名和 Updater Secrets 均已配置，再创建不可变 Tag。
+4. 验证 Draft Release 中的平台签名、Updater signature、`SHA256SUMS`、`release-manifest.json` 和安装主流程后再公开。
+5. 已公开 Tag 不移动；问题版本按 [Release Matrix](docs/RELEASE_MATRIX.md) 发布递增 Patch 并撤下错误更新清单。

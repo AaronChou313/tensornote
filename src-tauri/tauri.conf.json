@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "TensorNote",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "identifier": "io.github.aaronchou313.tensornote",
   "build": {
     "frontendDist": "../dist",
@@ -56,6 +56,12 @@
       "desktop": {
         "schemes": ["tensornote"]
       }
+    },
+    "updater": {
+      "endpoints": [
+        "https://github.com/AaronChou313/tensornote/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDRCRDlFQkI5NDcwRUM0RDMKUldUVHhBNUh1ZXZaU3pkQ29qbGw2eXFoS2tzbnNUYm4ramFXVVFSY2Nvc1BYc0ptTnptcnNsNHEK"
     }
   }
 }

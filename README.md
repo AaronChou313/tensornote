@@ -32,7 +32,7 @@
 
 TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace。知识正文、属性、链接和实验定义都保存在可读、可迁移、适合 Git 的文件中；索引、图谱和 Database 可以随时从源文件重建。应用不把知识锁进私有数据库，也不会在未授权时执行代码。
 
-当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已完成 **v1.5.0 — Remote Compute Connectors** 源码阶段：同一 React 核心可运行于 Web 与 Tauri Desktop；公开 Workspace 可以固定 commit 发布为 GitHub Pages，再由读者连接自己的 HTTPS Jupyter/JupyterHub，或从该 Revision 启动 BinderHub 临时环境。尚不提供签名安装包。详见[发布指南](docs/PUBLISHING.md)、[Compute Platform](docs/COMPUTE_PLATFORM.md)、[下一代规划](docs/NEXT_GENERATION_PLAN.md)与[v1.5.0 源码阶段说明](docs/releases/v1.5.0.md)。
+当前稳定 Release 为 **v1.0.0 — Stable Platform**。`main` 已进入 **v1.6.0 — Distribution & Ecosystem Hardening** 发布候选源码阶段：除 Web/Desktop 双宿主、公开 Workspace 与 Remote Compute 外，现已具备标签驱动的跨平台安装资产、签名 Updater、校验清单、课程模板与回滚流程。正式签名安装包仍等待 Apple Developer ID 和 Windows 代码签名凭据，不会降级发布未签名资产。详见[发布矩阵](docs/RELEASE_MATRIX.md)、[发布指南](docs/PUBLISHING.md)、[Compute Platform](docs/COMPUTE_PLATFORM.md)与[v1.6.0 说明](docs/releases/v1.6.0.md)。
 
 ## 为什么是 TensorNote
 
@@ -53,6 +53,7 @@ TensorNote 是一个本地优先、Markdown 优先的可执行知识 Workspace�
 | **Local Runtime Assistant** | Desktop 只读发现 Python/Conda/uv/Jupyter/Kernel；先预览计划再创建最小环境，安全启动、查看日志并停止 Owned Jupyter。 |
 | **Remote Compute Connectors** | Generic HTTPS Jupyter、当前用户 JupyterHub、固定 Revision BinderHub；统一进度、兼容诊断、所有权与临时 Token 清理。 |
 | **Publish & Read Anywhere** | 固定 GitHub commit 的分享链接、Badge、Fork/下载/Desktop 深链、公开主题配置、发布前检查与 Repository-owned Pages Workflow。 |
+| **可信分发** | 标签驱动 Web/Desktop Release Matrix、Updater 签名、SHA-256 清单、Draft Release、安装验证和回滚说明。 |
 | **Structured Knowledge** | 从 YAML Frontmatter 重建属性索引，以表达式查询笔记，并在 Table、Card、List 视图之间切换。 |
 | **Git & Sync** | Desktop 原生 Git 或 Local Web 可选 Bridge；查看状态、Diff 与历史，Stage/Unstage 并创建本地 Commit，不暴露任意 Shell。 |
 | **Extension Platform** | Command、View、Sidebar、Markdown Processor、Editor、Settings、Status Bar、Workspace 与 Compute Provider 扩展点。 |
@@ -252,7 +253,7 @@ docker compose up --build -d
 
 仓库也提供 Static Base Path、手动 GitHub Pages Workflow 与 PWA。部署变量、Nginx 容器和离线边界见[分发与部署](docs/DISTRIBUTION.md)。
 
-Desktop 源码阶段：
+Desktop 开发与候选构建：
 
 ```bash
 pnpm dev:desktop
@@ -260,7 +261,7 @@ pnpm check:desktop
 pnpm build:desktop
 ```
 
-v1.3.0 Desktop 可通过系统选择器打开本地 Workspace、直接使用受限原生 Git，并在设置中检测 Python/Conda/uv/Jupyter/Kernel。用户可以审核计划后创建仅含 Jupyter Server、ipykernel、NumPy、Matplotlib 与 Pillow 的独立环境；Owned Jupyter 只绑定 Loopback、使用随机 Token，并可查看脱敏日志或一键停止。TensorNote 不会静默安装大型 ML 框架，也不会停止外部 Server。当前 `.app`/可执行文件未签名，不作为正式安装包发布。
+Desktop 可通过系统选择器打开本地 Workspace、使用受限原生 Git，并在设置中检测 Python/Conda/uv/Jupyter/Kernel。用户可以审核计划后创建最小环境；Owned Jupyter 只绑定 Loopback、使用随机 Token，并可查看脱敏日志或一键停止。v1.6.0 另在 About 中加入签名更新流程。正式安装包只在 Apple/Windows 平台签名与公证门齐备后发布。
 
 ## 智能体接口
 
@@ -300,6 +301,7 @@ pnpm build:web
 | [Extensions](docs/EXTENSIONS.md) | Manifest、权限、API 与示例扩展 |
 | [Recovery](docs/RECOVERY.md) | 草稿恢复、冲突保护与错误边界 |
 | [Publishing](docs/PUBLISHING.md) | 固定 Revision 分享、Pages Workflow、发布检查、Badge 与 Desktop 深链 |
+| [Release Matrix](docs/RELEASE_MATRIX.md) | 多平台安装资产、签名、校验值、Updater 与回滚流程 |
 | [Development](docs/DEVELOPMENT.md) | 更新功能、版本流程与发布规范 |
 | [Hardening](docs/HARDENING.md) | 兼容、性能、安全和分发限制 |
 | [Next Generation Plan](docs/NEXT_GENERATION_PLAN.md) | Web/Desktop 双宿主、本地/远程 Workspace 与 Compute、开放知识发布生态 |

@@ -12,6 +12,7 @@ export interface PublicationTargets {
   forkUrl: string
   downloadUrl: string
   badgeMarkdown: string
+  compatibilityBadgeMarkdown: string
 }
 
 const repositorySegment = /^[a-z0-9_.-]+$/i
@@ -56,6 +57,7 @@ export function createGitHubPublicationTargets(appUrl: string, source: GitHubPub
     forkUrl: `${repositoryUrl}/fork`,
     downloadUrl: `${repositoryUrl}/archive/${encodeURIComponent(source.revision)}.zip`,
     badgeMarkdown: `[![Open in TensorNote](https://img.shields.io/badge/Open%20in-TensorNote-5a8f69?logo=markdown)](${webUrl})`,
+    compatibilityBadgeMarkdown: `[![TensorNote Workspace v1](https://img.shields.io/badge/TensorNote%20Workspace-v1-5a8f69)](https://github.com/AaronChou313/tensornote/blob/v${TENSORNOTE_VERSION}/docs/PLATFORM_CONTRACTS.md)`,
   }
 }
 
@@ -72,3 +74,4 @@ export function parseTensorNoteDeepLink(value: string): GitHubPublicationSource 
     return null
   }
 }
+import { TENSORNOTE_VERSION } from '../version'

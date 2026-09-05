@@ -15,6 +15,10 @@ const forbidden = [
   'local_runtime_',
   'deep-link://new-url',
   '@tauri-apps/plugin-deep-link',
+  '@tauri-apps/plugin-updater',
+  '@tauri-apps/plugin-process',
+  'plugin:updater|check',
+  'plugin:process|restart',
 ]
 
 async function filesIn(directory) {

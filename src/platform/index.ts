@@ -16,3 +16,5 @@ export { EXECUTABLE_MARKDOWN_SYNTAX_VERSION, createExecutableLabMarkdown, extrac
 export type { ExecutableLabDraft } from '../content/labParser'
 
 export { SECRET_MODEL_VERSION, SETTINGS_MODEL_VERSION } from './contracts'
+
+export type { HostAdapter, HostCapabilities, HostPlatformInfo, HostUpdateInfo, HostUpdateProgress } from '../host/types'

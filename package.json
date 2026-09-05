@@ -22,7 +22,7 @@
     "node": ">=22"
   },
   "packageManager": "pnpm@11.24.0",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -38,6 +38,7 @@
     "test": "vitest run",
     "test:performance": "vitest run src/performance/workspacePerformance.test.ts",
     "validate:publication": "node scripts/validate-publication.mjs",
+    "validate:release": "node scripts/validate-release.mjs",
     "check": "pnpm test && pnpm lint && pnpm build",
     "check:desktop": "cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && cargo test --manifest-path src-tauri/Cargo.toml"
   },
@@ -52,6 +53,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tauri-apps/api": "2.11.1",
     "@tauri-apps/plugin-deep-link": "2.4.10",
+    "@tauri-apps/plugin-process": "2.3.1",
+    "@tauri-apps/plugin-updater": "2.11.0",
     "@uiw/react-codemirror": "^4.25.4",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",

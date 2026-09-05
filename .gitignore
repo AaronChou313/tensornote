@@ -5,3 +5,4 @@ dist
 *.local
 coverage
 .vite
+.release

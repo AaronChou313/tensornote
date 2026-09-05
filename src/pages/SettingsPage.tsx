@@ -1,11 +1,12 @@
 import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react'
-import { CheckCircle, Cpu, Gear, Info, Moon, NotePencil, PaintBrush, Plus, Pulse, PuzzlePiece, Sun, Trash } from '@phosphor-icons/react'
+import { ArrowClockwise, CheckCircle, Cpu, DownloadSimple, Gear, Info, Moon, NotePencil, PaintBrush, Plus, Pulse, PuzzlePiece, Sun, Trash } from '@phosphor-icons/react'
 import { useSearchParams } from 'react-router-dom'
 import { computeRuntime } from '../compute/ComputeRuntime'
 import { formatComputeDiagnosticReport } from '../compute/compatibility'
 import { computeConnectorKind } from '../compute/connectors'
 import { computeProfileTemplates, type ComputeConnectorConfig, type ComputeContext, type ComputeSessionScope, type DiagnosticCheck } from '../compute/types'
 import { getHostAdapter } from '../host/runtime'
+import type { HostUpdateInfo, HostUpdateProgress } from '../host/types'
 import { useExtensionRecords, useExtensionRuntime } from '../extensions/ExtensionContext'
 import {
   COMPUTE_PROVIDER_API_VERSION,
@@ -203,6 +204,52 @@ function ExtensionSettings() {
   return <section className="settings-panel"><header><span>Platform</span><h2>扩展</h2><p>扩展入口集中在这里，不占用日常工作区工具栏。</p></header><div className="settings-group"><SettingRow title="本地扩展与权限" description="加载文件、查看权限和扩展贡献。"><Button variant="secondary" size="sm" onClick={() => setManagerOpen(true)}><PuzzlePiece size={15} />管理扩展</Button></SettingRow></div>{message && <p className="settings-message" role="alert">{message}</p>}<div className="settings-extension-list">{records.map((record) => { const active = record.status === 'active'; return <article key={record.manifest.id}><span><PuzzlePiece size={17} /></span><div><strong>{record.manifest.name}</strong><small>{record.manifest.description || record.manifest.id} · v{record.manifest.version}</small></div><label className="settings-switch"><input type="checkbox" checked={active} onChange={() => void toggle(record.manifest.id, active)} /><i /></label></article> })}</div></section>
 }
 
+function DesktopUpdateSettings() {
+  const host = getHostAdapter()
+  const [checking, setChecking] = useState(false)
+  const [installing, setInstalling] = useState(false)
+  const [update, setUpdate] = useState<HostUpdateInfo | null>(null)
+  const [progress, setProgress] = useState<HostUpdateProgress | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  if (!host.capabilities.autoUpdate || !host.checkForUpdate || !host.downloadAndInstallUpdate) {
+    return <div className="settings-update-card is-passive"><ArrowClockwise size={20} /><div><strong>更新由当前分发渠道管理</strong><p>Web 会随部署自动更新；正式 Desktop 安装包会在这里验证签名更新。</p></div></div>
+  }
+
+  const checkUpdate = async () => {
+    setChecking(true)
+    setError(null)
+    setMessage(null)
+    setProgress(null)
+    try {
+      const next = await host.checkForUpdate!()
+      setUpdate(next)
+      setMessage(next ? `发现 TensorNote v${next.version}` : '当前已是最新版本。')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : '无法检查更新')
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  const installUpdate = async () => {
+    setInstalling(true)
+    setError(null)
+    try {
+      await host.downloadAndInstallUpdate!((next) => setProgress(next))
+      setMessage('更新已验证并安装，重新启动后生效。')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : '无法安装更新')
+    } finally {
+      setInstalling(false)
+    }
+  }
+
+  const ratio = progress?.totalBytes ? Math.min(100, Math.round(progress.downloadedBytes / progress.totalBytes * 100)) : undefined
+  return <div className="settings-update-card"><DownloadSimple size={20} /><div className="settings-update-card__body"><strong>安全更新</strong><p>只接受由 TensorNote Updater 公钥验证的 HTTPS Release 资产。</p>{update?.body && <small>{update.body}</small>}{progress && <progress max="100" value={ratio} />}{message && <span role="status">{message}</span>}{error && <span className="is-error" role="alert">{error}</span>}<div><Button variant="secondary" size="sm" onClick={() => void checkUpdate()} disabled={checking || installing}><ArrowClockwise size={14} />{checking ? '正在检查…' : '检查更新'}</Button>{update && progress?.phase !== 'ready' && <Button size="sm" onClick={() => void installUpdate()} disabled={installing}>{installing ? '正在安装…' : `安装 v${update.version}`}</Button>}{progress?.phase === 'ready' && host.relaunchAfterUpdate && <Button size="sm" onClick={() => void host.relaunchAfterUpdate!()}>重新启动</Button>}</div></div></div>
+}
+
 function AboutSettings() {
   const session = useWorkspaceStore((state) => state.session)
   const facts = useMemo(() => [
@@ -220,7 +267,7 @@ function AboutSettings() {
     `Executable Markdown v${EXECUTABLE_MARKDOWN_SYNTAX_VERSION}`,
     `Settings Model v${SETTINGS_MODEL_VERSION}`,
   ]
-  return <section className="settings-panel"><header><span>System</span><h2>关于 TensorNote</h2><p>Markdown-first executable knowledge workspace。</p></header><div className="settings-about-grid">{facts.map(([label, value]) => <div key={label}><small>{label}</small><strong>{value}</strong></div>)}</div><div className="settings-contracts"><span>Stable platform contracts</span><div>{contracts.map((contract) => <small key={contract}>{contract}</small>)}</div></div><div className="settings-principle"><Gear size={20} /><div><strong>内容始终属于你</strong><p>TensorNote 不会把知识锁进私有数据库。Markdown、图片、代码与 Git Repository 可以脱离应用继续使用。</p></div></div></section>
+  return <section className="settings-panel"><header><span>System</span><h2>关于 TensorNote</h2><p>Markdown-first executable knowledge workspace。</p></header><div className="settings-about-grid">{facts.map(([label, value]) => <div key={label}><small>{label}</small><strong>{value}</strong></div>)}</div><DesktopUpdateSettings /><div className="settings-contracts"><span>Stable platform contracts</span><div>{contracts.map((contract) => <small key={contract}>{contract}</small>)}</div></div><div className="settings-principle"><Gear size={20} /><div><strong>内容始终属于你</strong><p>TensorNote 不会把知识锁进私有数据库。Markdown、图片、代码与 Git Repository 可以脱离应用继续使用。</p></div></div></section>
 }
 
 export function SettingsContent({ section, onSectionChange }: { section: SettingsSection; onSectionChange: (section: SettingsSection) => void }) {

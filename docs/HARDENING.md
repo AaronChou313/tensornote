@@ -21,6 +21,7 @@ v0.9.0 的目标不是扩展功能数量，而是让 TensorNote 在升级、异�
 - Git Bridge 只属于 Local Web；Static/Self-hosted Runtime 不显示入口。Bridge 仍限制 loopback、Origin、固定仓库根目录和非 Shell 子进程。
 - Jupyter/JupyterHub Token 与 Extension Secret 仅在 sessionStorage；BinderHub 临时 Token 和动态 Server URL 只在运行时 Lease；诊断会清理 Token、URL Query 与密码文本。
 - Remote Compute 非 Loopback URL 必须使用 HTTPS；Binder 必须固定完整 Git commit；JupyterHub 只停止 TensorNote 本次启动的用户 Server，不停止已有实例。
+- Desktop Updater 只接受内置 minisign 公钥验证的 HTTPS Release；Updater 私钥与 OS 代码签名证书不得进入源码、Workspace、日志或普通构建环境。
 - GitHub Workspace 执行信任绑定精确 Revision。
 - PWA 只缓存同源 GET 与访问过的应用资源，不批量缓存 Workspace、GitHub 或 Jupyter 内容。
 - Nginx 默认提供 `nosniff`、Referrer Policy 与受限 Permissions Policy。
@@ -45,6 +46,8 @@ v0.9.0 的目标不是扩展功能数量，而是让 TensorNote 在升级、异�
 | Self-hosted Web | Docker/Nginx 中的同一浏览器 Runtime；当前无 Server-mounted Workspace |
 
 Tauri Desktop 可在未来作为 Runtime Adapter 实验，但 v0.9.0 不提供桌面安装包，也不维护另一套业务逻辑。
+
+v1.6.0 的正式 Tag 流水线在缺少 macOS Developer ID/公证、Windows 受信代码签名或 Updater Secret 时失败关闭。候选资产先进入 Draft Release，并附带 SHA-256 与机器可读清单；详细门见 [Release Matrix](RELEASE_MATRIX.md)。
 
 ## Release Gate
 

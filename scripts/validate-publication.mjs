@@ -99,7 +99,10 @@ export async function validatePublication({ workspace, owner, repo, revision }) 
 }
 
 function parseArguments(argv) {
-  const value = (name) => argv[argv.indexOf(name) + 1]
+  const value = (name) => {
+    const index = argv.indexOf(name)
+    return index < 0 ? undefined : argv[index + 1]
+  }
   return {
     workspace: value('--workspace') || process.env.TENSORNOTE_WORKSPACE || '.',
     owner: value('--owner') || process.env.TENSORNOTE_PUBLISH_OWNER,

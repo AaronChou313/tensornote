@@ -8,7 +8,7 @@ import { createGitHubPublicationTargets, isPinnedGitHubRevision } from '../../pu
 import { Button } from '../ui/Button'
 import { deploymentAdapter } from '../../deployment/config'
 
-type CopyTarget = 'link' | 'badge' | null
+type CopyTarget = 'link' | 'badge' | 'compatibility' | null
 type CopyFeedback = { target: Exclude<CopyTarget, null>; status: 'copied' | 'error' } | null
 
 function copyWithSelection(value: string) {
@@ -97,6 +97,11 @@ export function PublishDialog() {
             <div><strong>Open in TensorNote Badge</strong><p>复制到知识库 README，让读者一键打开这个固定版本。</p></div>
             <div className="publish-copy-row"><code>{targets.badgeMarkdown}</code><button onClick={() => void copy(targets.badgeMarkdown, 'badge')} aria-label={copyFeedback?.target === 'badge' && copyFeedback.status === 'copied' ? 'Badge Markdown 已复制' : '复制 Badge Markdown'}>{copyFeedback?.target === 'badge' && copyFeedback.status === 'copied' ? <Check size={16} /> : <Copy size={16} />}</button></div>
             {copyFeedback?.target === 'badge' && <small className={`publish-copy-status${copyFeedback.status === 'error' ? ' is-error' : ''}`} role="status">{copyFeedback.status === 'copied' ? 'Badge Markdown 已复制' : '无法访问剪贴板，请手动选择复制'}</small>}
+          </section>
+          <section className="publish-section">
+            <div><strong>Workspace v1 兼容性徽章</strong><p>声明知识库遵循可移植的 Workspace Schema、执行权限与 Markdown 兼容边界。</p></div>
+            <div className="publish-copy-row"><code>{targets.compatibilityBadgeMarkdown}</code><button onClick={() => void copy(targets.compatibilityBadgeMarkdown, 'compatibility')} aria-label={copyFeedback?.target === 'compatibility' && copyFeedback.status === 'copied' ? '兼容性 Badge Markdown 已复制' : '复制兼容性 Badge Markdown'}>{copyFeedback?.target === 'compatibility' && copyFeedback.status === 'copied' ? <Check size={16} /> : <Copy size={16} />}</button></div>
+            {copyFeedback?.target === 'compatibility' && <small className={`publish-copy-status${copyFeedback.status === 'error' ? ' is-error' : ''}`} role="status">{copyFeedback.status === 'copied' ? '兼容性 Badge Markdown 已复制' : '无法访问剪贴板，请手动选择复制'}</small>}
           </section>
         </> : <section className="publish-guidance">
           <GithubLogo size={24} />

@@ -131,7 +131,7 @@ pnpm test:performance
 
 ### 2.4 Desktop 开发
 
-v1.1.0 起，Desktop 使用 Tauri 2 并复用同一个 `src/`；v1.2.0 加入受限 Native Workspace 与 Native Git，v1.3.0 加入 Local Runtime Assistant，v1.4.0 加入受限 GitHub 深链与 Repository-owned Pages，v1.5.0 加入保持 ComputeProvider 独立的 Remote Compute Connectors。先安装 Rust stable；macOS Homebrew 用户可运行 `brew install rust`。确认：
+v1.1.0 起，Desktop 使用 Tauri 2 并复用同一个 `src/`；v1.2.0 加入受限 Native Workspace 与 Native Git，v1.3.0 加入 Local Runtime Assistant，v1.4.0 加入受限 GitHub 深链与 Repository-owned Pages，v1.5.0 加入 Remote Compute Connectors，v1.6.0 增加签名 Updater 与跨平台 Release Matrix。先安装 Rust stable；macOS Homebrew 用户可运行 `brew install rust`。确认：
 
 ```bash
 rustc --version
@@ -153,6 +153,8 @@ pnpm exec tauri build --no-bundle
 Native Workspace 改动还必须验证：路径穿越/符号链接拒绝、原子写与陈旧保存冲突、拖入 Markdown 的相对路径、真实临时 Git 仓库的 Status/Stage/Commit，以及 `pnpm build:web` 的 IPC 边界扫描。Local Runtime 改动必须覆盖 plan/apply 分离、失败清理、Secret/路径脱敏、Owned Process 和退出清理。Static 产物中出现 `__TAURI_INTERNALS__`、`native_workspace_`、`native_git_` 或 `local_runtime_` 会直接失败。
 
 Publish 改动还必须运行 `pnpm validate:publication`，验证固定 revision、License、首页、环境文件和敏感文件门；Static 产物不得包含 Deep Link 插件标记。复制式 Workflow、`publishing` Schema 与 Agent Skill 模板必须在同一提交更新。
+
+Release 改动还必须运行 `pnpm validate:release -- --tag vX.Y.Z`，并严格验证两套 Workspace 模板、Release overlay、Updater 公钥、版本一致性与无 Tag Workflow 演练。私钥和平台证书只能进入安全存储与 GitHub Secrets；正式 Tag 缺少签名凭据时必须失败关闭。
 
 ### 2.5 提交并合并
 

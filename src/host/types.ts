@@ -116,6 +116,19 @@ export interface JupyterServerLaunch {
   token: string
 }
 
+export interface HostUpdateInfo {
+  version: string
+  currentVersion: string
+  date?: string
+  body?: string
+}
+
+export interface HostUpdateProgress {
+  phase: 'downloading' | 'installing' | 'ready'
+  downloadedBytes: number
+  totalBytes?: number
+}
+
 export interface HostAdapter {
   readonly id: HostKind
   readonly label: string
@@ -135,4 +148,7 @@ export interface HostAdapter {
   listOwnedJupyter?(): Promise<OwnedJupyterServer[]>
   getOwnedJupyterLogs?(serverId: string): Promise<RuntimeLogLine[]>
   stopOwnedJupyter?(serverId: string): Promise<void>
+  checkForUpdate?(): Promise<HostUpdateInfo | null>
+  downloadAndInstallUpdate?(onProgress: (progress: HostUpdateProgress) => void): Promise<void>
+  relaunchAfterUpdate?(): Promise<void>
 }

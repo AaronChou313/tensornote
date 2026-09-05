@@ -415,3 +415,11 @@ existing ComputeProvider v1 ── Kernel Session ── executable Markdown
 2. Schema、Provider capability 或安全边界的文档。
 3. 单元测试、浅/深主题浏览器验收和生产构建。
 4. Git commit、push；正式版本再创建对应 `vX.Y.Z` Tag/Release。
+
+## v1.6.0 Distribution & Ecosystem Hardening
+
+- `HostAdapter` 的可选 Update 方法只在 Desktop capability 下加载 Tauri Updater/Process；Web bundle 不导入 Native 插件。
+- 默认 Tauri 配置包含 HTTPS endpoint 与 Updater 公钥，Release overlay 才开启 updater artifact 生成，因此日常开发不要求私钥。
+- Tag Workflow 先验证版本与稳定契约，再从同一 commit 生成 Pages、Web archive 和 macOS/Windows/Linux 安装资产；缺少平台签名凭据时失败关闭。
+- `release-manifest.json` 与 `SHA256SUMS` 描述构建资产，但不替代平台签名。Updater 私钥、Apple/Windows 证书和密码不属于 Workspace 或 Repository。
+- Workspace 与课程模板仍使用 Schema v1；公开目录若实现，只能索引主动提交的 Repository 元数据。

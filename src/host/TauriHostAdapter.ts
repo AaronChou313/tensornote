@@ -5,6 +5,8 @@ import type {
   HostCapabilities,
   HostDirectorySelection,
   HostPlatformInfo,
+  HostUpdateInfo,
+  HostUpdateProgress,
   JupyterServerLaunch,
   OwnedJupyterServer,
   RuntimeDiscovery,
@@ -19,13 +21,14 @@ const desktopCapabilities: HostCapabilities = {
   processManagement: true,
   nativeGit: true,
   fileAssociations: true,
-  autoUpdate: false,
+  autoUpdate: true,
 }
 
 export class TauriHostAdapter implements HostAdapter {
   readonly id = 'desktop' as const
   readonly label = 'Desktop'
   readonly capabilities = desktopCapabilities
+  private pendingUpdate: Awaited<ReturnType<typeof import('@tauri-apps/plugin-updater')['check']>> = null
 
   async getPlatformInfo(): Promise<HostPlatformInfo> {
     const { invoke } = await import('@tauri-apps/api/core')
@@ -100,5 +103,42 @@ export class TauriHostAdapter implements HostAdapter {
   async stopOwnedJupyter(serverId: string): Promise<void> {
     const { invoke } = await import('@tauri-apps/api/core')
     await invoke('local_runtime_stop_jupyter', { serverId })
+  }
+
+  async checkForUpdate(): Promise<HostUpdateInfo | null> {
+    const { check } = await import('@tauri-apps/plugin-updater')
+    this.pendingUpdate = await check({ timeout: 30_000 })
+    if (!this.pendingUpdate) return null
+    return {
+      version: this.pendingUpdate.version,
+      currentVersion: this.pendingUpdate.currentVersion,
+      ...(this.pendingUpdate.date ? { date: this.pendingUpdate.date } : {}),
+      ...(this.pendingUpdate.body ? { body: this.pendingUpdate.body } : {}),
+    }
+  }
+
+  async downloadAndInstallUpdate(onProgress: (progress: HostUpdateProgress) => void): Promise<void> {
+    const update = this.pendingUpdate
+    if (!update) throw new Error('没有待安装的 TensorNote 更新，请先检查更新。')
+    let downloadedBytes = 0
+    let totalBytes: number | undefined
+    await update.downloadAndInstall((event) => {
+      if (event.event === 'Started') {
+        totalBytes = event.data.contentLength ?? undefined
+        onProgress({ phase: 'downloading', downloadedBytes, ...(totalBytes === undefined ? {} : { totalBytes }) })
+      } else if (event.event === 'Progress') {
+        downloadedBytes += event.data.chunkLength
+        onProgress({ phase: 'downloading', downloadedBytes, ...(totalBytes === undefined ? {} : { totalBytes }) })
+      } else if (event.event === 'Finished') {
+        onProgress({ phase: 'installing', downloadedBytes, ...(totalBytes === undefined ? {} : { totalBytes }) })
+      }
+    })
+    this.pendingUpdate = null
+    onProgress({ phase: 'ready', downloadedBytes, ...(totalBytes === undefined ? {} : { totalBytes }) })
+  }
+
+  async relaunchAfterUpdate(): Promise<void> {
+    const { relaunch } = await import('@tauri-apps/plugin-process')
+    await relaunch()
   }
 }

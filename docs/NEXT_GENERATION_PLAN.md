@@ -1,6 +1,6 @@
 # TensorNote 下一代产品与架构规划
 
-状态：执行中；`v1.5.0` 源码阶段已完成
+状态：执行中；`v1.6.0` 发布基础设施与源码阶段已完成，正式签名分发等待外部证书
 
 基线：`v1.0.0 — Stable Platform`
 
@@ -532,6 +532,8 @@ Python → Environment → Jupyter Server → Kernel → Workspace Permission �
 - 评估可选的公开目录；目录只索引元数据和 Repository，不托管用户知识或 Token。
 
 验收：同一 Tag 生成 Web 部署与多平台安装资产；安装包来源、签名和版本可验证。
+
+完成记录（2026-09-05）：仓库已加入 Tag Release Matrix、macOS/Windows/Linux 构建、GitHub Pages、签名 Updater、SHA-256/JSON 资产清单、课程模板、兼容性徽章、Draft Release 和回滚手册。Updater 密钥已与 Workspace 分离并配置为 GitHub Secrets。由于公开 macOS 安装包必须使用 Developer ID Application 并完成公证、Windows 安装包必须使用受信代码签名证书，正式 `v1.6.0` Tag/Release 在这两类外部凭据到位前保持关闭失败，不以未签名资产替代验收。
 
 ## 14. CI、发布与版本一致性
 

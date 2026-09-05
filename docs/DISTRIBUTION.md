@@ -81,7 +81,7 @@ PWA 离线能力只覆盖应用 Shell 和已经缓存的同源资源：
 
 这些变量在构建时固定。改变后必须重新执行 `pnpm build`。
 
-## 6. Desktop 源码阶段
+## 6. Desktop 与可信更新
 
 Desktop 需要 Rust stable、Cargo 和当前平台的 Tauri 系统依赖。macOS 使用 Homebrew Rust 即可：
 
@@ -99,11 +99,13 @@ pnpm check:desktop
 pnpm build:desktop
 ```
 
-`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。v1.4.0 Desktop 支持 Built-in/GitHub、系统选择器授权的原生本地 Workspace、受限 Native Git、Local Runtime Assistant，以及只接受固定 GitHub commit 的 `tensornote://` 深链。环境发现、审核式最小环境创建和 Owned Jupyter 生命周期均由 Rust 类型化白名单命令提供，不依赖浏览器 File System Access API、任意 Shell 或 localhost Bridge。当前产物未签名、公证，也不作为正式安装包发布。
+`pnpm build:desktop` 会先用 `.env.desktop` 构建共享前端，再调用 Tauri。普通开发构建不生成 Updater 资产；正式流水线额外合并 `src-tauri/tauri.release.conf.json`，使用工作区外的私钥生成签名 Updater bundle。Settings → About 只在 Desktop 暴露检查、下载、验证、安装和重启；Web 继续由部署渠道更新。
 
 Desktop 仍要求用户自行安装系统 Git 才能使用 Native Git。运行 Python Lab 至少需要一个本机 Python；运行时助手可复用已有 Jupyter 环境，或在用户确认后通过检测到的 uv、Conda 或标准 venv 创建最小基础环境。打开目录后可在 Workspace 菜单选择“在文件管理器中显示”；也可把目录或 `.md` / `.markdown` 文件拖入窗口。
 
 Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)、[Native Workspace ADR](adr/0003-native-workspace-capability.md)、[Local Runtime ADR](adr/0004-local-runtime-assistant.md)与[发布 ADR](adr/0005-publish-read-anywhere.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移；Static build 另有脚本阻止 Native IPC 与 Deep Link 插件进入 GitHub Pages 产物。
+
+正式 Tag 由 `.github/workflows/release.yml` 构建 Pages、Web archive 与多平台安装包。缺少 Apple Developer ID、公证、Windows 代码签名或 Updater Secret 时流程直接失败；候选先保持 Draft。资产、签名检查、SHA-256 与回滚步骤见 [Release Matrix](RELEASE_MATRIX.md)。
 
 ## 7. 性能验证
 
