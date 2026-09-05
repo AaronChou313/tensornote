@@ -2430,6 +2430,10 @@ button.trust-status {
 .compute-lab-drawer .lab-save-note { margin-left: auto; }
 .scratch-note-banner { padding: 9px 12px; border-bottom: 1px solid var(--line); background: var(--accent-pale); color: var(--accent); }
 .scratch-note-banner p { margin: 0; font-size: .66rem; line-height: 1.5; }
+.compute-connection-banner { display: grid; align-items: center; gap: 8px; grid-template-columns: auto minmax(0, 1fr) 110px; border-bottom: 1px solid var(--line); background: var(--surface-muted); padding: 9px 12px; }
+.compute-connection-banner > span { color: var(--accent); font-size: .56rem; font-weight: 720; letter-spacing: .06em; text-transform: uppercase; }
+.compute-connection-banner p { overflow: hidden; margin: 0; color: var(--muted); font-size: .62rem; text-overflow: ellipsis; white-space: nowrap; }
+.compute-connection-banner progress { width: 100%; height: 5px; accent-color: var(--accent); }
 
 /* CodeMirror owns syntax tokens; these surfaces keep default text readable in both themes. */
 .code-cell__editor .cm-editor,
@@ -4023,9 +4027,14 @@ button.trust-status {
 .settings-profile-list details > div { display: grid; margin-top: 4px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised); padding: 5px; }
 .settings-compute-form { min-width: 0; }
 .settings-runtime-status { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 12px; border-radius: 10px; background: var(--surface-muted); }
-.settings-runtime-status > span:last-child { display: grid; gap: 1px; }
+.settings-runtime-status > span:nth-child(2) { display: grid; min-width: 0; gap: 1px; }
 .settings-runtime-status strong { font-size: .68rem; text-transform: capitalize; }
-.settings-runtime-status small { color: var(--faint); font-size: .58rem; }
+.settings-runtime-status small { overflow: hidden; color: var(--faint); font-size: .58rem; text-overflow: ellipsis; white-space: nowrap; }
+.settings-runtime-status progress { width: min(150px, 28%); height: 5px; margin-left: auto; accent-color: var(--accent); }
+.settings-connector-intro { margin-bottom: 16px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised); padding: 12px 14px; }
+.settings-connector-intro strong { color: var(--accent); font-size: .66rem; }
+.settings-connector-intro p { margin: 5px 0 0; color: var(--muted); font-size: .6rem; line-height: 1.55; }
+.settings-connector-intro[data-connector='binderhub'] { border-color: color-mix(in srgb, var(--accent) 28%, var(--line)); background: var(--accent-pale); }
 .settings-form-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
 .settings-form-grid label { display: grid; gap: 6px; color: var(--muted); font-size: .62rem; }
 .settings-form-grid .is-wide { grid-column: 1 / -1; }
@@ -4041,6 +4050,8 @@ button.trust-status {
 .settings-diagnostics span { color: var(--accent); font-size: .58rem; text-transform: uppercase; }
 .settings-diagnostics strong { font-size: .64rem; }
 .settings-diagnostics small { color: var(--faint); font-size: .6rem; }
+.settings-diagnostics > div[data-status='fail'] span { color: var(--danger); }
+.settings-diagnostics > div[data-status='warning'] span { color: var(--warning); }
 .settings-extension-list { display: grid; gap: 7px; margin-top: 24px; }
 .settings-extension-list article { display: grid; min-height: 60px; align-items: center; gap: 10px; grid-template-columns: auto 1fr auto; border-bottom: 1px solid var(--line); padding: 8px 2px; }
 .settings-extension-list article > span { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--accent); }

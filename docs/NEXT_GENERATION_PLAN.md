@@ -1,12 +1,12 @@
 # TensorNote 下一代产品与架构规划
 
-状态：执行中；`v1.4.0` 源码阶段已完成
+状态：执行中；`v1.5.0` 源码阶段已完成
 
 基线：`v1.0.0 — Stable Platform`
 
 规划范围：`v1.1–v1.x`；只有无法保持 v1 契约兼容的变化才进入 `v2.0.0`
 
-更新时间：2026-09-04
+更新时间：2026-09-05
 
 ## 1. 执行摘要
 
@@ -512,6 +512,14 @@ Python → Environment → Jupyter Server → Kernel → Workspace Permission �
 - 运行成本、Session 时限、持久性与数据归属提示。
 
 验收：公开知识库可以在至少一个测试 JupyterHub 和一个测试 BinderHub 上从固定 Revision 建立隔离 Session 并运行多 Cell Lab。
+
+完成记录（2026-09-05）：
+
+- 新增 ComputeConnector API v1；Direct、JupyterHub 与 BinderHub 只负责获得标准 Jupyter Connection Lease，既有 ComputeProvider v1 和 executable Markdown 语义不变。
+- JupyterHub 使用当前用户有限权限 Token，支持身份校验、已有 Server 复用、命名 Server 启动、Progress EventStream/轮询回退，以及仅清理由 TensorNote 本次启动的 Server。
+- BinderHub 只接受公开 GitHub Repository 与完整 commit SHA，流式展示 fetching/building/launching/ready 状态；临时 Token、解析 URL 与 Lease 只保存在内存，断开时请求释放。
+- 设置加入三种连接方式、生命周期和数据归属提示、显式启动/验证、可取消断开与无 Secret 诊断报告；Lab 在冷启动期间显示 Connector 进度。
+- 单元/协议测试覆盖分块 SSE、来源固定、Token 所有权、已有 Server 不误停、Owned Server 清理和 Runtime Lease 生命周期；远端实例验收记录见 `docs/releases/v1.5.0.md`。
 
 ### v1.6.0 — Distribution & Ecosystem Hardening
 

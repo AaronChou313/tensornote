@@ -41,6 +41,7 @@ export function AppShell() {
   const profiles = useComputeStore((state) => state.profiles)
   const activeProfileId = useComputeStore((state) => state.activeProfileId)
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
+  const setConnectionEvent = useComputeStore((state) => state.setConnectionEvent)
   const profile = activeComputeProfile({ profiles, activeProfileId })
   const location = useLocation()
   const navigate = useNavigate()
@@ -147,8 +148,12 @@ export function AppShell() {
 
   useEffect(() => {
     computeRuntime.onStatus(setKernelStatus)
-    return () => { void computeRuntime.shutdown() }
-  }, [setKernelStatus])
+    computeRuntime.onConnectionEvent(setConnectionEvent)
+    return () => {
+      computeRuntime.onConnectionEvent(() => undefined)
+      void computeRuntime.shutdown()
+    }
+  }, [setConnectionEvent, setKernelStatus])
 
   useEffect(() => {
     if (previousPath.current !== location.pathname) {
@@ -165,6 +170,9 @@ export function AppShell() {
     void computeRuntime.handleContextChange(profile, {
       workspaceId: session.descriptor.id,
       noteId: noteId ? decodeURIComponent(noteId) : undefined,
+      ...(session.descriptor.type === 'github' && session.descriptor.config?.owner && session.descriptor.config.repo && session.descriptor.revision
+        ? { workspaceSource: { provider: 'github' as const, repository: `${session.descriptor.config.owner}/${session.descriptor.config.repo}`, revision: session.descriptor.revision } }
+        : {}),
     })
   }, [location.pathname, profile, session])
 

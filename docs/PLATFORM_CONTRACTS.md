@@ -9,6 +9,7 @@ TensorNote v1.0.0 冻结首个可长期兼容的平台基线。应用内实现�
 | Workspace Repository Schema | v1 | 已知字段、安全默认值与兼容降级 |
 | WorkspaceProvider API | v1 | 文件、资产、能力与冲突边界 |
 | ComputeProvider API | v1 | 连接、Session、执行、控制与诊断 |
+| ComputeConnector API | v1 | 获取标准 Compute Endpoint、生命周期、进度与清理 |
 | Extension API | v1 | Manifest、权限、生命周期与贡献点 |
 | Executable Markdown Syntax | v1 | 可移植 Python Fence 元数据 |
 | Settings / Secret Model | v1 | 内容、偏好、恢复状态与 Secret 分类 |
@@ -55,6 +56,18 @@ ComputeProvider 接受不含知识内容的连接配置与执行上下文，建�
 
 Jupyter 是首个 Provider，但不是 UI 的固定依赖。新增 Provider 必须保持输出事件、错误、取消和关闭语义，不得静默安装环境或绕过 Workspace 执行授权。
 
+### 4.1 ComputeConnector API v1（v1.5.0）
+
+ComputeConnector 位于 Profile 与 ComputeProvider 之间，只负责把 Generic Jupyter、JupyterHub 或 BinderHub 解析为临时的标准 `ComputeConnectionConfig`。它不读取 Markdown，不直接执行代码，也不改变 ComputeProvider v1。
+
+- `direct` 校验现有 Jupyter URL；TensorNote 只关闭自己创建的 Kernel，不停止外部 Server。
+- `jupyterhub` 用当前用户的有限权限 Token 读取身份和 Server 状态；可连接已有 Server，或启动并只清理本次由 TensorNote 创建的 Server。
+- `binderhub` 只接受公开 GitHub `owner/repository` 与完整 40 位 commit SHA；build/launch 返回的 Token 只存在运行时 Lease，断开后请求释放临时 Server。
+- Connector 必须报告 checking、spawning/building、ready、stopping 或 error 等进度，并声明外部/TensorNote 所有权与 persistent/provider-managed/temporary 持久性。
+- Connector Profile 可以作为浏览器偏好保存，但 Hub API Token、Binder 临时 Token、已解析 Server URL 与 Lease 不得持久化或写入 Workspace。
+
+远程 URL 在非 Loopback 场景必须使用 HTTPS。公开 Workspace 的执行仍需同时通过 Workspace execution permission 与固定 GitHub Revision trust；连接成功不能隐式授予执行权。
+
 ## 5. Extension API v1
 
 Extension API v1 包含 Command、View、Sidebar、Markdown Processor、CodeMirror Extension、Settings、Status Bar Item、Workspace Provider 与 Compute Provider 贡献。Manifest 声明 `apiVersion`、最低 TensorNote 版本和所需权限。
@@ -88,7 +101,8 @@ print(x.mean())
 | Markdown、Assets、`tensornote.yaml` | Workspace 文件 | 可移植、可 Git 管理 |
 | 主题、编辑器、Compute Profile、Workspace 执行授权 | 浏览器持久存储 | 当前浏览器，具备版本迁移 |
 | Dirty 草稿恢复 | IndexedDB，失败时 localStorage | Workspace/路径隔离，默认 30 天过期 |
-| Jupyter Token 与扩展 Secret | `sessionStorage` 或运行时内存 | 当前浏览器会话，关闭后清除 |
+| Jupyter / JupyterHub Token 与扩展 Secret | `sessionStorage` 或运行时内存 | 当前浏览器会话，关闭后清除 |
+| BinderHub 临时 Token 与 Connector Lease | 运行时内存 | 断开或关闭应用时清除 |
 | Pane、Dialog、活动 Lab 等短期 UI | 运行时状态 | 刷新或切换 Workspace 时清理 |
 
 本机执行授权不会改写 `tensornote.yaml`，也不会替代 GitHub 固定 Revision 的信任检查。诊断信息不得包含 Markdown 正文或未脱敏 Secret。

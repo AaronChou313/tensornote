@@ -79,6 +79,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const profiles = useComputeStore((state) => state.profiles)
   const activeProfileId = useComputeStore((state) => state.activeProfileId)
   const tokens = useComputeStore((state) => state.tokens)
+  const connectionEvent = useComputeStore((state) => state.connectionEvent)
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
   const profile = activeComputeProfile({ profiles, activeProfileId })
   const token = tokens[profile.id] ?? ''
@@ -87,7 +88,13 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const currentNoteId = location.pathname.match(/^\/notes\/([^/]+)/)?.[1]
   const sourceNoteId = lab.noteId ?? currentNoteId
   const sourceNote = sourceNoteId ? session?.documentById.get(decodeURIComponent(sourceNoteId)) : undefined
-  const context = useMemo(() => ({ workspaceId: session?.descriptor.id ?? 'workspace', noteId: sourceNote?.id }), [session?.descriptor.id, sourceNote?.id])
+  const context = useMemo(() => ({
+    workspaceId: session?.descriptor.id ?? 'workspace',
+    noteId: sourceNote?.id,
+    ...(session?.descriptor.type === 'github' && session.descriptor.config?.owner && session.descriptor.config.repo && session.descriptor.revision
+      ? { workspaceSource: { provider: 'github' as const, repository: `${session.descriptor.config.owner}/${session.descriptor.config.repo}`, revision: session.descriptor.revision } }
+      : {}),
+  }), [session, sourceNote?.id])
   const [width, setWidth] = useState(660)
   const [labCells, setLabCells] = useState(lab.cells)
   const [cells, setCells] = useState<Record<string, CodeCellState>>(() =>
@@ -293,6 +300,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
       {!executionPolicy?.enabled && <div className="lab-trust-banner"><ShieldWarning size={17} /><p>{executionPolicy?.canChange ? '当前 Workspace 尚未允许执行代码。请在设置 → 计算与 Jupyter 中手动开启。' : '此 Workspace 使用了 TensorNote 尚不支持的配置版本，无法开启代码执行。'}</p>{executionPolicy?.canChange && <Button variant="secondary" size="sm" onClick={openComputeSettings}>打开设置</Button>}</div>}
       {executionPolicy?.enabled && session && !session.trusted && session.descriptor.type === 'github' && <div className="lab-trust-banner"><ShieldWarning size={17} /><p>远程 Workspace 默认禁止执行。信任当前 Revision 后才能连接 Compute Provider。</p><Button variant="secondary" size="sm" onClick={trustActiveWorkspace}>Trust revision</Button></div>}
       {lab.scratch && !sourceNote && <div className="scratch-note-banner"><p>Scratch 代码只在内存中。打开一篇本地笔记后，才能使用 Insert into note。</p></div>}
+      {connectionEvent && !['idle', 'ready'].includes(connectionEvent.phase) && <div className="compute-connection-banner" data-phase={connectionEvent.phase}><span>{connectionEvent.phase}</span><p>{connectionEvent.message}</p>{connectionEvent.progress !== undefined && <progress max="100" value={connectionEvent.progress} />}</div>}
       {error && <div className="lab-error"><p>{error}</p><Button variant="secondary" size="sm" onClick={openComputeSettings}>打开 Compute 设置</Button></div>}
 
       <div className="lab-drawer__body">

@@ -22,6 +22,30 @@ function normalizeText(value: unknown) {
   return typeof value === 'string' ? value : JSON.stringify(value, null, 2)
 }
 
+function waitForKernelWebSocket(kernel: Kernel.IKernelConnection, timeoutMs = 10_000) {
+  if (kernel.connectionStatus === 'connected') return Promise.resolve()
+  return new Promise<void>((resolve, reject) => {
+    const onStatus = (_sender: Kernel.IKernelConnection, status: Kernel.ConnectionStatus) => {
+      if (status !== 'connected') return
+      cleanup()
+      resolve()
+    }
+    const timeout = setTimeout(() => {
+      cleanup()
+      reject(new Error('WebSocket 未在 10 秒内连接。JupyterHub 5 Token 模式可能需要为单用户 Server 启用 JUPYTERHUB_ALLOW_TOKEN_IN_URL=1。'))
+    }, timeoutMs)
+    const cleanup = () => {
+      clearTimeout(timeout)
+      kernel.connectionStatusChanged.disconnect(onStatus)
+    }
+    kernel.connectionStatusChanged.connect(onStatus)
+    if (kernel.connectionStatus === 'connected') {
+      cleanup()
+      resolve()
+    }
+  })
+}
+
 export class JupyterClient {
   private manager: KernelManager | null = null
   private kernel: Kernel.IKernelConnection | null = null
@@ -67,6 +91,7 @@ export class JupyterClient {
       this.manager = new KernelManager({ serverSettings })
       await this.manager.ready
       this.kernel = await this.manager.startNew({ name: config.kernelName.trim() || 'python3' })
+      await waitForKernelWebSocket(this.kernel)
       this.configKey = nextKey
       this.kernel.statusChanged.connect((_sender, status) => {
         if (status === 'busy') this.setStatus('busy')

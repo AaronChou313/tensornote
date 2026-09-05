@@ -1,6 +1,6 @@
 # TensorNote Compute Platform 使用说明
 
-本文对应 `v0.4.0 — Compute Platform`。TensorNote 仍使用 Jupyter Server 执行 Python，但界面不再把一次 Jupyter 连接当作全局单例，而是通过 Compute Provider、Profile 和 Session Scope 管理不同计算环境。
+本文覆盖 `v0.4.0 — Compute Platform` 到 `v1.5.0 — Remote Compute Connectors`。TensorNote 始终使用标准 Compute Provider 执行 Python；Profile 可以直连 Jupyter，也可以先由 JupyterHub 或 BinderHub Connector 获得一个标准 Jupyter Endpoint。
 
 Python 环境、Conda、`venv`、`uv`、Jupyter 安装与每日启动命令见[环境配置与使用手册](ENVIRONMENT_SETUP.md)。
 
@@ -13,6 +13,9 @@ Lab / Scratch Lab
 ComputeRuntime ── Profile + Session Scope
         │
         ▼
+ComputeConnector（Direct / JupyterHub / BinderHub）
+        │  标准 Connection Lease
+        ▼
 ComputeProvider（v0.4 为 Jupyter）
         │
         ▼
@@ -20,6 +23,7 @@ Jupyter Server ── Kernel
 ```
 
 - **Compute Provider**：统一连接、执行、中断、重启、关闭和诊断接口。v0.4 内置 Jupyter Provider，后续可增加其他实现。
+- **Compute Connector**：验证、发现或启动计算服务，最终只返回标准 Jupyter 连接；不读取笔记，也不执行代码。
 - **Compute Profile**：一个可复用的计算环境配置，包含名称、Server URL、Kernel Name 和 Session Scope。
 - **Compute Session**：实际运行代码的 Kernel 会话。TensorNote 按需创建，不会因为打开页面就自动启动。
 - **Token**：只保存在当前浏览器 `sessionStorage`，不会写进 Markdown、Workspace 配置或 Git。
@@ -45,6 +49,8 @@ Jupyter Server ── Kernel
 | Lab RTX4090 | 局域网工作站 | Per workspace |
 | Remote Server | HTTPS 远程 Jupyter | Manual |
 | Jetson | 边缘设备与部署验证 | Manual |
+| JupyterHub | 高校、实验室或组织的个人 Server | Per workspace |
+| BinderHub | 公开 GitHub 固定 Revision 的临时环境 | Per workspace |
 
 模板地址只是示例。创建后必须按真实环境修改：
 
@@ -52,8 +58,21 @@ Jupyter Server ── Kernel
 - **Server URL**：例如 `http://127.0.0.1:8888`；不要附带 `?token=...`。
 - **Kernel Name**：Jupyter 内部名称，可通过 `jupyter kernelspec list` 查看，例如 `tensornote`。
 - **Token**：从 `jupyter server list` 获取。每次浏览器会话可能需要重新填写。
+- **Connection**：Generic Jupyter、JupyterHub 或 BinderHub。远程服务必须使用 HTTPS。
 
 修改连接地址、Kernel、Scope 或切换 Profile 时，现有不兼容 Session 会先被关闭。删除 Profile 不会删除 Python 环境、Jupyter Kernel Spec 或远程文件。
+
+### Remote Connector 兼容性矩阵
+
+| Connector | 身份 | Server 生命周期 | 数据持久性 | 必要条件 |
+| --- | --- | --- | --- | --- |
+| Generic Jupyter | 可选 Jupyter Token | 外部管理；TensorNote 只管理 Kernel | Server 管理者决定 | HTTPS、CORS、Kernel WebSocket |
+| JupyterHub | 当前用户有限权限 API Token | 复用已有 Server，或启停 TensorNote 本次启动的 Server | Hub 管理者决定 | Hub 与用户 Server CORS；读/启停自身 Server 权限；命名 Server；Token WebSocket 配置 |
+| BinderHub | build/launch 返回的临时 Token | 从固定 Revision 构建、启动并在断开时释放；默认 5 分钟启动超时 | 临时、受平台闲置回收约束 | 公开 GitHub Repo、40 位 commit SHA、兼容环境文件、HTTPS/CORS |
+
+JupyterHub Profile 可留空用户名，让 Token 自动识别身份；填写用户名时会额外校验，防止误用他人 Token。BinderHub 默认读取当前 GitHub Workspace 的 Repository 和已解析 commit，也可在 Profile 中显式指定同样格式的公开来源。
+
+浏览器 WebSocket 不能附加普通 HTTP `Authorization` 请求头，因此 JupyterLab Services 会在 Kernel WebSocket URL 中携带 Token。JupyterHub 5 的纯 Token 接入应在单用户 Server 环境中设置 `JUPYTERHUB_ALLOW_TOKEN_IN_URL=1`；REST 请求仍由 TensorNote 使用 `Authorization: token …`，不会把 Token 写入 URL。只应在 HTTPS 下使用有限权限、可撤销的 Token。若组织不允许 URL Token，应使用其交互式 OAuth 登录后的同源 Cookie，或由受信任的 Desktop/反向代理桥接，不能靠前端绕过策略。
 
 ## 4. Session Scope
 
@@ -148,13 +167,15 @@ Desktop 的“设置 → 计算与 Jupyter”提供独立运行时助手：
 
 诊断不会安装包或修改 Workspace。WebSocket 检查会短暂创建一个 Kernel；正在运行的 TensorNote Compute Session 不会被诊断复用。
 
+Connector 诊断在 Jupyter 检查之前执行：JupyterHub 会验证身份并判断目标 Server 是已就绪还是需要启动；BinderHub 只检查固定来源和 `/health`，不会因“运行诊断”触发昂贵构建。点击“复制诊断报告”得到不含 Token、URL Query 和用户密码的纯文本报告，分享前仍应人工复核。
+
 常见结果：
 
 - Browser 失败：检查 HTTP/HTTPS 混合内容和浏览器对 localhost 的限制。
 - Server 与 CORS 同时失败：先确认 Jupyter 仍在运行，再核对 `--ServerApp.allow_origin`。
 - Authentication 失败：用 `jupyter server list` 获取当前 Token。
 - Kernel 失败：用 `jupyter kernelspec list` 核对内部名称。
-- WebSocket 失败：检查反向代理是否转发 Upgrade/Connection 头，以及网络或防火墙。
+- WebSocket 失败：检查反向代理是否转发 Upgrade/Connection 头，以及网络或防火墙；JupyterHub 5 的纯 Token 模式还要检查用户 Server 的 `JUPYTERHUB_ALLOW_TOKEN_IN_URL=1`。
 
 ## 10. 安全边界
 
@@ -162,9 +183,22 @@ Desktop 的“设置 → 计算与 Jupyter”提供独立运行时助手：
 - 手动授权按 Workspace 保存在当前浏览器，不会静默改写 `tensornote.yaml`，也不会随仓库分享给其他设备。
 - GitHub Workspace 必须信任固定的 `owner/repo@commitSHA`；Revision 改变后重新确认。
 - Token 只存在当前浏览器会话，诊断错误也会对 Token 文本脱敏。
+- BinderHub 返回的临时 Token、Server URL 与 Lease 只存在运行时内存，不进入 Profile、恢复快照、Pages Cache 或 Workspace。
+- TensorNote 只会停止自己本次启动的 JupyterHub Server；连接前已经存在的 Server 始终属于用户或 Hub 管理者。
+- Binder 环境中的文件和 UI 输出不会写回只读 GitHub Workspace；重要结果必须显式下载或复制到本地 Workspace。
 - 不建议关闭 Jupyter 身份验证，也不建议使用 `allow_origin=*`。
 - TensorNote 不自动安装 Workspace 声明的 Python 依赖；Desktop Managed Environment 也只安装界面明确列出的最小基础包。
 
-## 11. 每日启动清单
+## 11. 远程公开知识库流程
+
+1. 作者把带环境文件和 executable Markdown 的 Workspace 发布到公开 GitHub Repository，并使用固定 Revision Reader。
+2. 读者显式信任该 Revision，并在当前浏览器为 Workspace 开启执行。
+3. 读者选择自己的 Generic Jupyter/JupyterHub Profile，或选择 BinderHub 临时环境。
+4. Connector 完成身份、构建或 Server 启动后，现有 Jupyter Compute Provider 创建隔离 Kernel；多 Cell Lab 按原顺序运行。
+5. 断开、切换 Workspace 或关闭应用时，Kernel 与 TensorNote-owned Lease 被清理；远程输出不自动持久化。
+
+BinderHub `/build` 的事件和临时 URL/Token 语义见 [BinderHub API](https://binderhub.readthedocs.io/en/latest/api.html)；JupyterHub 当前用户、Server 启停与 Progress API 见 [JupyterHub REST API](https://jupyterhub.readthedocs.io/en/stable/reference/rest-api.html)。公共 Binder 资源没有生产可用性承诺，不应作为 TensorNote 默认后端。
+
+## 12. 每日启动清单
 
 Desktop：启动 TensorNote → 打开 Workspace → 在设置中“启动并使用” → 开始运行 Lab。Local Web：终端 A 启动 Jupyter，终端 B 启动 TensorNote，再配置 Profile。两种模式仅阅读 Markdown 时都不需要 Jupyter。

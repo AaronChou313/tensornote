@@ -19,7 +19,8 @@ v0.9.0 的目标不是扩展功能数量，而是让 TensorNote 在升级、异�
 ## 安全边界
 
 - Git Bridge 只属于 Local Web；Static/Self-hosted Runtime 不显示入口。Bridge 仍限制 loopback、Origin、固定仓库根目录和非 Shell 子进程。
-- Jupyter Token 与 Extension Secret 仅在 sessionStorage；诊断会清理 Token 文本。
+- Jupyter/JupyterHub Token 与 Extension Secret 仅在 sessionStorage；BinderHub 临时 Token 和动态 Server URL 只在运行时 Lease；诊断会清理 Token、URL Query 与密码文本。
+- Remote Compute 非 Loopback URL 必须使用 HTTPS；Binder 必须固定完整 Git commit；JupyterHub 只停止 TensorNote 本次启动的用户 Server，不停止已有实例。
 - GitHub Workspace 执行信任绑定精确 Revision。
 - PWA 只缓存同源 GET 与访问过的应用资源，不批量缓存 Workspace、GitHub 或 Jupyter 内容。
 - Nginx 默认提供 `nosniff`、Referrer Policy 与受限 Permissions Policy。

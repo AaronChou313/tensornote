@@ -1,6 +1,7 @@
 import type { KernelStatus } from '../types'
 
 export const COMPUTE_PROVIDER_API_VERSION = 1
+export const COMPUTE_CONNECTOR_API_VERSION = 1
 
 export type CellOutput =
   | { type: 'stream'; name: 'stdout' | 'stderr'; text: string }
@@ -9,6 +10,18 @@ export type CellOutput =
 
 export type ComputeProviderKind = 'jupyter' | (string & {})
 export type ComputeSessionScope = 'note' | 'workspace' | 'manual'
+export type ComputeConnectorKind = 'direct' | 'jupyterhub' | 'binderhub' | (string & {})
+
+export type ComputeConnectorConfig =
+  | { kind: 'direct' }
+  | { kind: 'jupyterhub'; username?: string; serverName?: string; stopOnDisconnect?: boolean }
+  | { kind: 'binderhub'; repository?: string; revision?: string; shutdownOnDisconnect?: boolean }
+
+export interface ComputeWorkspaceSource {
+  provider: 'github' | (string & {})
+  repository: string
+  revision: string
+}
 
 export interface ComputeProfile {
   id: string
@@ -19,6 +32,7 @@ export interface ComputeProfile {
   scope: ComputeSessionScope
   description?: string
   runtimeServerId?: string
+  connector?: ComputeConnectorConfig
 }
 
 export interface ComputeConnectionConfig {
@@ -30,6 +44,7 @@ export interface ComputeConnectionConfig {
 export interface ComputeContext {
   workspaceId: string
   noteId?: string
+  workspaceSource?: ComputeWorkspaceSource
 }
 
 export interface ExecutionHandlers {
@@ -45,13 +60,72 @@ export interface ComputeKernelSpec {
 
 export type DiagnosticStatus = 'pass' | 'fail' | 'warning' | 'skipped' | 'running'
 
-export type DiagnosticCheckId = 'browser' | 'server' | 'authentication' | 'cors' | 'kernel' | 'websocket'
+export type DiagnosticCheckId =
+  | 'browser'
+  | 'source'
+  | 'server'
+  | 'identity'
+  | 'authentication'
+  | 'cors'
+  | 'lifecycle'
+  | 'persistence'
+  | 'kernel'
+  | 'websocket'
 
 export interface DiagnosticCheck {
   id: DiagnosticCheckId
   label: string
   status: DiagnosticStatus
   detail: string
+}
+
+export type ComputeConnectionPhase =
+  | 'idle'
+  | 'checking'
+  | 'authenticating'
+  | 'spawning'
+  | 'fetching'
+  | 'building'
+  | 'launching'
+  | 'ready'
+  | 'stopping'
+  | 'error'
+
+export interface ComputeConnectionEvent {
+  connector: ComputeConnectorKind
+  phase: ComputeConnectionPhase
+  message: string
+  progress?: number
+  occurredAt: number
+}
+
+export interface ComputeConnectionRequest {
+  profile: ComputeProfile
+  credential: string
+  context: ComputeContext
+  signal?: AbortSignal
+  onEvent: (event: ComputeConnectionEvent) => void
+}
+
+export interface ComputeConnectionLease {
+  readonly connector: ComputeConnectorKind
+  readonly connection: ComputeConnectionConfig
+  readonly ownership: 'external' | 'tensornote'
+  readonly persistence: 'persistent' | 'provider-managed' | 'temporary'
+  release(): Promise<void>
+}
+
+export interface ComputeConnectorDiagnosticResult {
+  checks: DiagnosticCheck[]
+  connection?: ComputeConnectionConfig
+}
+
+export interface ComputeConnector {
+  readonly id: string
+  readonly kind: ComputeConnectorKind
+  readonly label: string
+  connect(request: ComputeConnectionRequest): Promise<ComputeConnectionLease>
+  diagnose(request: ComputeConnectionRequest): Promise<ComputeConnectorDiagnosticResult>
 }
 
 export interface ComputeSession {
@@ -107,6 +181,24 @@ export const computeProfileTemplates: Array<Omit<ComputeProfile, 'id'>> = [
     kernelName: 'python3',
     scope: 'manual',
     description: '手动管理生命周期的远程环境',
+  },
+  {
+    name: 'JupyterHub',
+    kind: 'jupyter',
+    serverUrl: 'https://jupyter.example.com',
+    kernelName: 'python3',
+    scope: 'workspace',
+    description: '使用有限权限 Token 启动或连接个人 Server',
+    connector: { kind: 'jupyterhub', serverName: 'tensornote', stopOnDisconnect: true },
+  },
+  {
+    name: 'BinderHub',
+    kind: 'jupyter',
+    serverUrl: 'https://mybinder.org',
+    kernelName: 'python3',
+    scope: 'workspace',
+    description: '从 GitHub 固定 Revision 构建临时隔离环境',
+    connector: { kind: 'binderhub', shutdownOnDisconnect: true },
   },
   {
     name: 'Jetson',

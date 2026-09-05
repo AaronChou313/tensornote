@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { computeProfileTemplates, type ComputeProfile } from '../compute/types'
+import { computeProfileTemplates, type ComputeConnectionEvent, type ComputeProfile } from '../compute/types'
 
 interface ComputeState {
   profiles: ComputeProfile[]
   activeProfileId: string
   tokens: Record<string, string>
+  connectionEvent: ComputeConnectionEvent | null
   scratchOpen: boolean
   setScratchOpen: (open: boolean) => void
   setActiveProfile: (id: string) => void
@@ -13,6 +14,7 @@ interface ComputeState {
   updateProfile: (id: string, patch: Partial<Omit<ComputeProfile, 'id'>>) => void
   removeProfile: (id: string) => void
   setToken: (profileId: string, token: string) => void
+  setConnectionEvent: (event: ComputeConnectionEvent | null) => void
   upsertOwnedRuntimeProfile: (input: { serverId: string; environmentName: string; serverUrl: string; kernelName: string; token: string }) => string
   removeOwnedRuntimeProfile: (serverId: string) => void
 }
@@ -51,6 +53,7 @@ export const useComputeStore = create<ComputeState>()(
       profiles: [defaultProfile],
       activeProfileId: defaultProfile.id,
       tokens: readTokens(),
+      connectionEvent: null,
       scratchOpen: false,
       setScratchOpen: (scratchOpen) => set({ scratchOpen }),
       setActiveProfile: (activeProfileId) => set({ activeProfileId }),
@@ -76,6 +79,7 @@ export const useComputeStore = create<ComputeState>()(
         writeTokens(tokens)
         return { tokens }
       }),
+      setConnectionEvent: (connectionEvent) => set({ connectionEvent }),
       upsertOwnedRuntimeProfile: ({ serverId, environmentName, serverUrl, kernelName, token }) => {
         const state = get()
         const existing = state.profiles.find((profile) => profile.runtimeServerId === serverId)

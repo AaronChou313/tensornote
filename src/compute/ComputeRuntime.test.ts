@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ComputeRuntime, computeScopeKey } from './ComputeRuntime'
-import type { ComputeProfile, ComputeProvider, ComputeSession } from './types'
+import type { ComputeConnectionLease, ComputeConnectionRequest, ComputeConnector, ComputeProfile, ComputeProvider, ComputeSession } from './types'
 
 const profile: ComputeProfile = {
   id: 'local-python',
@@ -84,5 +84,81 @@ describe('ComputeRuntime', () => {
     await runtime.handleContextChange({ ...profile, kernelName: 'python3' }, context)
     expect(harness.sessions[0].shutdown).toHaveBeenCalledTimes(1)
     expect(runtime.connected).toBe(false)
+  })
+
+  it('acquires and releases a connector lease around the provider session', async () => {
+    const harness = providerHarness()
+    const release = vi.fn(async () => undefined)
+    const connector: ComputeConnector = {
+      id: 'test-hub',
+      kind: 'jupyterhub',
+      label: 'Test Hub',
+      connect: vi.fn(async (): Promise<ComputeConnectionLease> => ({
+        connector: 'jupyterhub',
+        connection: { serverUrl: 'https://hub.example.org/user/test/', token: 'temporary', kernelName: 'python3' },
+        ownership: 'tensornote',
+        persistence: 'provider-managed',
+        release,
+      })),
+      diagnose: vi.fn(async () => ({ checks: [] })),
+    }
+    const runtime = new ComputeRuntime(() => harness.provider, () => connector)
+    const remoteProfile = { ...profile, connector: { kind: 'jupyterhub' as const, serverName: 'tensornote' } }
+    await runtime.execute(remoteProfile, 'hub-token', { workspaceId: 'demo' }, '1', handlers)
+    expect(connector.connect).toHaveBeenCalledTimes(1)
+    expect(harness.provider.createSession).toHaveBeenCalledWith(expect.objectContaining({ serverUrl: 'https://hub.example.org/user/test/', token: 'temporary' }))
+    await runtime.shutdown()
+    expect(release).toHaveBeenCalledTimes(1)
+  })
+
+  it('releases a prepared lease when connector settings change', async () => {
+    const harness = providerHarness()
+    const release = vi.fn(async () => undefined)
+    const connector: ComputeConnector = {
+      id: 'test-hub',
+      kind: 'jupyterhub',
+      label: 'Test Hub',
+      connect: vi.fn(async (): Promise<ComputeConnectionLease> => ({
+        connector: 'jupyterhub',
+        connection: { serverUrl: 'https://hub.example.org/user/test/', token: 'temporary', kernelName: 'python3' },
+        ownership: 'tensornote',
+        persistence: 'provider-managed',
+        release,
+      })),
+      diagnose: vi.fn(async () => ({ checks: [] })),
+    }
+    const runtime = new ComputeRuntime(() => harness.provider, () => connector)
+    const remoteProfile = { ...profile, connector: { kind: 'jupyterhub' as const, serverName: 'first' } }
+    await runtime.prepare(remoteProfile, 'hub-token', { workspaceId: 'demo' })
+
+    await runtime.handleContextChange(
+      { ...remoteProfile, connector: { ...remoteProfile.connector, serverName: 'second' } },
+      { workspaceId: 'demo' },
+    )
+
+    expect(release).toHaveBeenCalledTimes(1)
+    expect(runtime.connectionActive).toBe(false)
+  })
+
+  it('cancels an in-flight connector without surfacing an abort as a connection error', async () => {
+    const harness = providerHarness()
+    const connector: ComputeConnector = {
+      id: 'slow-binder',
+      kind: 'binderhub',
+      label: 'Slow Binder',
+      connect: vi.fn((request: ComputeConnectionRequest) => new Promise<ComputeConnectionLease>((_resolve, reject) => {
+        request.signal?.addEventListener('abort', () => reject(new DOMException('stream aborted', 'AbortError')), { once: true })
+      })),
+      diagnose: vi.fn(async () => ({ checks: [] })),
+    }
+    const runtime = new ComputeRuntime(() => harness.provider, () => connector)
+    const events: string[] = []
+    runtime.onConnectionEvent((event) => events.push(event.phase))
+    const preparing = runtime.prepare({ ...profile, connector: { kind: 'binderhub' } }, '', { workspaceId: 'demo' })
+    await vi.waitFor(() => expect(connector.connect).toHaveBeenCalledTimes(1))
+    await runtime.shutdown()
+    await expect(preparing).rejects.toMatchObject({ name: 'AbortError' })
+    expect(events.at(-1)).toBe('idle')
+    expect(events).not.toContain('error')
   })
 })

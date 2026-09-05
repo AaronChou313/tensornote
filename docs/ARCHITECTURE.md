@@ -381,6 +381,32 @@ GitHubWorkspaceProvider ── read-only session ── Share / Fork / Download 
 - 发布检查器组合 Agent Skill 的严格 Workspace validator 与 License、Environment、Presentation、Revision 和凭据文件门，不安装依赖、不执行 Lab。
 - 完整决策见 [ADR 0005](adr/0005-publish-read-anywhere.md)，操作流程见[发布指南](PUBLISHING.md)。
 
+## v1.5.0 Remote Compute Connectors
+
+```text
+Compute Profile + Workspace source
+             │
+             ▼
+ComputeConnector v1
+  ├── Direct ─────── validate existing Jupyter
+  ├── JupyterHub ─── identity + user Server lifecycle
+  └── BinderHub ──── pinned Repository build + ephemeral launch
+             │
+             ▼
+Connection Lease { Jupyter URL, runtime-only token, ownership, persistence }
+             │
+             ▼
+existing ComputeProvider v1 ── Kernel Session ── executable Markdown
+```
+
+- Connector 与 Provider 分层：Connector 只获得标准 Endpoint 和 Lease，JupyterComputeProvider 仍唯一负责 Kernel、WebSocket、执行、Interrupt 与 Restart。
+- ComputeContext 可选携带只读的 GitHub `repository + resolved revision` 来源投影；不传 Markdown、Workspace Handle、Git 凭据或写入能力。
+- 未声明 Connector 的旧 Profile 自动使用 Direct。Hub/Binder 配置作为普通偏好保存，Token 与动态 Lease 仍是会话或运行时状态。
+- Runtime 按 Profile、Secret 和固定 Workspace Source 生成连接签名；切换不兼容 Profile、Revision、Workspace 或 Scope 时先关闭 Kernel，再按所有权释放 Lease。
+- JupyterHub 先读取当前 Token 身份，绝不使用组织管理员凭据；已有 Server 标记 external，本次启动的 Server 标记 tensornote。
+- BinderHub 只接受完整 commit SHA，使用 Fetch 读取 JSON EventStream；临时 Token 不回写 Profile，断开时调用 Server shutdown，失败会保留可见错误。
+- 完整决策见 [ADR 0006](adr/0006-remote-compute-connectors.md)，用户配置与兼容矩阵见 [Compute Platform](COMPUTE_PLATFORM.md)。
+
 ## 版本更新规则
 
 每个版本至少同步更新：

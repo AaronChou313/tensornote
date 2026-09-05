@@ -131,7 +131,7 @@ pnpm test:performance
 
 ### 2.4 Desktop 开发
 
-v1.1.0 起，Desktop 使用 Tauri 2 并复用同一个 `src/`；v1.2.0 加入受限 Native Workspace 与 Native Git，v1.3.0 加入 Local Runtime Assistant，v1.4.0 加入受限 GitHub 深链与 Repository-owned Pages。先安装 Rust stable；macOS Homebrew 用户可运行 `brew install rust`。确认：
+v1.1.0 起，Desktop 使用 Tauri 2 并复用同一个 `src/`；v1.2.0 加入受限 Native Workspace 与 Native Git，v1.3.0 加入 Local Runtime Assistant，v1.4.0 加入受限 GitHub 深链与 Repository-owned Pages，v1.5.0 加入保持 ComputeProvider 独立的 Remote Compute Connectors。先安装 Rust stable；macOS Homebrew 用户可运行 `brew install rust`。确认：
 
 ```bash
 rustc --version

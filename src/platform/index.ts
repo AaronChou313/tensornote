@@ -4,8 +4,10 @@ export { CURRENT_WORKSPACE_SCHEMA_VERSION, parseWorkspaceManifest, parseWorkspac
 export { WORKSPACE_PROVIDER_API_VERSION, WorkspaceConflictError } from '../workspace/types'
 export type { WorkspaceCapabilities, WorkspaceDescriptor, WorkspaceEntry, WorkspaceFileStat, WorkspaceManifest, WorkspaceProvider, WorkspaceSession, WorkspaceWriteOptions } from '../workspace/types'
 
-export { COMPUTE_PROVIDER_API_VERSION } from '../compute/types'
-export type { CellOutput, ComputeConnectionConfig, ComputeContext, ComputeKernelSpec, ComputeProfile, ComputeProvider, ComputeSession, ComputeSessionScope, DiagnosticCheck, ExecutionHandlers } from '../compute/types'
+export { COMPUTE_CONNECTOR_API_VERSION, COMPUTE_PROVIDER_API_VERSION } from '../compute/types'
+export type { CellOutput, ComputeConnectionConfig, ComputeConnectionEvent, ComputeConnectionLease, ComputeConnectionPhase, ComputeConnectionRequest, ComputeConnector, ComputeConnectorConfig, ComputeConnectorDiagnosticResult, ComputeConnectorKind, ComputeContext, ComputeKernelSpec, ComputeProfile, ComputeProvider, ComputeSession, ComputeSessionScope, ComputeWorkspaceSource, DiagnosticCheck, ExecutionHandlers } from '../compute/types'
+export { computeConnectorCompatibilityMatrix, connectorCompatibility, formatComputeDiagnosticReport } from '../compute/compatibility'
+export type { ComputeConnectorCompatibility } from '../compute/compatibility'
 
 export { EXTENSION_API_VERSION } from '../extensions/constants'
 export type { ExtensionAPI, ExtensionManifest, ExtensionModule, ExtensionPermission, ExtensionSetting } from '../extensions/types'

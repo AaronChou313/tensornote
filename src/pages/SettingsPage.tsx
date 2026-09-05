@@ -2,11 +2,14 @@ import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react'
 import { CheckCircle, Cpu, Gear, Info, Moon, NotePencil, PaintBrush, Plus, Pulse, PuzzlePiece, Sun, Trash } from '@phosphor-icons/react'
 import { useSearchParams } from 'react-router-dom'
 import { computeRuntime } from '../compute/ComputeRuntime'
-import { computeProfileTemplates, type ComputeSessionScope, type DiagnosticCheck } from '../compute/types'
+import { formatComputeDiagnosticReport } from '../compute/compatibility'
+import { computeConnectorKind } from '../compute/connectors'
+import { computeProfileTemplates, type ComputeConnectorConfig, type ComputeContext, type ComputeSessionScope, type DiagnosticCheck } from '../compute/types'
 import { getHostAdapter } from '../host/runtime'
 import { useExtensionRecords, useExtensionRuntime } from '../extensions/ExtensionContext'
 import {
   COMPUTE_PROVIDER_API_VERSION,
+  COMPUTE_CONNECTOR_API_VERSION,
   CURRENT_WORKSPACE_SCHEMA_VERSION,
   EXECUTABLE_MARKDOWN_SYNTAX_VERSION,
   EXTENSION_API_VERSION,
@@ -39,6 +42,30 @@ const scopeLabels: Array<{ value: ComputeSessionScope; label: string; detail: st
   { value: 'manual', label: '手动管理', detail: '只在手动断开时关闭' },
 ]
 
+const connectorLabels = {
+  direct: 'Generic Jupyter',
+  jupyterhub: 'JupyterHub',
+  binderhub: 'BinderHub',
+} as const
+
+function computeContextFromSession(session: ReturnType<typeof useWorkspaceStore.getState>['session']): ComputeContext {
+  if (!session) return { workspaceId: 'workspace' }
+  const owner = session.descriptor.config?.owner
+  const repo = session.descriptor.config?.repo
+  return {
+    workspaceId: session.descriptor.id,
+    ...(session.descriptor.type === 'github' && owner && repo && session.descriptor.revision
+      ? { workspaceSource: { provider: 'github' as const, repository: `${owner}/${repo}`, revision: session.descriptor.revision } }
+      : {}),
+  }
+}
+
+function connectorDefaults(kind: keyof typeof connectorLabels): ComputeConnectorConfig {
+  if (kind === 'jupyterhub') return { kind, serverName: 'tensornote', stopOnDisconnect: true }
+  if (kind === 'binderhub') return { kind, shutdownOnDisconnect: true }
+  return { kind: 'direct' }
+}
+
 function SettingRow({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return <div className="settings-row"><span><strong>{title}</strong><small>{description}</small></span><div>{children}</div></div>
 }
@@ -66,6 +93,7 @@ function ComputeSettings() {
   const profiles = useComputeStore((state) => state.profiles)
   const activeProfileId = useComputeStore((state) => state.activeProfileId)
   const tokens = useComputeStore((state) => state.tokens)
+  const connectionEvent = useComputeStore((state) => state.connectionEvent)
   const setActiveProfile = useComputeStore((state) => state.setActiveProfile)
   const updateProfile = useComputeStore((state) => state.updateProfile)
   const addProfile = useComputeStore((state) => state.addProfile)
@@ -75,7 +103,11 @@ function ComputeSettings() {
   const profile = activeComputeProfile({ profiles, activeProfileId })
   const [diagnostics, setDiagnostics] = useState<DiagnosticCheck[]>([])
   const [diagnosing, setDiagnosing] = useState(false)
+  const [preparing, setPreparing] = useState(false)
+  const [reportCopied, setReportCopied] = useState(false)
   const token = tokens[profile.id] ?? ''
+  const connectorKind = computeConnectorKind(profile.connector) as keyof typeof connectorLabels
+  const computeContext = useMemo(() => computeContextFromSession(session), [session])
   const executionPolicy = session ? resolveWorkspaceExecutionPolicy(session, executionOverrides) : null
   const executionDescription = !session
     ? '打开 Workspace 后可配置执行权限。'
@@ -86,11 +118,76 @@ function ComputeSettings() {
         : '默认关闭。开启后，笔记实验和 Scratch Lab 可以向当前 Kernel 发送代码。'
   const diagnose = async () => {
     setDiagnosing(true)
-    try { setDiagnostics(await computeRuntime.diagnose(profile, token)) }
+    try { setDiagnostics(await computeRuntime.diagnose(profile, token, computeContext)) }
     catch (reason) { setDiagnostics([{ id: 'server', label: 'Diagnostics', status: 'fail', detail: reason instanceof Error ? reason.message : '诊断失败' }]) }
     finally { setDiagnosing(false) }
   }
-  return <section className="settings-panel"><header><span>Runtime</span><h2>计算与 Jupyter</h2><p>Token 仅保存在当前浏览器会话，不写入 Workspace。</p></header><div className="settings-group settings-execution-group"><SettingRow title="允许当前 Workspace 执行代码" description={executionDescription}><label className="settings-switch"><input type="checkbox" checked={executionPolicy?.enabled ?? false} disabled={!executionPolicy?.canChange} onChange={(event) => setActiveWorkspaceExecution(event.target.checked)} aria-label="允许当前 Workspace 执行代码" /><i /></label></SettingRow>{session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前浏览器中，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前 Workspace 没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.type === 'github' && !session.trusted ? ' GitHub Workspace 还需要信任当前 Revision。' : ''}</p>}</div>{LocalRuntimeAssistant && <Suspense fallback={<p className="settings-message">正在加载本地运行时助手…</p>}><LocalRuntimeAssistant /></Suspense>}<div className="settings-compute-layout"><aside className="settings-profile-list"><span>Profiles</span>{profiles.map((item) => <button key={item.id} className={item.id === profile.id ? 'is-active' : ''} onClick={() => { setActiveProfile(item.id); setDiagnostics([]) }}><Cpu size={16} /><span><strong>{item.name}</strong><small>{item.kernelName} · {item.scope}</small></span></button>)}<details><summary><Plus size={14} />添加 Profile</summary><div>{computeProfileTemplates.map((template) => <button key={template.name} onClick={() => addProfile(template)}><strong>{template.name}</strong><small>{template.description}</small></button>)}</div></details></aside><div className="settings-compute-form"><div className="settings-runtime-status"><span className={`kernel-dot kernel-dot--${kernelStatus}`} /><span><strong>{kernelStatus}</strong><small>{profile.name}</small></span></div><div className="settings-form-grid"><label><span>Profile 名称</span><input value={profile.name} onChange={(event) => updateProfile(profile.id, { name: event.target.value })} /></label><label className="is-wide"><span>Server URL</span><input value={profile.serverUrl} onChange={(event) => updateProfile(profile.id, { serverUrl: event.target.value })} placeholder="http://127.0.0.1:8888" /></label><label><span>Kernel</span><input value={profile.kernelName} onChange={(event) => updateProfile(profile.id, { kernelName: event.target.value })} /></label><label><span>Token</span><input type="password" value={token} onChange={(event) => setToken(profile.id, event.target.value)} placeholder="Jupyter Token" /></label></div><div className="settings-scope-grid">{scopeLabels.map((scope) => <button key={scope.value} className={profile.scope === scope.value ? 'is-active' : ''} onClick={() => updateProfile(profile.id, { scope: scope.value })}><strong>{scope.label}</strong><small>{scope.detail}</small></button>)}</div><div className="settings-compute-actions"><Button variant="secondary" size="sm" onClick={() => void diagnose()} disabled={diagnosing}><Pulse size={15} />{diagnosing ? '检查中' : '运行连接诊断'}</Button><Button variant="ghost" size="sm" onClick={() => void computeRuntime.shutdown()} disabled={kernelStatus === 'offline'}>断开 Kernel</Button>{profiles.length > 1 && <Button variant="ghost" size="sm" onClick={() => removeProfile(profile.id)}><Trash size={14} />删除 Profile</Button>}</div>{diagnostics.length > 0 && <div className="settings-diagnostics">{diagnostics.map((item) => <div key={item.id} data-status={item.status}><span>{item.status}</span><strong>{item.label}</strong><small>{item.detail}</small></div>)}</div>}</div></div></section>
+  const prepare = async () => {
+    setPreparing(true)
+    setDiagnostics([])
+    try { setDiagnostics(await computeRuntime.prepare(profile, token, computeContext)) }
+    catch (reason) {
+      if (reason instanceof DOMException && reason.name === 'AbortError') setDiagnostics([])
+      else setDiagnostics([{ id: 'server', label: 'Connection', status: 'fail', detail: reason instanceof Error ? reason.message : '连接失败' }])
+    }
+    finally { setPreparing(false) }
+  }
+  const copyDiagnostics = async () => {
+    await navigator.clipboard.writeText(formatComputeDiagnosticReport(profile, diagnostics))
+    setReportCopied(true)
+    window.setTimeout(() => setReportCopied(false), 1800)
+  }
+  return (
+    <section className="settings-panel">
+      <header><span>Runtime</span><h2>计算与 Jupyter</h2><p>Workspace 与计算环境彼此独立；所有 Token 只保存在当前浏览器会话。</p></header>
+      <div className="settings-group settings-execution-group">
+        <SettingRow title="允许当前 Workspace 执行代码" description={executionDescription}>
+          <label className="settings-switch"><input type="checkbox" checked={executionPolicy?.enabled ?? false} disabled={!executionPolicy?.canChange} onChange={(event) => setActiveWorkspaceExecution(event.target.checked)} aria-label="允许当前 Workspace 执行代码" /><i /></label>
+        </SettingRow>
+        {session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前浏览器中，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前 Workspace 没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.type === 'github' && !session.trusted ? ' GitHub Workspace 还需要信任当前 Revision。' : ''}</p>}
+      </div>
+      {LocalRuntimeAssistant && <Suspense fallback={<p className="settings-message">正在加载本地运行时助手…</p>}><LocalRuntimeAssistant /></Suspense>}
+      <div className="settings-compute-layout">
+        <aside className="settings-profile-list">
+          <span>Profiles</span>
+          {profiles.map((item) => <button key={item.id} className={item.id === profile.id ? 'is-active' : ''} onClick={() => { setActiveProfile(item.id); setDiagnostics([]) }}><Cpu size={16} /><span><strong>{item.name}</strong><small>{connectorLabels[computeConnectorKind(item.connector) as keyof typeof connectorLabels] ?? item.kind} · {item.scope}</small></span></button>)}
+          <details><summary><Plus size={14} />添加 Profile</summary><div>{computeProfileTemplates.map((template) => <button key={template.name} onClick={() => addProfile(template)}><strong>{template.name}</strong><small>{template.description}</small></button>)}</div></details>
+        </aside>
+        <div className="settings-compute-form">
+          <div className="settings-runtime-status">
+            <span className={`kernel-dot kernel-dot--${kernelStatus}`} />
+            <span><strong>{connectionEvent && connectionEvent.phase !== 'idle' ? connectionEvent.phase : kernelStatus}</strong><small>{connectionEvent && connectionEvent.phase !== 'idle' ? connectionEvent.message : profile.name}</small></span>
+            {connectionEvent?.progress !== undefined && <progress max="100" value={connectionEvent.progress} />}
+          </div>
+          <div className="settings-connector-intro" data-connector={connectorKind}>
+            <strong>{connectorLabels[connectorKind]}</strong>
+            <p>{connectorKind === 'direct' ? '连接已经运行的标准 Jupyter Server；Server 与文件生命周期由你管理。' : connectorKind === 'jupyterhub' ? '验证当前用户身份，按需启动个人 Server；Token 模式还需要用户 Server 接受 WebSocket URL Token。' : '从公开 GitHub 的固定 commit 构建临时隔离环境；首次启动可能需要数分钟。'}</p>
+          </div>
+          <div className="settings-form-grid">
+            <label><span>Profile 名称</span><input value={profile.name} onChange={(event) => updateProfile(profile.id, { name: event.target.value })} /></label>
+            <label><span>连接方式</span><select value={connectorKind} onChange={(event) => updateProfile(profile.id, { connector: connectorDefaults(event.target.value as keyof typeof connectorLabels) })}><option value="direct">Generic Jupyter</option><option value="jupyterhub">JupyterHub</option><option value="binderhub">BinderHub</option></select></label>
+            <label className="is-wide"><span>{connectorKind === 'direct' ? 'Server URL' : connectorKind === 'jupyterhub' ? 'Hub URL' : 'BinderHub URL'}</span><input value={profile.serverUrl} onChange={(event) => updateProfile(profile.id, { serverUrl: event.target.value })} placeholder={connectorKind === 'direct' ? 'http://127.0.0.1:8888' : connectorKind === 'jupyterhub' ? 'https://jupyter.example.com' : 'https://mybinder.org'} /></label>
+            <label><span>Kernel</span><input value={profile.kernelName} onChange={(event) => updateProfile(profile.id, { kernelName: event.target.value })} /></label>
+            {connectorKind !== 'binderhub' && <label><span>{connectorKind === 'jupyterhub' ? 'Hub API Token' : 'Token'}</span><input type="password" value={token} onChange={(event) => setToken(profile.id, event.target.value)} placeholder={connectorKind === 'jupyterhub' ? '有限权限 Token' : 'Jupyter Token'} /></label>}
+            {profile.connector?.kind === 'jupyterhub' && <><label><span>用户名（可选校验）</span><input value={profile.connector.username ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, username: event.target.value } as ComputeConnectorConfig })} placeholder="由 Token 自动识别" /></label><label><span>命名 Server</span><input value={profile.connector.serverName ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, serverName: event.target.value } as ComputeConnectorConfig })} placeholder="tensornote" /></label></>}
+            {profile.connector?.kind === 'binderhub' && <><label><span>Repository（可选）</span><input value={profile.connector.repository ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, repository: event.target.value } as ComputeConnectorConfig })} placeholder="默认使用当前 GitHub Workspace" /></label><label><span>完整 commit SHA（可选）</span><input value={profile.connector.revision ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, revision: event.target.value } as ComputeConnectorConfig })} placeholder="默认使用当前固定 Revision" /></label></>}
+          </div>
+          {profile.connector?.kind === 'jupyterhub' && <SettingRow title="断开时停止 Server" description="只停止本次由 TensorNote 启动的实例；已有 Server 不受影响。"><label className="settings-switch"><input type="checkbox" checked={profile.connector.stopOnDisconnect !== false} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, stopOnDisconnect: event.target.checked } as ComputeConnectorConfig })} /><i /></label></SettingRow>}
+          {profile.connector?.kind === 'jupyterhub' && <p className="settings-execution-note">JupyterHub 5 的浏览器 Token 连接通常需要在单用户 Server 环境中设置 <code>JUPYTERHUB_ALLOW_TOKEN_IN_URL=1</code>；否则 REST 可通过但 Kernel WebSocket 会被拒绝。请仅在 HTTPS 下使用有限权限 Token。</p>}
+          {profile.connector?.kind === 'binderhub' && <SettingRow title="断开时释放临时 Server" description="不会删除 GitHub Repository；Binder 文件与输出本就不持久。"><label className="settings-switch"><input type="checkbox" checked={profile.connector.shutdownOnDisconnect !== false} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, shutdownOnDisconnect: event.target.checked } as ComputeConnectorConfig })} /><i /></label></SettingRow>}
+          <div className="settings-scope-grid">{scopeLabels.map((scope) => <button key={scope.value} className={profile.scope === scope.value ? 'is-active' : ''} onClick={() => updateProfile(profile.id, { scope: scope.value })}><strong>{scope.label}</strong><small>{scope.detail}</small></button>)}</div>
+          <div className="settings-compute-actions">
+            <Button variant="secondary" size="sm" onClick={() => void diagnose()} disabled={diagnosing || preparing}><Pulse size={15} />{diagnosing ? '检查中' : '运行连接诊断'}</Button>
+            {connectorKind !== 'direct' && <Button size="sm" onClick={() => void prepare()} disabled={preparing || diagnosing}>{preparing ? '正在准备环境…' : '启动并验证环境'}</Button>}
+            {diagnostics.length > 0 && <Button variant="ghost" size="sm" onClick={() => void copyDiagnostics()}>{reportCopied ? '已复制无敏感信息报告' : '复制诊断报告'}</Button>}
+            <Button variant="ghost" size="sm" onClick={() => void computeRuntime.shutdown()} disabled={kernelStatus === 'offline' && (!connectionEvent || ['idle', 'error'].includes(connectionEvent.phase))}>断开计算会话</Button>
+            {profiles.length > 1 && <Button variant="ghost" size="sm" onClick={() => removeProfile(profile.id)}><Trash size={14} />删除 Profile</Button>}
+          </div>
+          {diagnostics.length > 0 && <div className="settings-diagnostics">{diagnostics.map((item, index) => <div key={`${item.id}-${index}`} data-status={item.status}><span>{item.status}</span><strong>{item.label}</strong><small>{item.detail}</small></div>)}</div>}
+        </div>
+      </div>
+    </section>
+  )
 }
 
 function ExtensionSettings() {
@@ -118,6 +215,7 @@ function AboutSettings() {
     `Workspace Schema v${CURRENT_WORKSPACE_SCHEMA_VERSION}`,
     `WorkspaceProvider v${WORKSPACE_PROVIDER_API_VERSION}`,
     `ComputeProvider v${COMPUTE_PROVIDER_API_VERSION}`,
+    `ComputeConnector v${COMPUTE_CONNECTOR_API_VERSION}`,
     `Extension API v${EXTENSION_API_VERSION}`,
     `Executable Markdown v${EXECUTABLE_MARKDOWN_SYNTAX_VERSION}`,
     `Settings Model v${SETTINGS_MODEL_VERSION}`,

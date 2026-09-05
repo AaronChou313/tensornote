@@ -13,9 +13,15 @@ function baseUrl(value: string) {
 }
 
 function apiUrl(config: ComputeConnectionConfig, path: string) {
-  const url = new URL(path.replace(/^\/+/, ''), baseUrl(config.serverUrl))
-  if (config.token.trim()) url.searchParams.set('token', config.token.trim())
-  return url
+  return new URL(path.replace(/^\/+/, ''), baseUrl(config.serverUrl))
+}
+
+function apiRequestInit(config: ComputeConnectionConfig): RequestInit {
+  const token = config.token.trim()
+  return {
+    mode: 'cors',
+    headers: token ? { Authorization: `token ${token}` } : undefined,
+  }
 }
 
 function safeMessage(reason: unknown, token: string) {
@@ -29,7 +35,7 @@ interface KernelSpecsResponse {
 }
 
 async function fetchKernels(config: ComputeConnectionConfig) {
-  const response = await fetch(apiUrl(config, 'api/kernelspecs'), { mode: 'cors' })
+  const response = await fetch(apiUrl(config, 'api/kernelspecs'), apiRequestInit(config))
   if (!response.ok) throw new Error(`Kernel API returned HTTP ${response.status}`)
   const payload = await response.json() as KernelSpecsResponse
   return Object.entries(payload.kernelspecs ?? {}).map(([name, value]) => ({
@@ -110,20 +116,11 @@ export class JupyterComputeProvider implements ComputeProvider {
 
     let apiResponse: Response | null = null
     try {
-      apiResponse = await fetch(apiUrl(config, 'api'), { mode: 'cors' })
+      apiResponse = await fetch(apiUrl(config, 'api'), apiRequestInit(config))
       checks.push({ id: 'server', label: 'Server reachable', status: 'pass', detail: `Jupyter 返回 HTTP ${apiResponse.status}。` })
       checks.push({ id: 'cors', label: 'CORS', status: 'pass', detail: '浏览器可以读取 Jupyter API 响应。' })
       if (apiResponse.status === 401 || apiResponse.status === 403) {
         checks.push({ id: 'authentication', label: 'Authentication', status: 'fail', detail: `Token 被拒绝（HTTP ${apiResponse.status}）。` })
-      } else if (apiResponse.ok) {
-        checks.push({
-          id: 'authentication',
-          label: 'Authentication',
-          status: config.token.trim() ? 'pass' : 'warning',
-          detail: config.token.trim() ? 'Token 验证通过。' : 'Server 未要求 Token；不建议关闭 Jupyter 身份验证。',
-        })
-      } else {
-        checks.push({ id: 'authentication', label: 'Authentication', status: 'warning', detail: `API 返回 HTTP ${apiResponse.status}，无法确认身份验证状态。` })
       }
     } catch (reason) {
       const detail = safeMessage(reason, config.token)
@@ -136,13 +133,39 @@ export class JupyterComputeProvider implements ComputeProvider {
     }
 
     if (!apiResponse?.ok) {
+      if (!checks.some((check) => check.id === 'authentication')) {
+        checks.push({ id: 'authentication', label: 'Authentication', status: 'warning', detail: `API 返回 HTTP ${apiResponse?.status ?? '未知'}，无法确认身份验证状态。` })
+      }
       checks.push({ id: 'kernel', label: 'Kernel available', status: 'skipped', detail: 'API 身份验证未通过。' })
       checks.push({ id: 'websocket', label: 'WebSocket', status: 'skipped', detail: 'Kernel 检查未运行。' })
       return checks
     }
 
     try {
-      const kernels = await fetchKernels(config)
+      const kernelResponse = await fetch(apiUrl(config, 'api/kernelspecs'), apiRequestInit(config))
+      if (kernelResponse.status === 401 || kernelResponse.status === 403) {
+        if (!checks.some((check) => check.id === 'authentication')) {
+          checks.push({ id: 'authentication', label: 'Authentication', status: 'fail', detail: `Token 被拒绝（HTTP ${kernelResponse.status}）。` })
+        }
+        checks.push({ id: 'kernel', label: 'Kernel available', status: 'skipped', detail: 'API 身份验证未通过。' })
+        checks.push({ id: 'websocket', label: 'WebSocket', status: 'skipped', detail: 'Kernel 检查未运行。' })
+        return checks
+      }
+      if (!kernelResponse.ok) throw new Error(`Kernel API returned HTTP ${kernelResponse.status}`)
+      if (!checks.some((check) => check.id === 'authentication')) {
+        checks.push({
+          id: 'authentication',
+          label: 'Authentication',
+          status: config.token.trim() ? 'pass' : 'warning',
+          detail: config.token.trim() ? 'Token 验证通过。' : 'Server 未要求 Token；不建议关闭 Jupyter 身份验证。',
+        })
+      }
+      const payload = await kernelResponse.json() as KernelSpecsResponse
+      const kernels = Object.entries(payload.kernelspecs ?? {}).map(([name, value]) => ({
+        name,
+        displayName: value.spec?.display_name || name,
+        language: value.spec?.language,
+      }))
       const selected = kernels.find((kernel) => kernel.name === config.kernelName.trim())
       checks.push({
         id: 'kernel',
@@ -157,6 +180,9 @@ export class JupyterComputeProvider implements ComputeProvider {
         return checks
       }
     } catch (reason) {
+      if (!checks.some((check) => check.id === 'authentication')) {
+        checks.push({ id: 'authentication', label: 'Authentication', status: 'warning', detail: 'Kernel API 未成功返回，无法确认身份验证状态。' })
+      }
       checks.push({ id: 'kernel', label: 'Kernel available', status: 'fail', detail: safeMessage(reason, config.token) })
       checks.push({ id: 'websocket', label: 'WebSocket', status: 'skipped', detail: 'Kernel API 检查未通过。' })
       return checks
