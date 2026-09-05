@@ -41,7 +41,10 @@ jobs:
       - name: Validate publication candidate
         run: node scripts/validate-publication.mjs --workspace . --owner AaronChou313 --repo tensornote --revision 0123456789abcdef0123456789abcdef01234567
       - name: Validate release contracts
-        run: pnpm validate:release -- --tag "v$(node -p \"require('./package.json').version\")"
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          pnpm validate:release -- --tag "v${version}"
       - name: Build static deployment
         run: pnpm build:web
         env:
