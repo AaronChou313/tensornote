@@ -219,3 +219,5 @@
 - Skill 新增已有知识库维护协议、可合并的 AGENTS 模板、版本化 JSON schema、真实 YAML/路径/链接/前置关系验证和独立安装锁文件。Release 同时打包 Agent Skill，不引入另一套内容格式或通用远程 Shell。
 - 本机 Desktop 完成 Owned Jupyter 发现/启动/诊断、双 Cell、重复运行、Restart & Run All 和退出端口清理。
 - 详细验收与仍未完成的发行条件见 STABLE_CANDIDATE_VERIFICATION.md。正式签名配置仍缺失，禁止降级签名门或称为已经发布。
+- 候选 `1293bb8` 已提交并推送，通过 CI `34019694837` 和完整无 Tag Release 演练 `34019696142`；Chrome 原生目录授权、新建、编辑保存及移动单独验收通过。实际分发 Skill 包在仓库外安装后两套模板严格验证通过。
+- 收尾阻塞是正式签名、公证和发行安装矩阵；E/F 后续功能不在本次稳定候选中提前承诺。未创建 Tag 或公开 Release。

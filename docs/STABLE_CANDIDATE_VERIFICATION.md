@@ -22,6 +22,7 @@
 
 - Browser：统一三组侧栏箭头，标签栏控件中心一致，明暗选中态；命令面板键盘与模态焦点；390px 窄屏和矮窗口；Settings 与快捷键互斥；多标签与分栏切换。
 - Browser：文件菜单在隔离滚动容器底边自动翻转且不裁切；菜单关闭后再将焦点交给文件弹窗。正式文件写入使用 Desktop 原生 Provider 验收，不把隔离菜单展示冒充写入测试。
+- Chrome Local Web：通过系统目录选择器和浏览器读写授权打开隔离课程；新建、编辑、保存、跨目录移动均通过，磁盘内容核对一致。这是独立于 Desktop 的 File System Access API 验收。
 - Browser：右上下文栏宽屏停靠不遮盖正文，390×844 窄屏为模态抽屉；Esc 返回原按钮；目录选择后关闭抽屉并显示章节；同篇笔记双栏时只滚动活动栏。修复了旧分栏 CSS 误隐藏右侧目录的问题。
 - Desktop：通过原生目录选择器打开隔离课程；新建 Markdown，编辑并用 ⌘S 保存，读取磁盘核对内容；重命名保留文档 ID 和打开标签。
 - Desktop：发现现有 Python/Jupyter，启动应用拥有的 loopback Server；Browser access、HTTP、CORS、认证、Kernel 与 WebSocket 诊断通过。
@@ -32,7 +33,17 @@
 - 只检查 GitHub Secret 名称：当前仅有 TAURI_SIGNING 两项，缺少 Apple Developer ID / 公证及 Windows 受信代码签名配置。未读取 Secret 值。
 - Updater 私钥可恢复备份须维护者确认；第二个签名 Desktop 版本才能验证真正的跨版本升级。
 - 本机开发 `.app` 不代替 macOS Intel、Windows、Linux 干净系统的签名安装、卸载、拖放、文件关联、深链与真实更新矩阵。
-- 真实浏览器文件授权写入流程、公共 Binder 容量与独立公开知识库 Pages 流程不由本机原生测试替代。
+- Chrome 的本地目录授权写入已单独通过；公共 Binder 容量、独立公开知识库 Pages 和其他浏览器/操作系统权限流程仍不由该结果替代。
 - U/E/F 中未纳入稳定性修复的 Live Preview、Slash/WikiLink 补全、GPU 向导、Git Remote Sync、公共扩展市场仍是后续候选，不在 v1.6.0 作功能承诺。
 
-同一候选提交的 CI 与无 Tag Release 演练结果在运行完成后补录；不得把旧提交的成功状态复用于新的候选。
+## 同一候选的远端验证
+
+候选源码与构建配置：`1293bb82f566186287828494793a2342945ca1c3`。后续仅补充验收文档的提交不改变此产物来源。
+
+- [CI 34019694837](https://github.com/AaronChou313/tensornote/actions/runs/34019694837)：verify、macOS/Windows/Linux Desktop build、container 全部成功。
+- [Release 演练 34019696142](https://github.com/AaronChou313/tensornote/actions/runs/34019696142)：release-gate、Static Web、container、macOS Apple Silicon/Intel、Windows x64、Linux x64 和 finalize 全部成功；无 Tag，Pages 部署跳过，没有发布 GitHub Release。
+- 清单包含 18 个资产，覆盖 Web、Agent Skill、桌面安装包及 Updater 签名。Actions Artifacts 会过期，不能当成永久 Release 链接。
+- 从上述流水线下载实际 Skill 包，在仓库外安装锁定 YAML 依赖，两套模板 strict JSON 均为 ok:true、零错误和警告。
+- 初次 CI 暴露三处已有悬空 prerequisites；保留为 background 后严格校验通过，Release gate 同步开启 strict。没有降低校验标准。
+
+最新公开稳定版仍是 `v1.0.0`；`v1.6.0` 尚未创建 Tag 或公开 Release。

@@ -11,6 +11,8 @@
 
 2026-09-06 后续接管已核验 `31135e1` 与最新 CI，当前任务拆分、验证记录及白绿样式提案见[当前开发计划](ACTIVE_DEVELOPMENT_PLAN.md)。下文仍保留原交接快照，不替代实时状态。
 
+2026-09-06 稳定性收尾：候选 `1293bb8` 已通过 [CI 34019694837](https://github.com/AaronChou313/tensornote/actions/runs/34019694837) 与 [Release 演练 34019696142](https://github.com/AaronChou313/tensornote/actions/runs/34019696142)。新增工作台交互修复、Web/Desktop 实际目录写入验收、Owned Jupyter 实测，以及独立分发的 Agent Skill 与版本化 JSON 校验接口。详见[候选验收](STABLE_CANDIDATE_VERIFICATION.md)、[宿主功能边界](HOST_FEATURE_MATRIX.md)和[智能体接口](AGENT_INTEGRATION.md)。同日再次检查 Secret 名称，仍只有两项 Updater 密钥配置；正式平台签名、干净机器安装矩阵及公开 Release 尚未完成。
+
 ## 1. 结论
 
 **v1 到 v2 的所有工作尚未全部完成。** 当前真实状态是：
