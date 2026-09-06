@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -44,11 +44,13 @@ describe('release tooling', () => {
     await writeFile(join(bundle, 'macos/TensorNote.app.tar.gz'), 'updater')
     await writeFile(join(bundle, 'macos/TensorNote.app.tar.gz.sig'), 'signature')
     await writeFile(join(bundle, 'dmg/TensorNote.dmg'), 'installer')
+    await symlink(join(bundle, 'dmg'), join(bundle, 'linked-bundle'), 'junction')
     await expect(collectReleaseArtifacts({ bundleRoot: bundle, outputDirectory: output, platform: 'macOS' })).resolves.toEqual([
       'TensorNote.app.tar.gz',
       'TensorNote.app.tar.gz.sig',
       'TensorNote.dmg',
     ])
     await expect(readFile(join(output, 'Info.plist'), 'utf8')).rejects.toThrow()
+    expect(await readFile(join(output, 'TensorNote.dmg'), 'utf8')).toBe('installer')
   })
 })

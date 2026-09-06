@@ -13,7 +13,10 @@ async function filesBelow(directory) {
   const files = []
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name)
-    if (entry.isSymbolicLink()) throw new Error(`Release bundle cannot contain symbolic links: ${path}`)
+    // Bundlers may create internal links (for example AppImage's .DirIcon).
+    // Never follow or publish them; only collect regular files from the
+    // platform-specific allowlist below.
+    if (entry.isSymbolicLink()) continue
     if (entry.isDirectory()) files.push(...await filesBelow(path))
     else if (entry.isFile()) files.push(path)
   }
