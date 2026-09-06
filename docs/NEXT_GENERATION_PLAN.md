@@ -2,13 +2,13 @@
 
 > **2026-09-06 最新发行决定（优先于下方历史快照）：** 用户明确授权直接发布 GitHub 社区版，先保证在线/本地 Web 与 Desktop 可用，不以付费平台证书或应用商店发行作为前提。Tag 内 `release-policy.json` 固定 `github-community` 渠道：平台签名可选、Updater 签名必须。旧文中“缺 Apple/Windows 证书禁止所有 Tag”的门仅适用于未来 `trusted-desktop` 渠道，不阻止本次社区发行。发布执行、真实平台覆盖和回滚以 [RELEASE_MATRIX](RELEASE_MATRIX.md) 为准；公开状态须实时查询 GitHub。新版中英文用户手册见 [中文](zh-CN/USER_GUIDE.md) / [English](en/USER_GUIDE.md)。
 
-状态：执行中；`v1.6.0` 发布基础设施与源码阶段已完成，正式签名分发等待外部证书
+状态：`v1.6.1` GitHub 社区版已公开，在线/本地 Web 与 Desktop 已交付；平台受信签名为后续可选渠道，未启动 v2。详细验证边界见 [当前交接](AGENT_HANDOFF.md)。
 
 基线：`v1.0.0 — Stable Platform`
 
 规划范围：`v1.1–v1.x`；只有无法保持 v1 契约兼容的变化才进入 `v2.0.0`
 
-更新时间：2026-09-05
+更新时间：2026-09-06
 
 ## 1. 执行摘要
 

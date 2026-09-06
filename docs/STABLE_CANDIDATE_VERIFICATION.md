@@ -1,6 +1,6 @@
-# v1.6.0 稳定候选验收
+# v1.6 稳定候选与发行验收记录
 
-日期：2026-09-06。此记录描述候选源码与本机验证，不表示正式 Release 已发布。正式签名、干净系统安装与完整跨平台安装矩阵仍以 RELEASE_MATRIX 为准。
+日期：2026-09-06。下方分节保留每个候选当时的验收与失败记录，不合并为虚假的同一产物。最新 v1.6.1 已公开，最终结果见文末；平台签名与干净安装覆盖仍以 RELEASE_MATRIX 为准。
 
 ## 已执行的本机门
 
@@ -79,3 +79,14 @@
 - v1.6.1 initializes the existing Opener plugin and permits only HTTP(S) URLs with the default application. No file-path or shell permission was added. A real desktop click opened the Chinese guide in Chrome.
 - Local checks: 173 tests, lint, Local build, Rust fmt/clippy/14 tests, Desktop app, Static boundary, performance, production audit, skill quick validation, both strict templates, strict bundled workspace validation, and matching-version skill packaging passed.
 - Web and Desktop screenshots were recaptured from 1.6.1. Pages retains its main-branch policy and allows the exact v1.6.1 tag; the withdrawn v1.6.0 deployment permission was removed.
+
+## v1.6.1 正式公开验收
+
+- 不可变 Tag：`v1.6.1` → `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000`；[公开 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.6.1) 于 2026-09-06 13:04 UTC 发布，非 Draft、非预发布、latest。
+- [CI 34033833521](https://github.com/AaronChou313/tensornote/actions/runs/34033833521) 和 [Tag Release 34033836481](https://github.com/AaronChou313/tensornote/actions/runs/34033836481) 全部通过。四个桌面架构、Web、Local Web、容器、finalize 和 Pages 部署完成。
+- 下载 Draft 全部资产：20 项 SHA-256 与 SHA256SUMS 一致；7 个 Minisign/Updater 签名使用应用内置公钥独立验证通过；11 个 latest.json 平台目标指向该 Release 的准确 GitHub asset API ID，内联签名与对应附件一致。另有两份元数据，公开附件合计 22 项。
+- 下载的 Apple Silicon app 实际启动，About 为 v1.6.1；Overview、阅读页的目录真实可见；计算帮助链接打开系统 Chrome。两张 Desktop 文档截图改为这份正式资产的实际画面，来源记录随图更新。
+- Chrome 保留的旧 Pages 页面先复现空白侧栏，再普通刷新到新版（无需删除站点数据）；打开示例的 Overview/阅读均恢复目录，收起和重新展开通过。后台窗口截图会滞后，前置窗口后检查实际最终画面。
+- 线上 index.html、入口 JS 和 CSS 与此 Tag 的 Static Web archive 逐字节/哈希一致，不能用本地开发截图替代这项部署证据。
+- 保留限制：无平台受信开发者签名/公证；非本机平台仅构建覆盖；公共 Binder 完整执行和跨版本升级未冒充通过。首次社区发行不再以付费证书阻塞。
+- 发布后匿名访问 latest.json 为 1.6.1，Updater 的 GitHub asset API 在 application/octet-stream 下返回真实 gzip 资产；下载的 1.6.1 桌面包点击检查更新，实际显示“当前已是最新版本”。这证明当前查询入口可用，不等于跨版本安装升级已验证。

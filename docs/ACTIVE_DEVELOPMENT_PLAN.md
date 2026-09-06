@@ -6,7 +6,15 @@
 
 本文把交接遗留项、历史编辑器待办和本次白绿简洁样式需求整理为可执行队列。它是当前工作的入口；历史阶段记录仍见 [Roadmap](ROADMAP.md)，公共契约仍以 [Platform Contracts](PLATFORM_CONTRACTS.md) 为准，发行操作仍以 [Release Matrix](RELEASE_MATRIX.md) 为准。本文中的“计划”不表示功能已实现或版本已发布。
 
-## 1. 当前阶段与核验结果
+## 最新交付：v1.6.1 GitHub 社区版
+
+2026-09-06 已公开 [v1.6.1](https://github.com/AaronChou313/tensornote/releases/tag/v1.6.1)，Pages 同步部署。已完成本次白绿交互与共享侧栏修复、首次使用分版引导、Local Web 独立启动包、Git Bridge 路径修复、中英文 README/主手册、最新真实快照与 Agent Skill 分发。正式 Tag 为 `0c6bba3`；CI/Release、20 项资产哈希、7 个更新签名与 11 个更新目标验收通过，详情见 [交接说明](AGENT_HANDOFF.md)。
+
+R1 付费平台证书不属于本次社区发行前置；R2 私钥备份恢复不因签名通过而自动完成。干净平台安装、公共 Binder 完整执行、下一公开 Patch 的真实升级闭环及后续编辑/Git Remote Sync 候选继续保留，不宣称已完成。`v1.6.0` 为已撤回 Draft 的不可变候选 Tag，不公开。
+
+以下审计表、任务编号和设计提案保留当时状态；遇到发行状态冲突，以本节和当前交接说明为准。
+
+## 1. 初始阶段与核验结果（历史审计）
 
 项目已完成稳定 Web 平台和 Desktop 首发候选的主要源码建设，处于 **v1.6 发行收尾与产品体验打磨阶段**。当前应完成可信分发、真实安装验证和使用体验闭环；没有需要立即启动 v2 的证据。
 

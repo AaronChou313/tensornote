@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-2026-09-06 接管核验、发行收尾、验证债务、白绿样式优化及历史待办的统一执行队列见[当前开发计划](ACTIVE_DEVELOPMENT_PLAN.md)。其中新增样式和功能提案尚未实现，不能视为已交付版本。
+2026-09-06 接管核验、发行收尾、验证债务、白绿样式优化及历史待办的统一执行队列见[当前开发计划](ACTIVE_DEVELOPMENT_PLAN.md)。本次纳入 v1.6.1 的体验与分发工作已交付；未纳入的编辑/Git Remote Sync 等提案仍为后续候选。
 
 - `v0.1.0 — Workspace Foundation`：已发布。
 - `v0.2.0 — Authoring`：已发布，具备 CodeMirror 编辑、保存、文件操作、资源管理与 Frontmatter Properties。
@@ -31,7 +31,8 @@
 - `v1.3.0 — Local Runtime Assistant`：已完成源码阶段；Desktop 可发现 Python/Conda/uv/Jupyter/Kernel、审核式创建最小环境并管理 Owned Jupyter，Static Web 继续不包含本地运行时 IPC，不单独创建 Release 或 Tag。
 - `v1.4.0 — Publish & Read Anywhere`：已完成源码阶段；公开 Workspace 可固定 commit 与笔记分享，使用 Repository-owned Workflow 发布 Pages，并具备发布检查、Badge、Fork/下载与受限 Desktop 深链，不单独创建 Release 或 Tag。
 - `v1.5.0 — Remote Compute Connectors`：已完成源码阶段；Generic HTTPS Jupyter、当前用户 JupyterHub 与固定 Revision BinderHub 统一解析为标准 Compute Lease，具备进度、诊断、所有权和临时凭据清理，不单独创建 Release 或 Tag。
-- `v1.6.0 — Distribution & Ecosystem Hardening`：发布基础设施与源码阶段已完成；跨平台安装资产、签名 Updater、校验清单、课程模板和回滚边界已落地，本次改为 GitHub 社区发行，平台签名可选、Updater 签名必须；公开状态以 GitHub Release 为准。
+- `v1.6.0 — Distribution & Ecosystem Hardening`：被替代的候选 Tag，Draft 未公开；桌面帮助链接问题在递增 Patch 修复，不移动旧 Tag。
+- `v1.6.1 — GitHub Community Release`：已公开并设为最新稳定版；在线 Pages、本地 Web 启动包、Desktop、Agent Skill 和双语主手册交付。正式 CI/Release 通过，20 项资产哈希、7 个更新签名与 11 个更新目标验证通过。社区包未进行 Apple Developer ID 公证或 Windows 受信发布者签名。详见 [Release](releases/v1.6.1.md) 与 [当前交接](AGENT_HANDOFF.md)。
 
 ## 下一代 v1.x 路线（执行中）
 

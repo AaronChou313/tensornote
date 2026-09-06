@@ -23,21 +23,25 @@
     },
     {
       "file": "desktop-reading.jpg",
-      "host": "Native macOS Apple Silicon app",
+      "host": "Downloaded GitHub v1.6.1 macOS Apple Silicon app",
       "route": "#/notes/initialization-normalization",
       "dimensions": [
         1229,
         768
-      ]
+      ],
+      "releaseRun": "34033836481",
+      "revision": "0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000"
     },
     {
       "file": "desktop-overview.jpg",
-      "host": "Native macOS Apple Silicon app",
+      "host": "Downloaded GitHub v1.6.1 macOS Apple Silicon app",
       "route": "#/workspace",
       "dimensions": [
         1229,
         768
-      ]
+      ],
+      "releaseRun": "34033836481",
+      "revision": "0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000"
     }
   ]
 }
