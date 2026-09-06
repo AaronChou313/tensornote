@@ -303,6 +303,7 @@ pnpm build:web
 | [Publishing](docs/PUBLISHING.md) | 固定 Revision 分享、Pages Workflow、发布检查、Badge 与 Desktop 深链 |
 | [Release Matrix](docs/RELEASE_MATRIX.md) | 多平台安装资产、签名、校验值、Updater 与回滚流程 |
 | [Development](docs/DEVELOPMENT.md) | 更新功能、版本流程与发布规范 |
+| [Agent Handoff](docs/AGENT_HANDOFF.md) | v1～v2 完成度、遗留工作、接管顺序与发布边界 |
 | [Hardening](docs/HARDENING.md) | 兼容、性能、安全和分发限制 |
 | [Next Generation Plan](docs/NEXT_GENERATION_PLAN.md) | Web/Desktop 双宿主、本地/远程 Workspace 与 Compute、开放知识发布生态 |
 

@@ -39,6 +39,8 @@ v1.0.0 之后，TensorNote 将沿“双宿主、双来源、开放发布”方�
 
 当前顺序：`v1.6.0 — Distribution & Ecosystem Hardening` 的仓库内工作已完成，正式公开安装包只剩外部平台签名资格门。公开发布仍复用 GitHubWorkspaceProvider 与 Static Runtime；WorkspaceProvider、ComputeProvider、HostAdapter 和 Jupyter Server 保持独立。
 
+当前完成度、正式发布阻塞、验证债务和新维护者执行顺序见[接管说明](AGENT_HANDOFF.md)。本文没有定义 `v2.0.0` 范围；只有无法保持 v1 公共契约兼容的提案，才应先通过 v2 RFC、ADR 和迁移设计进入新的主版本。
+
 ## v1.0.0 — Stable Platform（已发布）
 
 v1.0.0 不以继续增加功能为目标。它表示 TensorNote 的内容格式、Provider 边界、扩展面和用户配置模型已经形成首个可长期兼容的稳定基线。完整执行清单见 [v1.0.0 发布计划](V1_RELEASE_PLAN.md)。

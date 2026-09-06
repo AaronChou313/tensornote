@@ -12,6 +12,7 @@ Never write tokens, passwords, private keys, cookies, or extension secrets into 
 
 ## Application tasks
 
+- For project continuation, release status, roadmap, or v2 planning, read `docs/AGENT_HANDOFF.md` before changing code or external release state. Re-verify its dated GitHub and credential-status snapshot instead of treating it as live state.
 - Treat `src/platform/index.ts` and `docs/PLATFORM_CONTRACTS.md` as the v1 public boundary.
 - Preserve Workspace Schema v1 compatibility, Provider capability checks, execution permission, GitHub revision trust, and future-schema read-only downgrade.
 - Do not couple UI code to a specific Workspace or Compute Provider when a stable interface exists.

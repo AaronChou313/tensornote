@@ -223,7 +223,7 @@ git tag --points-at HEAD
 gh release view v1.0.0
 ```
 
-Release 创建后，GitHub 会提供该 Tag 对应的源码压缩包。当前 TensorNote 是本地开发型 Web App，因此 Release 暂不附带独立安装程序。
+上述命令是 v1.0.0 的历史 Web Release 示例。v1.6.0 起，正式版本由 `.github/workflows/release.yml` 从同一 Tag 构建 Web archive、GitHub Pages、macOS、Windows、Linux 与 Updater 资产，并先创建 Draft Release。后续版本不得照抄本节手动创建重复 Release；应遵循[发布矩阵](RELEASE_MATRIX.md)和[接管说明](AGENT_HANDOFF.md)中的签名、校验与公开流程。
 
 ## 5. 请求后续功能时提供什么
 
