@@ -155,7 +155,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
   return (
     <>
       {sidebarOpen && <button className="sidebar-scrim" onClick={() => setSidebarOpen(false)} aria-label="关闭目录" />}
-      <aside className={cn('workspace-sidebar', sidebarOpen ? 'translate-x-0' : '-translate-x-full', !leftSidebar && !sidebarOpen && 'workspace-sidebar--collapsed')}>
+      <aside className={cn('workspace-sidebar', sidebarOpen && 'workspace-sidebar--open', !leftSidebar && !sidebarOpen && 'workspace-sidebar--collapsed')}>
         <div className="sidebar-brand">
           <details className="sidebar-workspace-menu" ref={workspaceMenu}>
             <summary className="sidebar-workspace-name" aria-label={`切换 Workspace：${session.manifest.workspace.name}`}>

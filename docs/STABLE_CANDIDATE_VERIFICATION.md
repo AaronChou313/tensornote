@@ -47,3 +47,9 @@
 - 初次 CI 暴露三处已有悬空 prerequisites；保留为 background 后严格校验通过，Release gate 同步开启 strict。没有降低校验标准。
 
 最新公开稳定版仍是 `v1.0.0`；`v1.6.0` 尚未创建 Tag 或公开 Release。
+
+## 后续桌面视觉回归修复
+
+用户实测发现上述候选的 macOS 侧栏空白：可访问性树包含目录，但实际画面不可见。此前原生 UI 操作通过不能证明该区域视觉正常，`1293bb8` 的旧安装资产不包含此修复。
+
+移除 Sidebar 的 Tailwind translate 工具类与叠加覆盖，统一由组件 CSS 的 transform 管理宽屏显示、主动收起和窄屏抽屉状态。重新构建本机 `.app` 后，使用真实 macOS 截图验证本地 Workspace 的 Overview、笔记页、收起与重新展开；未修改知识内容。169 项测试、Lint、TypeScript 和桌面应用构建通过。新的正式候选必须从包含此修复的提交重新构建，不能沿用旧资产。

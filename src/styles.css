@@ -1888,12 +1888,12 @@ button.trust-status {
 }
 
 @media (min-width: 1024px) {
-  .workspace-sidebar { transform: translateX(0) !important; translate: none !important; }
   .workbench-main { margin-left: 282px; }
 }
 
 @media (max-width: 1023px) {
-  .workspace-sidebar { box-shadow: 16px 0 52px color-mix(in srgb, var(--ink) 14%, transparent); }
+  .workspace-sidebar { transform: translateX(-100%); box-shadow: 16px 0 52px color-mix(in srgb, var(--ink) 14%, transparent); }
+  .workspace-sidebar--open { transform: translateX(0); }
   .kernel-status { display: none; }
 }
 
@@ -2324,7 +2324,7 @@ button.trust-status {
 }
 
 /* v0.5 Workbench: tabs, panes, command system and source authoring controls. */
-.workspace-sidebar--collapsed { transform: translateX(-100%) !important; }
+.workspace-sidebar--collapsed { transform: translateX(-100%); }
 .app-workbench--sidebar-collapsed .workbench-main { margin-left: 0; }
 .sidebar-brand > div { display: flex; align-items: center; gap: 3px; }
 .sidebar-icon-action,
