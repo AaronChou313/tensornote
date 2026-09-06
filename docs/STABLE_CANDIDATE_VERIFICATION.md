@@ -71,3 +71,11 @@
 - 在线首次默认 Profile 改为留空的远程 Jupyter 地址，保留已有配置和旧 Token/Profile 迁移绑定；新增自动测试。
 
 - 独立包实测发现并修复 macOS 路径别名导致 Bridge 根目录误判，新增别名接受/嵌套目录拒绝测试；修复后独立 Bridge health/status 与笔记变更识别实测通过。
+
+## v1.6.1 external-link release correction
+
+- Candidate b53d1e2 passed CI 34026645381 and release dry run 34026646957. All 19 downloaded asset hashes and 7 updater signatures were independently verified against the embedded public key.
+- The actual CI macOS app failed to open the help link. The v1.6.0 tag workflow was cancelled and its draft marked superseded. The tag remains unchanged; do not publish that draft.
+- v1.6.1 initializes the existing Opener plugin and permits only HTTP(S) URLs with the default application. No file-path or shell permission was added. A real desktop click opened the Chinese guide in Chrome.
+- Local checks: 173 tests, lint, Local build, Rust fmt/clippy/14 tests, Desktop app, Static boundary, performance, production audit, skill quick validation, both strict templates, strict bundled workspace validation, and matching-version skill packaging passed.
+- Web and Desktop screenshots were recaptured from 1.6.1. Pages retains its main-branch policy and allows the exact v1.6.1 tag; the withdrawn v1.6.0 deployment permission was removed.
