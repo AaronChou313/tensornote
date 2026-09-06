@@ -2,6 +2,7 @@
 import { access, readFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parseDocument } from 'yaml'
 
 const semver = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/
 
@@ -69,6 +70,8 @@ export async function validateRelease({ root = '.', tag } = {}) {
   }
 
   const releaseWorkflow = await read('.github/workflows/release.yml').catch(() => '')
+  const releaseWorkflowDocument = parseDocument(releaseWorkflow)
+  for (const error of releaseWorkflowDocument.errors) add('workflow', error.message, '.github/workflows/release.yml')
   for (const marker of ['tags:', 'tauri-apps/tauri-action@v1', 'generate-release-manifest.mjs', 'release-gate', 'APPLE_CERTIFICATE', 'WINDOWS_CERTIFICATE', 'TAURI_SIGNING_PRIVATE_KEY', 'docker build', 'gh release download', 'actions/deploy-pages']) {
     if (!releaseWorkflow.includes(marker)) add('workflow', `Release workflow is missing ${marker}`, '.github/workflows/release.yml')
   }
