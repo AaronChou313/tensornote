@@ -4,7 +4,8 @@ title: 神经网络与表示学习
 section: Deep Learning / 基础
 order: 1
 tags: [mlp, linear, activation, representation, shape]
-prerequisites: [linear-algebra]
+prerequisites: []
+background: [linear-algebra]
 summary: 从 Linear、Activation 和 Layer 出发，理解深层网络如何逐步改变输入的表示空间。
 ---
 

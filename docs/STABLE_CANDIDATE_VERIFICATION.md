@@ -16,7 +16,7 @@
 | Skill quick_validate.py | 通过；隔离 Python 环境提供 PyYAML |
 | 两套 Skill 模板 | strict：零错误、零警告 |
 | 独立 Skill 安装 | 解压到应用仓库之外，npm ci 安装锁定依赖，课程模板 JSON 验证 ok:true |
-| 内置示例 Workspace | 普通模式通过；保留 3 个缺少对应笔记的外部前置知识警告，旧 Lab 缺少 difficulty 为兼容 Info |
+| 内置示例 Workspace | strict：零错误、零警告；线性代数和微积分作为 background 保留，库内 prerequisites 均可解析；旧 Lab 缺少 difficulty 为兼容 Info |
 
 ## 实际交互证据
 

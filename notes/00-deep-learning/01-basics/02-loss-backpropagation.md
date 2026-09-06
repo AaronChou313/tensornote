@@ -4,7 +4,8 @@ title: Loss 与 Backpropagation
 section: Deep Learning / 基础
 order: 2
 tags: [loss, gradient, backpropagation, autograd]
-prerequisites: [neural-network, calculus]
+prerequisites: [neural-network]
+background: [calculus]
 summary: 用计算图与链式法则区分梯度计算和参数更新。
 ---
 

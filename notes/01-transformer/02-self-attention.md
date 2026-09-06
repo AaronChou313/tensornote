@@ -9,8 +9,8 @@ tags:
   - qkv
   - shape
 prerequisites:
-  - linear-algebra
   - token-and-position
+background: [linear-algebra]
 summary: 从 Q、K、V 的直觉与 Shape 出发，手写一次完整的 Self-Attention 前向计算。
 ---
 
