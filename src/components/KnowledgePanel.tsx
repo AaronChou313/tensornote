@@ -60,7 +60,7 @@ function GraphView({ graph }: { graph: LocalGraph }) {
   )
 }
 
-export function KnowledgePanel({ noteId, initialView = 'links' }: { noteId: string; initialView?: 'links' | 'outline' | 'backlinks' | 'graph' }) {
+export function KnowledgePanel({ noteId, initialView = 'links', showNavigation = true, onNavigateHeading }: { noteId: string; showNavigation?: boolean; onNavigateHeading?: (id: string) => void; initialView?: 'links' | 'outline' | 'backlinks' | 'graph' }) {
   const [view, setView] = useState<'links' | 'outline' | 'backlinks' | 'graph'>(initialView)
   const session = useWorkspaceStore((state) => state.session)
   if (!session) return null
@@ -74,15 +74,15 @@ export function KnowledgePanel({ noteId, initialView = 'links' }: { noteId: stri
 
   return (
     <aside className="knowledge-panel" aria-label="Knowledge context">
-      {view !== 'backlinks' && <section className="knowledge-panel__graph">
+      {showNavigation && view !== 'backlinks' && view !== 'graph' && <section className="knowledge-panel__graph">
         <header><span>Local graph</span><small>{graph.nodes.length - 1} related</small></header>
         <GraphView graph={graph} />
       </section>}
 
-      <div className="knowledge-panel__tabs" role="tablist" aria-label="知识导航">
+      {showNavigation && <div className="knowledge-panel__tabs" role="tablist" aria-label="知识导航">
         <button role="tab" aria-selected={view === 'links' || view === 'backlinks'} className={view === 'links' || view === 'backlinks' ? 'is-active' : ''} onClick={() => setView('links')}><LinkSimple size={14} />Links</button>
         <button role="tab" aria-selected={view === 'outline'} className={view === 'outline' ? 'is-active' : ''} onClick={() => setView('outline')}><ArrowsInLineVertical size={14} />Outline</button>
-      </div>
+      </div>}
 
       {view === 'graph' ? <div className="knowledge-panel__body"><section><h3>Local graph</h3><GraphView graph={graph} /></section></div> : view === 'backlinks' ? <div className="knowledge-panel__body"><section><h3>Backlinks <span>{backlinks.length}</span></h3>{backlinks.length ? <div className="knowledge-link-list">{backlinks.map((link, indexValue) => { const source = session.documentById.get(link.sourceNoteId); return source ? <Link key={`${source.id}-${indexValue}`} to={`/notes/${source.id}`}><span>{source.frontmatter.title}</span><small>{link.label}</small></Link> : null })}</div> : <p className="knowledge-muted">还没有其他笔记链接到这里。</p>}</section></div> : view === 'links' ? (
         <div className="knowledge-panel__body">
@@ -106,7 +106,9 @@ export function KnowledgePanel({ noteId, initialView = 'links' }: { noteId: stri
         </div>
       ) : (
         <nav className="knowledge-outline" aria-label="当前笔记目录">
-          {note.headings.length ? note.headings.map((heading) => <a key={heading.id} className={`depth-${heading.depth}`} href={`#${heading.id}`}>{heading.text}</a>) : <p className="knowledge-muted">添加 Markdown Heading 后会生成目录。</p>}
+          {note.headings.length ? note.headings.map((heading) => <a key={heading.id} className={`depth-${heading.depth}`} href={`#${heading.id}`} onClick={(event) => {
+            if (onNavigateHeading && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigateHeading(heading.id) }
+          }}>{heading.text}</a>) : <p className="knowledge-muted">添加 Markdown Heading 后会生成目录。</p>}
         </nav>
       )}
 

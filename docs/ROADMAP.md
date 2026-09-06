@@ -4,6 +4,8 @@
 
 ## 当前状态
 
+2026-09-06 接管核验、发行收尾、验证债务、白绿样式优化及历史待办的统一执行队列见[当前开发计划](ACTIVE_DEVELOPMENT_PLAN.md)。其中新增样式和功能提案尚未实现，不能视为已交付版本。
+
 - `v0.1.0 — Workspace Foundation`：已发布。
 - `v0.2.0 — Authoring`：已发布，具备 CodeMirror 编辑、保存、文件操作、资源管理与 Frontmatter Properties。
 - `v0.3.0 — Knowledge System`：已发布。

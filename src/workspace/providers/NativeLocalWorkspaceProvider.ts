@@ -1,6 +1,7 @@
 import { normalizeWorkspacePath, resolveWorkspacePath } from '../path'
 import {
   WorkspaceConflictError,
+  WorkspaceNotFoundError,
   type WorkspaceCapabilities,
   type WorkspaceDescriptor,
   type WorkspaceEntry,
@@ -18,6 +19,7 @@ async function invokeNative<T>(command: string, args: InvokeArgs = {}): Promise<
     return await invoke<T>(command, args)
   } catch (reason) {
     const message = reason instanceof Error ? reason.message : String(reason)
+    if (message.startsWith('WORKSPACE_NOT_FOUND:')) throw new WorkspaceNotFoundError(message.slice('WORKSPACE_NOT_FOUND:'.length))
     if (message.startsWith('WORKSPACE_CONFLICT:')) {
       throw new WorkspaceConflictError(message.slice('WORKSPACE_CONFLICT:'.length))
     }

@@ -263,6 +263,8 @@ pnpm build:desktop
 
 Desktop 可通过系统选择器打开本地 Workspace、使用受限原生 Git，并在设置中检测 Python/Conda/uv/Jupyter/Kernel。用户可以审核计划后创建最小环境；Owned Jupyter 只绑定 Loopback、使用随机 Token，并可查看脱敏日志或一键停止。v1.6.0 另在 About 中加入签名更新流程。正式安装包只在 Apple/Windows 平台签名与公证门齐备后发布。
 
+Web、Static、Self-hosted 与 Desktop 的逐项差异见[宿主功能矩阵](docs/HOST_FEATURE_MATRIX.md)。
+
 ## 智能体接口
 
 仓库内置可安装的 [`$tensornote-knowledge-workspace`](skills/tensornote-knowledge-workspace/SKILL.md) Skill，告诉智能体如何：
@@ -270,7 +272,8 @@ Desktop 可通过系统选择器打开本地 Workspace、使用受限原生 Git�
 - 设计 Workspace、目录、Frontmatter、链接与 Assets；
 - 编写带明确状态依赖的多 Cell Python Lab；
 - 使用 Conda、`venv` 或 `uv` 配置并运行 TensorNote/Jupyter；
-- 通过确定性脚本校验 Schema、ID、链接、资源与 Lab 元数据。
+- 更新、重命名、移动、合并与维护知识库，同时保留 ID、未知属性和其他编辑器的改动；
+- 通过版本化 JSON 接口校验真实 YAML、ID、链接、前置关系、资源路径与 Lab 元数据。
 
 ```bash
 node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs /path/to/workspace --strict
@@ -304,6 +307,7 @@ pnpm build:web
 | [Release Matrix](docs/RELEASE_MATRIX.md) | 多平台安装资产、签名、校验值、Updater 与回滚流程 |
 | [Development](docs/DEVELOPMENT.md) | 更新功能、版本流程与发布规范 |
 | [Agent Handoff](docs/AGENT_HANDOFF.md) | v1～v2 完成度、遗留工作、接管顺序与发布边界 |
+| [Active Development Plan](docs/ACTIVE_DEVELOPMENT_PLAN.md) | 接管核验、发行与验证队列、白绿样式优化提案及后续开发顺序 |
 | [Hardening](docs/HARDENING.md) | 兼容、性能、安全和分发限制 |
 | [Next Generation Plan](docs/NEXT_GENERATION_PLAN.md) | Web/Desktop 双宿主、本地/远程 Workspace 与 Compute、开放知识发布生态 |
 

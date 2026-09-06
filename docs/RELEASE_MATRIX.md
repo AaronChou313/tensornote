@@ -7,6 +7,7 @@
 | 交付面 | 目标 | 资产或部署 | 发布门 |
 | --- | --- | --- | --- |
 | Static Web | GitHub Pages | `/tensornote/` Hash Router + PWA | `pnpm build:web`、Static IPC 边界、固定 Tag |
+| Agent skill | 支持文件操作的智能体 | `TensorNote-agent-skill-X.Y.Z.tar.gz` | 同版本规范、模板、锁文件、独立安装及 JSON 校验，列入 SHA256SUMS |
 | Web archive | 任意静态服务器 | `TensorNote-web-X.Y.Z.tar.gz` | 与 Pages 相同构建，列入 `SHA256SUMS` |
 | macOS | Apple Silicon | `.dmg`、`.app.tar.gz`、Updater signature | Developer ID Application 签名、公证、Staple、Updater 签名 |
 | macOS | Intel | `.dmg`、`.app.tar.gz`、Updater signature | Developer ID Application 签名、公证、Staple、Updater 签名 |

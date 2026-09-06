@@ -3,6 +3,7 @@ import { StrictMode } from 'react'
 import { render } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import { parseDocument } from '../content/document'
 import type { Lab } from '../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
 
@@ -57,4 +58,15 @@ describe('MarkdownRenderer', () => {
     expect(container.querySelector('h1')?.className).toBe('markdown-title-heading')
     expect(container.querySelectorAll('.markdown-title-heading')).toHaveLength(1)
   })
+  it('keeps indexed heading IDs stable across strict rendering and updates', () => {
+    const content = '# 标题\n\n## **重复**\n\n## **重复**\n\n```md\n## Ignored\n```'
+    const note = parseDocument('notes/test.md', `---\nid: test\ntitle: 标题\n---\n${content}`)
+    const view = render(<StrictMode><MarkdownRenderer content={content} labs={[]} /></StrictMode>)
+    const ids = () => [...view.container.querySelectorAll('h1,h2')].map((heading) => heading.id)
+    expect(ids()).toEqual(note.headings.map((heading) => heading.id))
+    expect(ids()).toEqual(['标题', '重复', '重复-1'])
+    view.rerender(<StrictMode><MarkdownRenderer content={`${content}\n\n## Last`} labs={[]} /></StrictMode>)
+    expect(ids()).toEqual(['标题', '重复', '重复-1', 'last'])
+  })
+
 })

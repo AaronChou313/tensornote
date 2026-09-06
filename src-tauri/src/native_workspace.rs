@@ -453,7 +453,13 @@ fn reject_symlink_components(root: &Path, relative: &Path) -> Result<(), String>
 fn resolve_existing(root: &Path, relative: &str) -> Result<PathBuf, String> {
     let safe = sanitize_relative(relative)?;
     reject_symlink_components(root, &safe)?;
-    let canonical = root.join(safe).canonicalize().map_err(error_string)?;
+    let canonical = root.join(safe).canonicalize().map_err(|error| {
+        if error.kind() == std::io::ErrorKind::NotFound {
+            format!("WORKSPACE_NOT_FOUND:{relative}")
+        } else {
+            error_string(error)
+        }
+    })?;
     if canonical == root || canonical.starts_with(root) {
         Ok(canonical)
     } else {
@@ -717,6 +723,19 @@ mod tests {
             assert!(resolve_existing(&root, "alias").is_err());
             assert!(resolve_for_write(&root, "alias/file.md").is_err());
         }
+    }
+
+    #[test]
+    fn missing_entries_have_a_portable_error_code() {
+        let (_temp, registry, registration) = registered_workspace();
+        let root = registry.root(&registration.workspace_id).expect("root");
+        assert_eq!(
+            stat_entry(&root, "notes/new.md").unwrap_err(),
+            "WORKSPACE_NOT_FOUND:notes/new.md"
+        );
+        assert!(!stat_entry(&root, "../outside")
+            .unwrap_err()
+            .starts_with("WORKSPACE_NOT_FOUND:"));
     }
 
     #[test]

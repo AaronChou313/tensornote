@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { ArrowClockwise, ArrowSquareOut, ArrowsOutLineHorizontal, CaretDown, CaretUpDown, Copy, DotsThree, FilePlus, FileText, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PencilSimple, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, Trash, X } from '@phosphor-icons/react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { ArrowClockwise, ArrowSquareOut, CaretDown, CaretUpDown, FilePlus, FileText, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -7,6 +7,7 @@ import { cn } from '../lib/cn'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
+import { WorkspaceFileMenu } from './WorkspaceFileMenu'
 import { WorkspaceFileDialog, type FileDialogRequest } from './WorkspaceFileDialog'
 import { joinWorkspacePath } from '../workspace/path'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
@@ -15,6 +16,13 @@ import { deploymentAdapter } from '../deployment/config'
 import { getHostAdapter } from '../host/runtime'
 
 const treePageSize = 200
+
+function SidebarSection({ title, className, children }: { title: string; className: string; children: ReactNode }) {
+  return <details className={cn('sidebar-section', className)} open>
+    <summary><span>{title}</span><CaretDown size={12} weight="bold" /></summary>
+    {children}
+  </details>
+}
 
 function TreeChildren({ items, depth = 0, onAction, onOpenNote }: { items: NoteTreeItem[]; depth?: number; onAction: (request: FileDialogRequest) => void; onOpenNote: (noteId: string) => void }) {
   const [visible, setVisible] = useState(treePageSize)
@@ -27,7 +35,6 @@ function TreeChildren({ items, depth = 0, onAction, onOpenNote }: { items: NoteT
 
 function TreeItem({ item, depth = 0, onAction, onOpenNote }: { item: NoteTreeItem; depth?: number; onAction: (request: FileDialogRequest) => void; onOpenNote: (noteId: string) => void }) {
   const [expanded, setExpanded] = useState(depth < 2)
-  const [menuOpen, setMenuOpen] = useState(false)
   const closeSidebar = useAppStore((state) => state.setSidebarOpen)
   const session = useWorkspaceStore((state) => state.session)
   const hasChildren = Boolean(item.children?.length)
@@ -58,15 +65,7 @@ function TreeItem({ item, depth = 0, onAction, onOpenNote }: { item: NoteTreeIte
         )}
         {session?.capabilities.write && workspacePath && (
           <div className="tree-actions">
-            <button onClick={() => setMenuOpen((value) => !value)} aria-label={`${item.label} 文件操作`}><DotsThree size={15} weight="bold" /></button>
-            {menuOpen && (
-              <div className="tree-action-menu">
-                <button onClick={() => { onAction({ action: 'rename', path: workspacePath, kind, noteId: item.noteId }); setMenuOpen(false) }}><PencilSimple size={14} />Rename</button>
-                <button onClick={() => { onAction({ action: 'move', path: workspacePath, kind, noteId: item.noteId }); setMenuOpen(false) }}><ArrowsOutLineHorizontal size={14} />Move</button>
-                {kind === 'file' && <button onClick={() => { onAction({ action: 'duplicate', path: workspacePath, kind, noteId: item.noteId }); setMenuOpen(false) }}><Copy size={14} />Duplicate</button>}
-                <button className="is-danger" onClick={() => { onAction({ action: 'delete', path: workspacePath, kind, noteId: item.noteId }); setMenuOpen(false) }}><Trash size={14} />Delete</button>
-              </div>
-            )}
+            <WorkspaceFileMenu label={item.label} path={workspacePath} kind={kind} noteId={item.noteId} onAction={onAction} />
           </div>
         )}
       </div>
@@ -189,18 +188,17 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           </NavLink>}
         </div>
 
-        {recent.length > 0 && <details className="sidebar-recent" open><summary><span>Recent files</span><CaretDown size={12} weight="bold" /></summary><div>{recent.slice(0, 4).map((noteId) => {
+        {recent.length > 0 && <SidebarSection title="Recent files" className="sidebar-recent"><div>{recent.slice(0, 4).map((noteId) => {
           const note = session.documentById.get(noteId)
           return note ? <NavLink key={noteId} to={`/notes/${noteId}`} onClick={() => { openNote(note.id); setSidebarOpen(false) }}><FileText size={13} />{note.frontmatter.title}</NavLink> : null
-        })}</div></details>}
+        })}</div></SidebarSection>}
 
-        <details className="sidebar-collapsible sidebar-files" open>
-          <summary className="sidebar-section-label"><span>Files</span><CaretDown size={12} weight="bold" /></summary>
+        <SidebarSection title="Files" className="sidebar-files">
           {session.capabilities.write && <div className="sidebar-file-actions"><button onClick={() => setFileDialog({ action: 'new-note' })} aria-label="新建笔记"><FilePlus size={14} /></button><button onClick={() => setFileDialog({ action: 'new-folder' })} aria-label="新建文件夹"><FolderPlus size={14} /></button></div>}
           <nav className="workspace-tree" aria-label="Workspace 文件"><TreeChildren items={session.navigation} onAction={setFileDialog} onOpenNote={openNote} /></nav>
-        </details>
+        </SidebarSection>
 
-        {extensionItems.length > 0 && <details className="sidebar-collapsible sidebar-extension-items" open><summary><span>Extensions</span><CaretDown size={12} weight="bold" /></summary><div>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div></details>}
+        {extensionItems.length > 0 && <SidebarSection title="Extensions" className="sidebar-extension-items"><div>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div></SidebarSection>}
 
       </aside>
       <WorkspaceFileDialog key={fileDialog ? `${fileDialog.action}:${fileDialog.path || ''}` : 'closed'} request={fileDialog} onClose={() => setFileDialog(null)} />

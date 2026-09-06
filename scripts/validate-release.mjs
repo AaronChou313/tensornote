@@ -43,6 +43,8 @@ export async function validateRelease({ root = '.', tag } = {}) {
   if (cargoVersion(cargoToml) !== version) add('version', 'Cargo package version must match package.json', 'src-tauri/Cargo.toml')
   if (tauriConfig.version !== version) add('version', 'Tauri bundle version must match package.json', 'src-tauri/tauri.conf.json')
   if (tag && tag !== expectedTag) add('tag', `Release tag ${tag} must equal ${expectedTag}`, '.git')
+  const skillPackage = JSON.parse(await read('skills/tensornote-knowledge-workspace/package.json'))
+  if (skillPackage.version !== version) add('skill-version', 'Agent skill package must match the application version', 'skills/tensornote-knowledge-workspace/package.json')
   if (packageJson.license !== 'Apache-2.0') add('license', 'Application package must remain Apache-2.0', 'package.json')
   if (!await exists(join(repository, 'LICENSE'))) add('license', 'Root LICENSE is required', 'LICENSE')
   if (!await exists(join(repository, `docs/releases/v${version}.md`))) add('release-notes', `Missing docs/releases/v${version}.md`, `docs/releases/v${version}.md`)

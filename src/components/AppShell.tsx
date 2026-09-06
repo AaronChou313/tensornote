@@ -28,7 +28,6 @@ const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: 
 
 export function AppShell() {
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
-  const setCommandPaletteOpen = useAppStore((state) => state.setCommandPaletteOpen)
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
   const openLab = useAppStore((state) => state.openLab)
   const setPendingLabAction = useAppStore((state) => state.setPendingLabAction)
@@ -98,21 +97,19 @@ export function AppShell() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.isComposing || event.defaultPrevented) return
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        if (document.querySelector('[role="dialog"]')) { event.preventDefault(); return }
         const editing = document.activeElement?.closest('.cm-content')
         if (!editing) {
           event.preventDefault()
           if (session) setSearchOpen(true)
         }
       }
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'p') {
-        event.preventDefault()
-        setCommandPaletteOpen(true)
-      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [session, setCommandPaletteOpen, setSearchOpen])
+  }, [session, setSearchOpen])
 
   useEffect(() => {
     if (!session) return

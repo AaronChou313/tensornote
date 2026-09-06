@@ -14,6 +14,8 @@ interface WorkbenchState {
   secondaryOpen: boolean
   secondaryPosition: 'left' | 'right'
   leftSidebar: boolean
+  headingRequest: { pane: PaneId; id: string; sequence: number } | null
+  revealHeading: (id: string) => void
   rightSidebar: boolean
   rightView: 'properties' | 'outline' | 'backlinks' | 'graph' | 'lab'
   recent: string[]
@@ -46,6 +48,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   secondaryOpen: false,
   secondaryPosition: 'right',
   leftSidebar: true,
+  headingRequest: null,
   rightSidebar: false,
   rightView: 'outline',
   recent: [],
@@ -70,6 +73,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   }),
   openView: (activeView) => set({ activeView }),
   resetWorkspace: () => set({
+    headingRequest: null,
     tabs: emptyTabs(),
     panes: emptyPanes(),
     activePane: 'main',
@@ -143,6 +147,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
     historyIndex: { ...state.historyIndex, secondary: -1 },
   }),
   closeSecondary: () => { get().closePane('secondary') },
+  revealHeading: (id) => set((state) => ({ headingRequest: { pane: state.activePane, id, sequence: (state.headingRequest?.sequence ?? 0) + 1 } })),
   setActivePane: (activePane) => set((state) => state.activePane === activePane ? state : { activePane }),
   setSidebar: (side, open) => set(side === 'left' ? { leftSidebar: open } : { rightSidebar: open }),
   setRightView: (rightView) => set({ rightView }),

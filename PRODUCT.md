@@ -4,7 +4,7 @@
 
 ## Platform
 
-web
+adaptive
 
 ## Users
 
@@ -23,6 +23,9 @@ TensorNote 是一个本地优先、Markdown-first、由 Jupyter 驱动的可执�
 用户可打开内置、本地或 GitHub Workspace，浏览 Markdown 文件树，编辑并保存文档，使用 WikiLinks、Backlinks、Tags 与局部图谱理解关系，并在可信 Workspace 中通过 Jupyter 运行 Lab 或 Scratch。
 
 ## Capabilities and Constraints
+
+- 当前源码为 v1.6.0 候选，Web 与 Tauri Desktop 共用核心；原生文件、Git、Runtime Assistant 与 Updater 仅由 Desktop Host 提供。公开稳定版仍以 GitHub Release 为准。
+- Local、Static 与 Self-hosted Web 的浏览器权限、Git Bridge 与远程执行边界见 docs/HOST_FEATURE_MATRIX.md。
 
 - Workspace、Document、Compute 与 Workbench 是稳定的核心边界。
 - 内容、用户工作台状态与计算配置保持分离；Markdown 是内容的 source of truth。

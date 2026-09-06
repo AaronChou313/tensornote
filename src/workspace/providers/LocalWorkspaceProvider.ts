@@ -1,6 +1,7 @@
 import { basename, dirname, joinWorkspacePath, normalizeWorkspacePath, resolveWorkspacePath } from '../path'
 import {
   WorkspaceConflictError,
+  WorkspaceNotFoundError,
   type WorkspaceCapabilities,
   type WorkspaceDescriptor,
   type WorkspaceEntry,
@@ -136,7 +137,7 @@ export class LocalWorkspaceProvider implements WorkspaceProvider {
       return { path: normalized, kind: 'file', size: file.size, modifiedAt: file.lastModified }
     }
     if (this.directories.has(normalized)) return { path: normalized, kind: 'directory' }
-    throw new Error(`Workspace path not found: ${path}`)
+    throw new WorkspaceNotFoundError(path)
   }
 
   private async ensureDirectory(path: string) {

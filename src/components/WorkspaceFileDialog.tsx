@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Copy, FilePlus, FolderPlus, PencilSimple, Trash, X } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import { createDocumentTemplate, duplicateDocument, slugify } from '../content/document'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { basename, dirname, joinWorkspacePath, normalizeWorkspacePath } from '../workspace/path'
+import { ModalSurface } from './ui/ModalSurface'
 import { Button } from './ui/Button'
 import { useAppStore } from '../store/useAppStore'
 
@@ -51,6 +52,7 @@ export function WorkspaceFileDialog({ request, onClose }: { request: FileDialogR
   const moveEntry = useWorkspaceStore((state) => state.moveEntry)
   const [value, setValue] = useState(() => request ? defaultValue(request, session?.manifest.content.root || '') : '')
   const [busy, setBusy] = useState(false)
+  const submitting = useRef(false)
   const [error, setError] = useState<string | null>(null)
   const meta = request ? actionMeta[request.action] : null
 
@@ -64,9 +66,12 @@ export function WorkspaceFileDialog({ request, onClose }: { request: FileDialogR
   const destructive = request.action === 'delete'
 
   const submit = async () => {
+    if (submitting.current || (!destructive && !previewPath)) return
+    submitting.current = true
     setBusy(true)
     setError(null)
     try {
+      if (!session.capabilities.write) throw new Error('当前工作区为只读，无法执行文件操作')
       const affectsDirtyDocument = Object.keys(editorDirtyPaths).some((dirtyPath) => (
         request.action === 'new-note'
         || request.action === 'duplicate'
@@ -112,6 +117,7 @@ export function WorkspaceFileDialog({ request, onClose }: { request: FileDialogR
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '文件操作失败')
     } finally {
+      submitting.current = false
       setBusy(false)
     }
   }
@@ -123,23 +129,21 @@ export function WorkspaceFileDialog({ request, onClose }: { request: FileDialogR
           : <PencilSimple size={20} />
 
   return (
-    <div className="file-dialog-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <section className="file-dialog" role="dialog" aria-modal="true" aria-labelledby="file-dialog-title">
+    <ModalSurface open onOpenChange={(open) => { if (!open && !submitting.current) onClose() }} title={meta.title} layerClassName="file-dialog-layer" className="file-dialog">
         <header>
           <span className={destructive ? 'is-danger' : ''}>{icon}</span>
           <div><h2 id="file-dialog-title">{meta.title}</h2><p>{meta.description}</p></div>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label="关闭文件操作"><X size={17} /></Button>
+          <Button variant="ghost" size="icon" onClick={onClose} disabled={busy} aria-label="关闭文件操作"><X size={17} /></Button>
         </header>
         <div className="file-dialog__body">
           {destructive ? (
             <div className="delete-confirmation"><strong>{request.path}</strong><p>删除后 TensorNote 无法撤销。需要恢复时请使用系统备份或版本控制。</p></div>
           ) : (
-            <label><span>{request.action === 'rename' ? 'Name' : 'Workspace path'}</span><input autoFocus value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void submit() }} /><small>{previewPath}</small></label>
+            <label><span>{request.action === 'rename' ? 'Name' : 'Workspace path'}</span><input autoFocus disabled={busy} value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.nativeEvent.isComposing && event.keyCode !== 229) { event.preventDefault(); void submit() } }} /><small>{previewPath}</small></label>
           )}
-          {error && <p className="file-dialog__error">{error}</p>}
+          {error && <p role="alert" className="file-dialog__error">{error}</p>}
         </div>
-        <footer><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant={destructive ? 'danger' : 'primary'} onClick={() => void submit()} disabled={busy || (!destructive && !previewPath)}>{busy ? 'Working…' : meta.title}</Button></footer>
-      </section>
-    </div>
+        <footer><Button variant="ghost" onClick={onClose} disabled={busy}>取消</Button><Button variant={destructive ? 'danger' : 'primary'} onClick={() => void submit()} disabled={busy || (!destructive && !previewPath)}>{busy ? '处理中…' : meta.title}</Button></footer>
+    </ModalSurface>
   )
 }

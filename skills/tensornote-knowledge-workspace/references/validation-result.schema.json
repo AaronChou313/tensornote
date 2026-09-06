@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TensorNote Workspace Validation Result v1",
+  "type": "object",
+  "required": ["formatVersion", "ok"],
+  "properties": {
+    "formatVersion": { "const": 1 },
+    "ok": { "type": "boolean" },
+    "usageError": { "type": "string" },
+    "workspace": { "type": "string" },
+    "notes": { "type": "integer", "minimum": 0 },
+    "schemaVersion": { "type": ["number", "null"] },
+    "readOnly": { "type": "boolean" },
+    "strict": { "type": "boolean" },
+    "errors": { "type": "integer", "minimum": 0 },
+    "warnings": { "type": "integer", "minimum": 0 },
+    "infos": { "type": "integer", "minimum": 0 },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "code", "file", "message"],
+        "properties": {
+          "severity": { "enum": ["error", "warning", "info"] },
+          "code": { "type": "string" },
+          "file": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}

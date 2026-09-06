@@ -45,6 +45,8 @@ import type { Note } from '../types'
 import { getDocumentBody, getDocumentProperties, parseDocument, replaceDocumentBody, updateDocumentProperties, type DocumentProperties } from '../content/document'
 import { dirname, joinWorkspacePath, relativeWorkspacePath } from '../workspace/path'
 import { WorkspaceConflictError, type WorkspaceFileStat, type WorkspaceProvider } from '../workspace/types'
+import { headingSourceOffset } from '../workbench/headingNavigation'
+import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { useAppStore, type EditorMode } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
@@ -196,6 +198,16 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const [codeLanguage, setCodeLanguage] = useState('python')
   const [labInitialCode, setLabInitialCode] = useState<string | null>(null)
   const viewRef = useRef<EditorView | null>(null)
+  const headingRequest = useWorkbenchStore((state) => state.headingRequest)
+  useEffect(() => {
+    if (!isActive || mode !== 'edit' || !headingRequest) return
+    const view = viewRef.current
+    if (!view) return
+    const offset = headingSourceOffset(view.state.doc.toString(), headingRequest.id)
+    if (offset === null) return
+    view.dispatch({ selection: { anchor: offset }, effects: EditorView.scrollIntoView(offset, { y: 'start' }) })
+  }, [headingRequest, isActive, mode])
+
   const uploadRef = useRef<HTMLInputElement>(null)
   const baselineRef = useRef({ modifiedAt: note.sourceModifiedAt, size: note.sourceSize })
   const dirtyRef = useRef(dirty)

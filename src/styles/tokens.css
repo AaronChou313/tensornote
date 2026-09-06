@@ -1,0 +1,77 @@
+:root {
+  color-scheme: light;
+  font-family: "Avenir Next", Avenir, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-muted: #f4f7f4;
+  --ink: #202923;
+  --muted: #606a63;
+  --faint: #89928c;
+  --line: #e3e9e4;
+  --accent: #4f8061;
+  --accent-hover: #376a4b;
+  --on-accent: #ffffff;
+  --accent-soft: #e4f1e7;
+  --accent-pale: #f1f8f2;
+  --selection-surface: #e4f1e7;
+  --selection-ink: #315d3f;
+  --shadow: 0 16px 44px rgba(34, 58, 42, .07);
+  --danger: #b2443b;
+  --warning: #9a671c;
+  --code-surface: #f6f8fa;
+  --code-ink: #24292f;
+  --code-line: #d0d7de;
+  --syntax-keyword: #cf222e;
+  --syntax-title: #8250df;
+  --syntax-constant: #0550ae;
+  --syntax-string: #0a3069;
+  --syntax-built-in: #953800;
+  --syntax-comment: #57606a;
+  --syntax-tag: #116329;
+  --syntax-bullet: #7d4e00;
+  --syntax-addition: #1a7f37;
+  --syntax-addition-bg: #dafbe1;
+  --syntax-deletion: #cf222e;
+  --syntax-deletion-bg: #ffebe9;
+  --radius: 12px;
+  --radius-lg: 18px;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #151816;
+  --surface-raised: #1b1f1c;
+  --surface-muted: #242925;
+  --ink: #eef2ef;
+  --muted: #aab2ac;
+  --faint: #7d8780;
+  --line: #303631;
+  --accent: #82bd91;
+  --accent-hover: #93cca1;
+  --on-accent: #151816;
+  --accent-soft: #223a29;
+  --accent-pale: #1d2c21;
+  --selection-surface: #b7dfc0;
+  --selection-ink: #183b24;
+  --shadow: 0 20px 56px rgba(0, 0, 0, .24);
+  --danger: #ec8b82;
+  --warning: #d7a95d;
+  --code-surface: #1b211e;
+  --code-ink: #dfe8e2;
+  --code-line: #303a35;
+  --syntax-keyword: #ff7b72;
+  --syntax-title: #d2a8ff;
+  --syntax-constant: #79c0ff;
+  --syntax-string: #a5d6ff;
+  --syntax-built-in: #ffa657;
+  --syntax-comment: #8b949e;
+  --syntax-tag: #7ee787;
+  --syntax-bullet: #f2cc60;
+  --syntax-addition: #aff5b4;
+  --syntax-addition-bg: #033a16;
+  --syntax-deletion: #ffdcd7;
+  --syntax-deletion-bg: #67060c;
+}
+

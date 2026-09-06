@@ -1,7 +1,7 @@
 export { TENSORNOTE_VERSION } from '../version'
 
 export { CURRENT_WORKSPACE_SCHEMA_VERSION, parseWorkspaceManifest, parseWorkspaceManifestWithCompatibility } from '../workspace/schema'
-export { WORKSPACE_PROVIDER_API_VERSION, WorkspaceConflictError } from '../workspace/types'
+export { WORKSPACE_PROVIDER_API_VERSION, WorkspaceConflictError, WorkspaceNotFoundError } from '../workspace/types'
 export type { WorkspaceCapabilities, WorkspaceDescriptor, WorkspaceEntry, WorkspaceFileStat, WorkspaceManifest, WorkspaceProvider, WorkspaceSession, WorkspaceWriteOptions } from '../workspace/types'
 
 export { COMPUTE_CONNECTOR_API_VERSION, COMPUTE_PROVIDER_API_VERSION } from '../compute/types'

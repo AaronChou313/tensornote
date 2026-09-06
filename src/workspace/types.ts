@@ -32,6 +32,14 @@ export interface WorkspaceWriteOptions {
   expectedSize?: number
 }
 
+/** Optional v1 error type; distinguishes absence from denied access or IO failure. */
+export class WorkspaceNotFoundError extends Error {
+  constructor(readonly path: string) {
+    super(`Workspace path not found: ${path}`)
+    this.name = 'WorkspaceNotFoundError'
+  }
+}
+
 export class WorkspaceConflictError extends Error {
   constructor(readonly path: string) {
     super(`文件已在外部发生变化：${path}`)

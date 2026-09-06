@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { loadWorkspace } from '../workspace/loadWorkspace'
+import { ensureWorkspacePathMissing } from '../workspace/mutations'
 import type { Note } from '../types'
 import type {
   RecentWorkspace,
@@ -54,15 +55,7 @@ function mutationError(reason: unknown) {
   return reason instanceof Error ? reason.message : 'Workspace 文件操作失败'
 }
 
-async function ensureMissing(provider: WorkspaceProvider, path: string) {
-  try {
-    await provider.stat(path)
-    throw new Error(`目标路径已存在：${path}`)
-  } catch (reason) {
-    if (reason instanceof Error && reason.message.startsWith('目标路径已存在')) throw reason
-    if (!(reason instanceof Error) || !reason.message.toLowerCase().includes('not found')) throw reason
-  }
-}
+
 
 export const useWorkspaceStore = create<WorkspaceState>()(
   persist(
@@ -145,7 +138,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         createNote: async (path, content) => {
           await mutate(async (provider) => {
             if (!provider.writeText) throw new Error('当前 Provider 不支持新建文档')
-            await ensureMissing(provider, path)
+            await ensureWorkspacePathMissing(provider, path)
             return provider.writeText(path, content)
           })
           const document = get().session?.documents.find((item) => item.path === path)
@@ -154,7 +147,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         },
         createFolder: (path) => mutate(async (provider) => {
           if (!provider.createDirectory) throw new Error('当前 Provider 不支持新建文件夹')
-          await ensureMissing(provider, path)
+          await ensureWorkspacePathMissing(provider, path)
           await provider.createDirectory(path)
         }),
         removeEntry: (path) => mutate(async (provider) => {

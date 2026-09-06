@@ -1,14 +1,21 @@
+import { useLayoutEffect, useRef } from 'react'
 import { ArrowLeft, ArrowRight, ColumnsPlusLeft, ColumnsPlusRight, Sidebar, X } from '@phosphor-icons/react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useWorkbenchStore, type PaneId } from '../../workbench/useWorkbenchStore'
 import { useWorkspaceStore } from '../../store/useWorkspaceStore'
 
 export function WorkbenchTopTools() {
-  const { split, setSidebar, activeView } = useWorkbenchStore()
+  const { split, setSidebar, activeView, secondaryOpen, secondaryPosition, activePane, panes, setActivePane } = useWorkbenchStore()
+  const navigate = useNavigate()
   if (activeView) return null
   return <div className="workbench-top-tools" aria-label="当前阅读编辑区操作">
+    {secondaryOpen && <select className="workbench-pane-picker" aria-label="当前窗格" value={activePane} onChange={(event) => {
+      const pane = event.target.value as PaneId
+      setActivePane(pane)
+      navigate(panes[pane] ? `/notes/${panes[pane]}` : '/notes')
+    }}><option value="main">{secondaryPosition === 'left' ? '右侧窗格' : '左侧窗格'}</option><option value="secondary">{secondaryPosition === 'left' ? '左侧窗格' : '右侧窗格'}</option></select>}
     <button onClick={() => split('left')} aria-label="向左拆分当前窗格" title="向左拆分当前窗格"><ColumnsPlusLeft size={17} /></button>
-    <button onClick={() => split('right')} aria-label="向右拆分当前窗格" title="向右拆分当前窗格"><ColumnsPlusRight size={17} /></button>
+    <button className="workbench-split-right" onClick={() => split('right')} aria-label="向右拆分当前窗格" title="向右拆分当前窗格"><ColumnsPlusRight size={17} /></button>
     <button onClick={() => setSidebar('right', true)} aria-label="打开当前笔记上下文栏" title="打开当前笔记上下文栏"><Sidebar size={17} /></button>
   </div>
 }
@@ -17,7 +24,27 @@ export function WorkbenchPaneTabs({ pane }: { pane: PaneId }) {
   const navigate = useNavigate()
   const location = useLocation()
   const session = useWorkspaceStore((state) => state.session)
-  const { tabs, panes, activePane, secondaryOpen, closeTab, closePane, goBack, goForward, setActivePane, history, historyIndex } = useWorkbenchStore()
+  const { tabs, panes, activePane, secondaryOpen, leftSidebar, closeTab, closePane, goBack, goForward, setActivePane, history, historyIndex } = useWorkbenchStore()
+  const tabList = useRef<HTMLDivElement>(null)
+  const selectedNote = panes[pane]
+  const tabCount = tabs[pane].length
+  useLayoutEffect(() => {
+    const list = tabList.current
+    if (!list) return
+    const revealActive = () => {
+      const active = list.querySelector<HTMLElement>('.workbench-tab.is-active')
+      if (!active || !list.clientWidth) return
+      const bounds = list.getBoundingClientRect()
+      const tab = active.getBoundingClientRect()
+      // Scroll this strip only; never move a reading pane or the page.
+      if (tab.left < bounds.left) list.scrollLeft += tab.left - bounds.left
+      else if (tab.right > bounds.right) list.scrollLeft += tab.right - bounds.right
+    }
+    revealActive()
+    const observer = new ResizeObserver(revealActive)
+    observer.observe(list)
+    return () => observer.disconnect()
+  }, [selectedNote, tabCount, pane, leftSidebar, secondaryOpen, activePane])
   if (!session) return null
 
   const activatePane = () => {
@@ -57,15 +84,15 @@ export function WorkbenchPaneTabs({ pane }: { pane: PaneId }) {
   const canGoBack = historyIndex[pane] > 0
   const canGoForward = historyIndex[pane] >= 0 && historyIndex[pane] < history[pane].length - 1
 
-  return <section className={`workbench-pane-tabs ${activePane === pane ? 'is-active' : ''}`} data-pane={pane} onMouseDown={activatePane}>
+  return <section className={`workbench-pane-tabs ${activePane === pane ? 'is-active' : ''}`} data-pane={pane} onMouseDown={activatePane} onFocus={activatePane}>
     <div className="workbench-tabs__history">
       <button onClick={(event) => { event.stopPropagation(); navigateHistory(goBack(pane)) }} aria-label={`${pane === 'main' ? '左侧' : '右侧'}窗格后退`} title="后退" disabled={!canGoBack}><ArrowLeft size={16} /></button>
       <button onClick={(event) => { event.stopPropagation(); navigateHistory(goForward(pane)) }} aria-label={`${pane === 'main' ? '左侧' : '右侧'}窗格前进`} title="前进" disabled={!canGoForward}><ArrowRight size={16} /></button>
     </div>
-    <div className="workbench-tabs__list">
+    <div className="workbench-tabs__list" ref={tabList} aria-label={`${pane === 'main' ? '左侧' : '右侧'}窗格标签`}>
       {tabs[pane].length ? tabs[pane].map((tab) => (
         <div key={tab.noteId} className={`workbench-tab ${panes[pane] === tab.noteId ? 'is-active' : ''}`}>
-          <button onClick={(event) => { event.stopPropagation(); open(tab.noteId) }} title={session.documentById.get(tab.noteId)?.path || tab.title}>{tab.title}</button>
+          <button onClick={(event) => { event.stopPropagation(); open(tab.noteId) }} aria-pressed={panes[pane] === tab.noteId} title={session.documentById.get(tab.noteId)?.path || tab.title}><span>{tab.title}</span></button>
           <button onClick={(event) => { event.stopPropagation(); close(tab.noteId) }} aria-label={`关闭 ${tab.title}`} title="关闭标签"><X size={13} /></button>
         </div>
       )) : <span className="workbench-tabs__empty" />}

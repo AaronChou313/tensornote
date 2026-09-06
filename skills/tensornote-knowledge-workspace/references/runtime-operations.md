@@ -23,7 +23,9 @@ TensorNote frontend :5173
 └── Git Bridge :4318           optional for local Git UI
 ```
 
-Reading/editing needs only TensorNote. Labs need TensorNote plus Jupyter. The Git workspace needs TensorNote plus Git Bridge. All three are needed only when editing, executing, and using Git UI together.
+This terminal model applies to Local Web. Desktop uses native Workspace/Git adapters and does not need Git Bridge or a Vite server. Desktop can discover environments and start/stop its own loopback Jupyter after the user reviews the plan; connecting to a user-managed Jupyter remains supported. Static and self-hosted Web cannot discover environments, launch Python processes, use native Git or run Desktop updates. They can connect to compatible remote Jupyter services subject to HTTPS/CORS/WebSocket and trust gates.
+
+Reading/editing needs only the supported TensorNote host. Labs additionally need Jupyter. Local Web Git additionally needs the loopback Bridge. Authoring knowledge files with an agent and running the validator need neither TensorNote nor Jupyter.
 
 ## 2. Frontend setup
 
@@ -146,7 +148,7 @@ pnpm audit --prod --audit-level high
 Static build:
 
 ```bash
-VITE_TENSORNOTE_DEPLOYMENT=static VITE_BASE_PATH=/tensornote/ pnpm build
+VITE_BASE_PATH=/tensornote/ pnpm build:web
 ```
 
 Self-hosted build when Docker is available:
@@ -172,4 +174,4 @@ Before publishing, run the strict Workspace validator and the application reposi
 - WebSocket/CORS failure: keep explicit localhost origins and inspect the built-in diagnostic stage that failed.
 - Execution disabled: inspect manifest/local permission, future-schema compatibility, and GitHub revision trust.
 - Lab card missing: validate exact `python exec` syntax and metadata; plain Python fences are display-only.
-- Git unavailable: confirm the Workspace is local, Git Bridge is running, and its root matches the selected directory.
+- Git unavailable: on Desktop check native Git availability; on Local Web confirm the optional Git Bridge is running and its root matches the selected directory. Static/self-hosted Web do not expose this Bridge.

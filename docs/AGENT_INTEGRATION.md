@@ -11,6 +11,7 @@ TensorNote 提供一套可版本管理、可复制安装、可由不同智能体
 | 知识规格 | `references/knowledge-authoring.md` | Frontmatter、目录、章节、链接、Assets、公式、Mermaid、Callout 与质量门 |
 | Workspace 规格 | `references/workspace-configuration.md` | `tensornote.yaml` v1、目录、能力、环境文件、信任和 Secret 边界 |
 | Lab 规格 | `references/executable-labs.md` | Executable Markdown v1、多 Cell 设计、难度、运行条件和安全规则 |
+| 维护协议 | `references/maintenance.md` | 更新、移动、合并、删除、冲突处理及 JSON 结果协议 |
 | 运行手册 | `references/runtime-operations.md` | pnpm、Conda/venv/uv、Jupyter、Kernel、Git Bridge、部署和排障 |
 | 确定性工具 | `scripts/validate-workspace.mjs` | 检查 Schema、路径、Frontmatter、ID、WikiLink、Assets 与 Lab 元数据 |
 | 输出模板 | `assets/` | 通用 Workspace、课程 Workspace、概念笔记、多 Cell 实验笔记和固定版本的 GitHub Pages Workflow 模板 |
@@ -34,9 +35,27 @@ ln -s "$(pwd)/skills/tensornote-knowledge-workspace" ~/.codex/skills/tensornote-
 
 如果目标已经存在，先检查它是普通目录还是符号链接，不要直接覆盖个人修改。安装或更新后开启一个新任务，让 Codex 重新发现 Skill。
 
+独立安装后，使用 Node.js 22+ 在 skill 目录安装锁定的 YAML 校验依赖：
+
+```bash
+cd ~/.codex/skills/tensornote-knowledge-workspace
+npm ci --ignore-scripts
+```
+
+不需要安装整个 TensorNote、启动应用或连接 Jupyter。仓库开发环境可直接使用根目录已经安装的依赖。正式 Release 的 `TensorNote-agent-skill-X.Y.Z.tar.gz` 包含同版本规范、模板、验证器、依赖锁文件与 License；候选包可由 `pnpm package:skill` 生成，发布前检查同一 Release 的 SHA256SUMS。当前未发布的版本不要使用猜测的下载链接。
+
 其他支持 Markdown Skill 的智能体可以加载整个 `skills/tensornote-knowledge-workspace/` 目录；不支持 Skill 发现时，按 `SKILL.md → 与任务相关的 references → validator` 的顺序提供上下文。
 
 ## 3. 调用方式
+
+不支持自动发现 Skill 时，将整个技能目录放在智能体可读取的位置，发送：
+
+```text
+知识库目标目录是 /path/to/my-knowledge。请完整读取 /path/to/tensornote-knowledge-workspace/SKILL.md，按任务读取 references，并使用其中的模板和校验器。请生成或维护 Markdown 文件，不修改 TensorNote 应用源码。完成后提供变更文件和 JSON 校验结果；不要自动执行实验或发布知识库。
+```
+
+可把 `assets/AGENTS.md` 合并到知识库已有指令文件中，让后续智能体发现规范。无需搭建 MCP Server：文件系统是写入接口，版本化 JSON 校验命令是检查接口。只有需要远程授权服务时才另行设计受限 API，不能暴露通用 Shell 或任意路径写入。
+
 
 显式调用：
 
@@ -92,7 +111,7 @@ CI 或智能体解析：
 node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs /path/to/workspace --json
 ```
 
-退出码 `0` 表示无阻塞错误；严格模式下 Warning 也会返回非零。旧笔记缺少显式 `difficulty` 时只产生兼容性 Info，因为 TensorNote v1 会安全回退为 `basic`；智能体新建的 Lab 仍必须写完整元数据。
+输出包含 `formatVersion: 1`、`ok`、`notes`、`errors`、`warnings`、`infos`、`readOnly` 和逐项 findings；机器协议见 skill 的 `references/validation-result.schema.json`。退出码 `0` 表示所选模式通过，`1` 表示校验不通过，`2` 表示参数错误；严格模式下 Warning 也会返回 `1`。旧笔记缺少显式 `difficulty` 时只产生兼容性 Info，因为 TensorNote v1 会安全回退为 `basic`；智能体新建的 Lab 仍必须写完整元数据。
 
 公开发布候选还必须运行：
 
@@ -101,6 +120,8 @@ pnpm validate:publication -- --workspace /path/to/workspace --owner owner --repo
 ```
 
 它在严格 Workspace 规则之外检查 `publishing` 展示配置、首页 ID、License、声明的环境文件和明显凭据文件。复制 `assets/publish-tensornote.yml` 后，知识库仍需由人确认公开内容和许可证。
+
+校验器不会写文件或执行 Lab，也不会访问外部 URL。外链真实性、引用来源、引用式 Markdown 链接以及渲染效果仍需智能体检查。它不能替代事实核查。
 
 课程型知识库优先从 `assets/course-workspace-template` 开始；它展示学习首页、模块前置关系、复习问题与共享状态的多 Cell Lab，但不会替作者选择内容 License。
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { WorkspaceConflictError } from '../types'
+import { WorkspaceConflictError, WorkspaceNotFoundError } from '../types'
 import { NativeLocalWorkspaceProvider } from './NativeLocalWorkspaceProvider'
 
 const invoke = vi.fn()
@@ -69,4 +69,12 @@ describe('NativeLocalWorkspaceProvider', () => {
 
     expect(Array.from(new Uint8Array(await provider.readBinary('assets/sample.bin')))).toEqual([0, 127, 255])
   })
+  it('maps missing native files independently of OS language and preserves access errors', async () => {
+    const provider = new NativeLocalWorkspaceProvider({ workspaceId: 'native:demo', name: 'AI Notes' })
+    invoke.mockRejectedValueOnce('WORKSPACE_NOT_FOUND:notes/new.md')
+    await expect(provider.stat('notes/new.md')).rejects.toBeInstanceOf(WorkspaceNotFoundError)
+    invoke.mockRejectedValueOnce('Permission denied')
+    await expect(provider.stat('notes/new.md')).rejects.toThrow('Permission denied')
+  })
+
 })

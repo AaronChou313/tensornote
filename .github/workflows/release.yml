@@ -92,13 +92,17 @@ jobs:
         run: pnpm build:web
         env:
           VITE_BASE_PATH: /tensornote/
+      - name: Package versioned agent skill
+        run: pnpm package:skill -- .
       - name: Package Static Web release asset
         shell: bash
         run: tar -czf "TensorNote-web-${{ needs.release-gate.outputs.version }}.tar.gz" -C dist .
       - uses: actions/upload-artifact@v6
         with:
           name: web-release
-          path: TensorNote-web-${{ needs.release-gate.outputs.version }}.tar.gz
+          path: |
+            TensorNote-web-${{ needs.release-gate.outputs.version }}.tar.gz
+            TensorNote-agent-skill-${{ needs.release-gate.outputs.version }}.tar.gz
           if-no-files-found: error
       - uses: actions/configure-pages@v6
         if: github.ref_type == 'tag'

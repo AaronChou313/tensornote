@@ -5,12 +5,10 @@ import {
   ClockCounterClockwise,
   FolderOpen,
   GithubLogo,
-  Leaf,
   Plus,
 } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import logoSquare from '../../assets/images/TensorNote_logo.png'
-import logoWide from '../../assets/images/TensorNote_logo_wide.png'
 import { Button } from '../components/ui/Button'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
@@ -128,10 +126,8 @@ export function HomePage() {
 
       <div className="workspace-home__content">
         <section className="workspace-hero">
-          <div className="workspace-hero__eyebrow"><Leaf size={15} weight="fill" /> Markdown-first workspace</div>
-          <div className="workspace-hero__logo"><img src={logoWide} alt="TensorNote" /></div>
-          <h1>一触即达，不止是笔记</h1>
-          <p>打开任意 Markdown Workspace，畅读笔记；<br />一键连接 Jupyter，验证精彩想法。</p>
+          <h1>打开知识，继续探索。</h1>
+          <p>用 Markdown 记录想法，在同一个工作台中阅读、写作与运行实验。</p>
         </section>
 
         {(error || inputError) && (
@@ -144,7 +140,7 @@ export function HomePage() {
         <section className="workspace-actions" aria-label="打开 Workspace">
           {supportsLocalWorkspace && <button className="workspace-action workspace-action--primary" onClick={() => void openLocal()} disabled={busy}>
             <span className="workspace-action__icon"><FolderOpen size={23} weight="duotone" /></span>
-            <span><strong>Open local workspace</strong><small>选择电脑上的 Markdown 文件夹</small></span>
+            <span><strong>打开本地 Workspace</strong><small>选择电脑上的 Markdown 文件夹</small></span>
             <ArrowRight size={17} />
           </button>}
 
@@ -156,26 +152,14 @@ export function HomePage() {
 
           {supportsLocalWorkspace && <button className="workspace-action" onClick={() => void openLocal()} disabled={busy}>
             <span className="workspace-action__icon"><Plus size={22} /></span>
-            <span><strong>New workspace</strong><small>选择一个新建或空文件夹，从第一篇笔记开始</small></span>
+            <span><strong>新建 Workspace</strong><small>选择一个新建或空文件夹，从第一篇笔记开始</small></span>
             <ArrowRight size={17} />
           </button>}
         </section>
 
-        <section className="github-open">
-          <div>
-            <span className="workspace-section-icon"><GithubLogo size={18} weight="fill" /></span>
-            <div><h2>Open from GitHub</h2><p>读取公开 Repository；默认禁用远程可执行代码。</p></div>
-          </div>
-          <form onSubmit={(event) => { event.preventDefault(); void openGitHub() }}>
-            <input value={repository} onChange={(event) => setRepository(event.target.value)} placeholder="owner/repository 或 GitHub URL" aria-label="GitHub Repository" />
-            <input value={ref} onChange={(event) => setRef(event.target.value)} placeholder="Branch / Ref（可选）" aria-label="GitHub Branch 或 Ref" />
-            <Button type="submit" variant="primary" disabled={busy || !repository.trim()}>Open</Button>
-          </form>
-        </section>
-
         {visibleRecentWorkspaces.length > 0 && (
           <section className="recent-workspaces">
-            <div className="section-heading"><ClockCounterClockwise size={17} /><h2>Recent workspaces</h2></div>
+            <div className="section-heading"><ClockCounterClockwise size={17} /><h2>最近打开</h2></div>
             <div className="recent-list">
               {visibleRecentWorkspaces.map((recent) => (
                 <button key={recent.id} onClick={() => void reopen(recent)} disabled={busy}>
@@ -187,6 +171,18 @@ export function HomePage() {
             </div>
           </section>
         )}
+
+        <section className="github-open">
+          <div>
+            <span className="workspace-section-icon"><GithubLogo size={18} weight="fill" /></span>
+            <div><h2>从 GitHub 打开</h2><p>读取公开 Repository；默认禁用远程可执行代码。</p></div>
+          </div>
+          <form onSubmit={(event) => { event.preventDefault(); void openGitHub() }}>
+            <input value={repository} onChange={(event) => setRepository(event.target.value)} placeholder="owner/repository 或 GitHub URL" aria-label="GitHub Repository" />
+            <input value={ref} onChange={(event) => setRef(event.target.value)} placeholder="分支 / Ref（可选）" aria-label="GitHub Branch 或 Ref" />
+            <Button type="submit" variant="primary" disabled={busy || !repository.trim()}>打开</Button>
+          </form>
+        </section>
 
         {busy && <div className="workspace-loading" role="status"><span />{loadingMessage || '正在打开 Workspace…'}</div>}
       </div>

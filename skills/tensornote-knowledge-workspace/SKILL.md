@@ -13,11 +13,13 @@ Build knowledge bases that remain ordinary Markdown repositories while gaining T
 2. Inspect `tensornote.yaml`, the content/asset roots, two representative notes, environment files, and current Git status before editing.
 3. Select and read the relevant reference below. Read every selected file completely before changing content.
 4. Preserve existing organization and unknown Frontmatter fields. Make the smallest coherent change.
-5. Run `node <skill-dir>/scripts/validate-workspace.mjs <workspace-root>`. Use `--strict` for a new Workspace or release candidate.
+5. For a standalone installation, install the locked validator dependency once with `npm ci --ignore-scripts` from `<skill-dir>` when authorized; no TensorNote server is needed. Run `node <skill-dir>/scripts/validate-workspace.mjs <workspace-root>`. Use `--strict` for a new Workspace or release candidate.
 6. Review `git diff --check` and the changed Markdown. For application-source changes, also run the repository's test/lint/build gates.
 7. Report changed files, validation results, required processes, and any unresolved execution or trust requirement.
 
 ## Reference routing
+
+- Read [references/maintenance.md](references/maintenance.md) when updating, moving, merging, deleting, auditing or repairing existing knowledge, or integrating with another agent. It defines conflict handling and the JSON validation interface.
 
 - Read [references/knowledge-authoring.md](references/knowledge-authoring.md) when creating, restructuring, reviewing, or linking notes and assets.
 - Read [references/workspace-configuration.md](references/workspace-configuration.md) when creating or changing `tensornote.yaml`, directory layout, capabilities, trust, or portability.
@@ -41,6 +43,7 @@ Read multiple references when a request spans those concerns. Do not infer execu
 
 - Copy [assets/workspace-template](assets/workspace-template) to start a complete Workspace.
 - Copy [assets/course-workspace-template](assets/course-workspace-template) to start a publishable learning path with modules, prerequisites, review prompts, and a multi-cell standard-library Lab.
+- Optionally copy [assets/AGENTS.md](assets/AGENTS.md) into a user Workspace so agents can discover the installed skill; merge with existing instructions instead of overwriting them.
 - Copy [assets/note-template.md](assets/note-template.md) for a conceptual note.
 - Copy [assets/lab-note-template.md](assets/lab-note-template.md) for a multi-cell executable note.
 - Copy [assets/publish-tensornote.yml](assets/publish-tensornote.yml) to `.github/workflows/publish-tensornote.yml` when publishing a public Workspace with GitHub Pages. Add a root License and complete the `publishing` block before enabling the Workflow.
@@ -54,6 +57,8 @@ node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs /path/
 node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs /path/to/workspace --strict
 node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs /path/to/workspace --json
 ```
+
+JSON output is versioned with `formatVersion: 1`, `ok`, counts and structured findings. See the maintenance reference for exit codes and limitations.
 
 Normal mode fails on unsafe or structurally invalid data and reports quality warnings. Strict mode also fails on warnings. JSON mode is suitable for CI or another agent.
 

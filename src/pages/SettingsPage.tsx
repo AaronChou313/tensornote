@@ -74,7 +74,7 @@ function SettingRow({ title, description, children }: { title: string; descripti
 function AppearanceSettings() {
   const theme = useAppStore((state) => state.theme)
   const setTheme = useAppStore((state) => state.setTheme)
-  return <section className="settings-panel"><header><span>Interface</span><h2>外观</h2><p>保持工作区安静，让内容成为视觉中心。</p></header><div className="settings-group"><SettingRow title="主题" description="主题会保存在当前浏览器中。"><div className="settings-choice-grid"><button className={theme === 'light' ? 'is-active' : ''} onClick={() => setTheme('light')}><Sun size={18} /><span><strong>浅色</strong><small>柔和的淡绿纸面</small></span>{theme === 'light' && <CheckCircle size={16} weight="fill" />}</button><button className={theme === 'dark' ? 'is-active' : ''} onClick={() => setTheme('dark')}><Moon size={18} /><span><strong>深色</strong><small>低眩光深绿灰</small></span>{theme === 'dark' && <CheckCircle size={16} weight="fill" />}</button></div></SettingRow></div></section>
+  return <section className="settings-panel"><header><span>Interface</span><h2>外观</h2><p>保持工作区安静，让内容成为视觉中心。</p></header><div className="settings-group"><SettingRow title="主题" description="主题会保存在当前设备的应用设置中。"><div className="settings-choice-grid"><button className={theme === 'light' ? 'is-active' : ''} onClick={() => setTheme('light')}><Sun size={18} /><span><strong>浅色</strong><small>柔和的淡绿纸面</small></span>{theme === 'light' && <CheckCircle size={16} weight="fill" />}</button><button className={theme === 'dark' ? 'is-active' : ''} onClick={() => setTheme('dark')}><Moon size={18} /><span><strong>深色</strong><small>低眩光深绿灰</small></span>{theme === 'dark' && <CheckCircle size={16} weight="fill" />}</button></div></SettingRow></div></section>
 }
 
 function EditorSettings() {
@@ -140,12 +140,12 @@ function ComputeSettings() {
   }
   return (
     <section className="settings-panel">
-      <header><span>Runtime</span><h2>计算与 Jupyter</h2><p>Workspace 与计算环境彼此独立；所有 Token 只保存在当前浏览器会话。</p></header>
+      <header><span>Runtime</span><h2>计算与 Jupyter</h2><p>Workspace 与计算环境彼此独立；所有 Token 只保存在当前应用会话。</p></header>
       <div className="settings-group settings-execution-group">
         <SettingRow title="允许当前 Workspace 执行代码" description={executionDescription}>
           <label className="settings-switch"><input type="checkbox" checked={executionPolicy?.enabled ?? false} disabled={!executionPolicy?.canChange} onChange={(event) => setActiveWorkspaceExecution(event.target.checked)} aria-label="允许当前 Workspace 执行代码" /><i /></label>
         </SettingRow>
-        {session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前浏览器中，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前 Workspace 没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.type === 'github' && !session.trusted ? ' GitHub Workspace 还需要信任当前 Revision。' : ''}</p>}
+        {session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前设备，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前 Workspace 没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.type === 'github' && !session.trusted ? ' GitHub Workspace 还需要信任当前 Revision。' : ''}</p>}
       </div>
       {LocalRuntimeAssistant && <Suspense fallback={<p className="settings-message">正在加载本地运行时助手…</p>}><LocalRuntimeAssistant /></Suspense>}
       <div className="settings-compute-layout">

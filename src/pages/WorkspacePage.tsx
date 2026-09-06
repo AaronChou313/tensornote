@@ -15,7 +15,7 @@ export function WorkspacePage() {
   const labCount = session.documents.reduce((total, note) => total + note.labs.length, 0)
   const cellCount = session.documents.reduce((total, note) => total + note.labs.reduce((sum, lab) => sum + lab.cells.length, 0), 0)
   const tagCount = new Set(session.documents.flatMap((note) => note.frontmatter.tags)).size
-  const recentDocuments = session.documents.slice(0, 8)
+  const startingDocuments = session.documents.slice(0, 8)
 
   const createFirstNote = async () => {
     const path = joinWorkspacePath(session.manifest.content.root, 'welcome.md')
@@ -26,9 +26,9 @@ export function WorkspacePage() {
   return (
     <main className="workspace-overview">
       <div className="workspace-overview__inner">
-        <header>
+        <header className="workspace-overview__header">
           {session.manifest.publishing.logo && <div className="workspace-public-logo"><WorkspaceImage src={session.manifest.publishing.logo} alt="" documentPath="tensornote.yaml" resolveAssetUrl={useWorkspaceStore.getState().provider?.resolveAssetUrl.bind(useWorkspaceStore.getState().provider)} /></div>}
-          <span className="workspace-kicker">Workspace</span>
+          <span className="workspace-kicker">Workspace 概览</span>
           <h1>{session.manifest.publishing.title || session.manifest.workspace.name}</h1>
           <p>{session.manifest.publishing.description || session.manifest.workspace.description || '一个保持 Markdown 可移植性的 TensorNote Workspace。'}</p>
           <div className="source-line">
@@ -44,28 +44,28 @@ export function WorkspacePage() {
         </section>}
 
         <section className="workspace-stats" aria-label="Workspace 统计">
-          <div><FileText size={19} /><strong>{session.documents.length}</strong><span>Documents</span></div>
-          <div><Flask size={19} /><strong>{labCount}</strong><span>Labs</span></div>
-          <div><BracketsCurly size={19} /><strong>{cellCount}</strong><span>Cells</span></div>
-          <div><Tag size={19} /><strong>{tagCount}</strong><span>Tags</span></div>
+          <div><FileText size={19} /><strong>{session.documents.length}</strong><span>笔记</span></div>
+          <div><Flask size={19} /><strong>{labCount}</strong><span>实验</span></div>
+          <div><BracketsCurly size={19} /><strong>{cellCount}</strong><span>代码单元</span></div>
+          <div><Tag size={19} /><strong>{tagCount}</strong><span>标签</span></div>
         </section>
 
         <section className="workspace-documents">
-          <div className="section-heading"><h2>Start reading</h2><span>{session.manifest.content.root || 'Workspace root'}</span></div>
+          <div className="section-heading"><h2>开始阅读</h2><span>{session.manifest.content.root || 'Workspace 根目录'}</span></div>
           <div className="document-list">
-            {recentDocuments.length ? recentDocuments.map((note) => (
+            {startingDocuments.length ? startingDocuments.map((note) => (
               <Link key={note.id} to={`/notes/${note.id}`}>
                 <span className="document-icon"><FileText size={17} /></span>
                 <span><strong>{note.frontmatter.title}</strong><small>{note.frontmatter.summary || note.frontmatter.section}</small></span>
                 <ArrowRight size={16} />
               </Link>
-            )) : <div className="workspace-empty-state"><span><FilePlus size={22} /></span><div><strong>This workspace is empty</strong><p>创建第一篇 Markdown 笔记，内容仍会直接保存在所选文件夹中。</p></div>{session.capabilities.write && <Button variant="primary" size="sm" onClick={() => void createFirstNote()}>New note</Button>}</div>}
+            )) : <div className="workspace-empty-state"><span><FilePlus size={22} /></span><div><strong>这个 Workspace 还没有笔记</strong><p>创建第一篇 Markdown 笔记，内容仍会直接保存在所选文件夹中。</p></div>{session.capabilities.write && <Button variant="primary" size="sm" onClick={() => void createFirstNote()}>新建笔记</Button>}</div>}
           </div>
         </section>
 
         <Link className="workspace-knowledge-link" to="/knowledge">
           <span><ShareNetwork size={19} /></span>
-          <span><strong>Explore knowledge index</strong><small>WikiLinks、Backlinks、Tags、Properties 与局部图谱</small></span>
+          <span><strong>探索知识关联</strong><small>WikiLinks、Backlinks、Tags、Properties 与局部图谱</small></span>
           <ArrowRight size={16} />
         </Link>
       </div>

@@ -48,6 +48,8 @@ extensions: {}
 
 Provider 负责列目录、读取文本和二进制、报告文件状态与来源能力；可写 Provider 还可以实现写入、创建目录、移动、复制、删除与监听。UI 只能根据 `WorkspaceCapabilities` 决定入口，不通过来源类型绕过 Provider。
 
+v1.6 可选导出 `WorkspaceNotFoundError` 表示路径不存在；权限拒绝、越界或 I/O 错误不能伪装为不存在。已有 v1 Provider 的 `not found` 错误消息仍兼容。Native IPC 在适配层将跨平台缺失错误映射为该类型，不让 UI 解析系统语言。
+
 写入必须支持预期文件状态；基线不匹配时抛出 `WorkspaceConflictError`，由用户选择重新载入或明确覆盖。新增 Provider 可以只实现读取能力，但不得伪造写入、Git 或执行能力。
 
 ## 4. ComputeProvider API v1

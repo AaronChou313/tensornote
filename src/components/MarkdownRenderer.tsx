@@ -6,7 +6,7 @@ import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import type { Lab } from '../types'
-import { slugify } from '../content/document'
+import { rehypeHeadingIds } from '../content/rehypeHeadingIds'
 import { extractHeadingSection, transformWikiMarkdown, type KnowledgeIndex } from '../content/knowledgeIndex'
 import { LabCard } from './LabCard'
 import { MermaidDiagram } from './MermaidDiagram'
@@ -43,13 +43,6 @@ interface MarkdownRendererProps {
 export function MarkdownRenderer({ content, labs, documentTitle, documentPath = '', resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail = [] }: MarkdownRendererProps) {
   const processors = useExtensionSnapshot().markdownProcessors
   const labMap = new Map(labs.map((lab) => [lab.id, lab]))
-  const headingCounts = new Map<string, number>()
-  const headingId = (children: ReactNode) => {
-    const baseId = slugify(textFromNode(children))
-    const count = headingCounts.get(baseId) ?? 0
-    headingCounts.set(baseId, count + 1)
-    return count ? `${baseId}-${count}` : baseId
-  }
   const processedContent = processors.reduce((markdown, processor) => {
     try { return processor.process(markdown, { documentPath, noteId }) }
     catch (reason) { console.error(`Markdown processor failed: ${processor.id}`, reason); return markdown }
@@ -63,19 +56,19 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[rehypeKatex, rehypeHighlight]}
+      rehypePlugins={[rehypeHeadingIds, rehypeKatex, rehypeHighlight]}
       components={{
         h1: ({ children, node }) => {
           const duplicateDocumentTitle = firstH1Offset >= 0
             && node?.position?.start.offset === firstH1Offset
             && textFromNode(children).trim() === documentTitle?.trim()
-          return <h1 id={headingId(children)} className={duplicateDocumentTitle ? 'markdown-title-heading' : undefined}>{children}</h1>
+          return <h1 id={String(node?.properties.id ?? '')} className={duplicateDocumentTitle ? 'markdown-title-heading' : undefined}>{children}</h1>
         },
-        h2: ({ children }) => <h2 id={headingId(children)}>{children}</h2>,
-        h3: ({ children }) => <h3 id={headingId(children)}>{children}</h3>,
-        h4: ({ children }) => <h4 id={headingId(children)}>{children}</h4>,
-        h5: ({ children }) => <h5 id={headingId(children)}>{children}</h5>,
-        h6: ({ children }) => <h6 id={headingId(children)}>{children}</h6>,
+        h2: ({ children, node }) => <h2 id={String(node?.properties.id ?? '')}>{children}</h2>,
+        h3: ({ children, node }) => <h3 id={String(node?.properties.id ?? '')}>{children}</h3>,
+        h4: ({ children, node }) => <h4 id={String(node?.properties.id ?? '')}>{children}</h4>,
+        h5: ({ children, node }) => <h5 id={String(node?.properties.id ?? '')}>{children}</h5>,
+        h6: ({ children, node }) => <h6 id={String(node?.properties.id ?? '')}>{children}</h6>,
         a: ({ href = '', children }) => {
           if (href.startsWith('/notes/')) return <Link className="knowledge-link" to={href}>{children}</Link>
           const resolved = knowledgeIndex && noteId ? knowledgeIndex.resolveMarkdownHref(href, noteId) : undefined
