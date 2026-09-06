@@ -49,7 +49,7 @@ jobs:
       - run: pnpm validate:release -- --tag "${{ steps.version.outputs.tag }}"
       - name: Validate bundled Workspace and templates
         run: |
-          node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs .
+          node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs . --strict
           node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs skills/tensornote-knowledge-workspace/assets/workspace-template --strict
           node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs skills/tensornote-knowledge-workspace/assets/course-workspace-template --strict
       - name: Require official signing credentials for a tag release
