@@ -13,6 +13,17 @@
     "allow-platform-info",
     "allow-native-workspace",
     "allow-native-git",
-    "allow-local-runtime"
+    "allow-local-runtime",
+    {
+      "identifier": "opener:allow-open-url",
+      "allow": [
+        {
+          "url": "https://*"
+        },
+        {
+          "url": "http://*"
+        }
+      ]
+    }
   ]
 }

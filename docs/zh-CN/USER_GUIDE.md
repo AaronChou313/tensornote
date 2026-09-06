@@ -2,7 +2,7 @@
 
 中文（默认） · [English](https://github.com/AaronChou313/tensornote/blob/main/docs/en/USER_GUIDE.md)
 
-适用版本：1.6.0。按“下载 → 打开 → 按需配置 → 日常使用”组织。只阅读、编辑 Markdown 不需要 Jupyter；执行 Python 才需要计算环境。TensorNote 不托管你的知识库或公共算力。
+适用版本：1.6.1。按“下载 → 打开 → 按需配置 → 日常使用”组织。只阅读、编辑 Markdown 不需要 Jupyter；执行 Python 才需要计算环境。TensorNote 不托管你的知识库或公共算力。
 
 <a id="choose"></a>
 ## 1. 先选版本
@@ -29,7 +29,7 @@
 
 ### 本地 Web
 
-1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.6.0.tar.gz`，解压。
+1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.6.1.tar.gz`，解压。
 2. 安装 Node.js 22 或更高版本。首次下载工具需要网络；包内已编译应用，**无需 pnpm、npm install 或前端构建**。
 3. 在解压得到的 `TensorNote-local-web` 文件夹打开终端，运行：
 
@@ -42,7 +42,7 @@ node start.mjs
 
 不要双击 `app/index.html`。端口被占用时先停止另一个本地 Web 服务。建议始终用同一个地址：`localhost` 与 `127.0.0.1` 的浏览器授权、设置和 Token 存储彼此独立。
 
-`TensorNote-web-1.6.0.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
+`TensorNote-web-1.6.1.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
 
 ### 桌面版
 
@@ -154,7 +154,7 @@ git config user.email "you@example.com"
 
 ## 6. 让智能体维护知识库
 
-从同版本 Release 下载 `TensorNote-agent-skill-1.6.0.tar.gz`，解压后把 `tensornote-knowledge-workspace/SKILL.md` 连同所在目录交给支持 Skill 的智能体；不能只复制标题或丢弃引用文件。明确指定你的知识库目录，不要让它误改 TensorNote 应用源码目录。
+从同版本 Release 下载 `TensorNote-agent-skill-1.6.1.tar.gz`，解压后把 `tensornote-knowledge-workspace/SKILL.md` 连同所在目录交给支持 Skill 的智能体；不能只复制标题或丢弃引用文件。明确指定你的知识库目录，不要让它误改 TensorNote 应用源码目录。
 
 建议任务：“按照这个 Skill 审核并更新指定知识库，保持 Schema v1、稳定笔记 ID、WikiLinks、可执行代码元数据和附件相对路径；先读取现有内容，更新后运行自带验证器并说明变化，不把任何 Token 写入文件。”
 
@@ -173,7 +173,7 @@ node scripts/validate-workspace.mjs "/absolute/path/to/your-vault" --strict
 - 本地 Web：停止服务，解压新版到新目录，运行新版 `node start.mjs`，重新授权原知识库。不要把个人笔记放在 `app/` 中。
 - 桌面：设置的更新入口检查新版本；也可下载匹配架构的新版安装包。不要在写入/执行过程中强制替换应用。
 - 在线：重新加载网站。若旧缓存导致样式异常，先保存本地草稿，再刷新或清除该站点缓存；清理站点数据可能丢失本机偏好、授权和会话 Token，不会删除目录里的 Markdown。
-- 侧栏不见时先检查隐藏侧栏按钮和窗口宽度。1.6.0 修复了 Web/Desktop 共用侧栏变换规则冲突；若仍异常，请提供版本、系统、窗口尺寸和不含私密内容的截图。
+- 侧栏不见时先检查隐藏侧栏按钮和窗口宽度。1.6.1 修复了 Web/Desktop 共用侧栏变换规则冲突；若仍异常，请提供版本、系统、窗口尺寸和不含私密内容的截图。
 - 在 [GitHub Issues](https://github.com/AaronChou313/tensornote/issues) 反馈复现步骤。不要上传私有知识库、Token 或凭据。
 
 ## 服务端参考

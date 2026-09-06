@@ -68,6 +68,10 @@ export async function validateRelease({ root = '.', tag } = {}) {
   for (const permission of ['process:allow-restart', 'updater:default']) {
     if (!desktopCapability.permissions?.includes(permission)) add('updater', `Desktop capability must include ${permission}`, 'src-tauri/capabilities/default.json')
   }
+  if (!tauriBootstrap.includes('tauri_plugin_opener::init()')) add('external-links', 'Desktop must initialize its external link handler', 'src-tauri/src/lib.rs')
+  const opener = desktopCapability.permissions?.find((permission) => typeof permission === 'object' && permission.identifier === 'opener:allow-open-url')
+  if (JSON.stringify(opener?.allow) !== JSON.stringify([{ url: 'https://*' }, { url: 'http://*' }])) add('external-links', 'Desktop external links must be limited to HTTP(S)', 'src-tauri/capabilities/default.json')
+
   const updater = tauriConfig.plugins?.updater
   if (!validUpdaterPublicKey(updater?.pubkey)) add('updater', 'Updater must contain a committed minisign public key', 'src-tauri/tauri.conf.json')
   if (!Array.isArray(updater?.endpoints) || updater.endpoints.length === 0 || updater.endpoints.some((endpoint) => !endpoint.startsWith('https://'))) {

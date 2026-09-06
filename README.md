@@ -6,7 +6,7 @@
 
 **用普通 Markdown 文件管理知识，在同一个工作台中阅读、写作、连接知识与运行 Python 实验。**
 
-[在线体验](https://aaronchou313.github.io/tensornote/) · [下载应用](https://github.com/AaronChou313/tensornote/releases) · [使用说明](docs/zh-CN/USER_GUIDE.md) · [版本说明](docs/releases/v1.6.0.md)
+[在线体验](https://aaronchou313.github.io/tensornote/) · [下载应用](https://github.com/AaronChou313/tensornote/releases) · [使用说明](docs/zh-CN/USER_GUIDE.md) · [版本说明](docs/releases/v1.6.1.md)
 
 [![CI](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml/badge.svg)](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/AaronChou313/tensornote?color=4f8061)](https://github.com/AaronChou313/tensornote/releases/latest) [![License](https://img.shields.io/badge/license-Apache--2.0-5d7869)](LICENSE)
 
@@ -32,7 +32,7 @@
 
 **最快体验：** 打开[在线版](https://aaronchou313.github.io/tensornote/)，点击 **AI Learning Notes**。想修改示例时，先下载/克隆自己的副本，通过本地目录入口打开。
 
-**本地 Web：** 在 [Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.6.0.tar.gz`，解压，在该目录运行：
+**本地 Web：** 在 [Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.6.1.tar.gz`，解压，在该目录运行：
 
 ```sh
 node start.mjs
@@ -44,7 +44,7 @@ node start.mjs
 
 GitHub 社区发行不要求购买开发者账户；当前包没有 Apple Developer ID 公证或 Windows 受信发布者签名，首次安装可能有系统提示。请核对来源与 `SHA256SUMS`，按[安装说明](docs/zh-CN/USER_GUIDE.md#2-下载和第一次打开)操作。Updater 的密码学签名仍必须验证。平台实测范围见版本说明；不宣称所有操作系统都已完成干净机器验收。
 
-`TensorNote-web-1.6.0.tar.gz` 是供 `/tensornote/` 路径部署的 Static Web 包；GitHub 自动生成的 Source code 是开发源码。普通本地 Web 用户选择 **local-web** 包。
+`TensorNote-web-1.6.1.tar.gz` 是供 `/tensornote/` 路径部署的 Static Web 包；GitHub 自动生成的 Source code 是开发源码。普通本地 Web 用户选择 **local-web** 包。
 
 ## 需要实验或 Git 时再配置
 
@@ -68,7 +68,7 @@ Git 工作台支持 Status、Diff、Stage/Unstage、History 和 Commit。**Commi
 
 ## 最新界面快照
 
-以下是真实 1.6.0 Web/Desktop 应用截图，使用随仓库提供的示例内容。
+以下是真实 1.6.1 Web/Desktop 应用截图，使用随仓库提供的示例内容。
 
 | 本地 Web 首页 | 桌面阅读 |
 | --- | --- |
@@ -76,7 +76,7 @@ Git 工作台支持 Status、Diff、Stage/Unstage、History 和 Commit。**Commi
 
 ## 让智能体维护知识库
 
-下载同版本 `TensorNote-agent-skill-1.6.0.tar.gz`，把解压目录中的 `SKILL.md` **和全部引用文件**交给智能体，并明确指定你的知识库目录。它可按现有规范生成、更新、整理链接与附件、检查前置关系并运行校验器。
+下载同版本 `TensorNote-agent-skill-1.6.1.tar.gz`，把解压目录中的 `SKILL.md` **和全部引用文件**交给智能体，并明确指定你的知识库目录。它可按现有规范生成、更新、整理链接与附件、检查前置关系并运行校验器。
 
 在 Skill 目录安装独立依赖后验证知识库：
 
