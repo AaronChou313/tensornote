@@ -1,3 +1,4 @@
+import { GettingStarted } from '../components/GettingStarted'
 import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react'
 import { ArrowClockwise, CheckCircle, Cpu, DownloadSimple, Gear, Info, Moon, NotePencil, PaintBrush, Plus, Pulse, PuzzlePiece, Sun, Trash } from '@phosphor-icons/react'
 import { useSearchParams } from 'react-router-dom'
@@ -40,7 +41,7 @@ const settingsNavigation: Array<{ id: SettingsSection; label: string; icon: type
 const scopeLabels: Array<{ value: ComputeSessionScope; label: string; detail: string }> = [
   { value: 'note', label: '每篇笔记', detail: '切换笔记时关闭 Kernel' },
   { value: 'workspace', label: '整个 Workspace', detail: '同一 Workspace 复用 Kernel' },
-  { value: 'manual', label: '手动管理', detail: '只在手动断开时关闭' },
+  { value: 'manual', label: '手动管理', detail: '断开或离开 Workspace 时关闭' },
 ]
 
 const connectorLabels = {
@@ -141,6 +142,7 @@ function ComputeSettings() {
   return (
     <section className="settings-panel">
       <header><span>Runtime</span><h2>计算与 Jupyter</h2><p>Workspace 与计算环境彼此独立；所有 Token 只保存在当前应用会话。</p></header>
+      <GettingStarted context="compute" />
       <div className="settings-group settings-execution-group">
         <SettingRow title="允许当前 Workspace 执行代码" description={executionDescription}>
           <label className="settings-switch"><input type="checkbox" checked={executionPolicy?.enabled ?? false} disabled={!executionPolicy?.canChange} onChange={(event) => setActiveWorkspaceExecution(event.target.checked)} aria-label="允许当前 Workspace 执行代码" /><i /></label>
@@ -167,7 +169,7 @@ function ComputeSettings() {
           <div className="settings-form-grid">
             <label><span>Profile 名称</span><input value={profile.name} onChange={(event) => updateProfile(profile.id, { name: event.target.value })} /></label>
             <label><span>连接方式</span><select value={connectorKind} onChange={(event) => updateProfile(profile.id, { connector: connectorDefaults(event.target.value as keyof typeof connectorLabels) })}><option value="direct">Generic Jupyter</option><option value="jupyterhub">JupyterHub</option><option value="binderhub">BinderHub</option></select></label>
-            <label className="is-wide"><span>{connectorKind === 'direct' ? 'Server URL' : connectorKind === 'jupyterhub' ? 'Hub URL' : 'BinderHub URL'}</span><input value={profile.serverUrl} onChange={(event) => updateProfile(profile.id, { serverUrl: event.target.value })} placeholder={connectorKind === 'direct' ? 'http://127.0.0.1:8888' : connectorKind === 'jupyterhub' ? 'https://jupyter.example.com' : 'https://mybinder.org'} /></label>
+            <label className="is-wide"><span>{connectorKind === 'direct' ? 'Server URL' : connectorKind === 'jupyterhub' ? 'Hub URL' : 'BinderHub URL'}</span><input value={profile.serverUrl} onChange={(event) => updateProfile(profile.id, { serverUrl: event.target.value })} placeholder={connectorKind === 'direct' ? (profile.id === 'remote-jupyter' ? 'https://jupyter.example.com/' : 'http://127.0.0.1:8888') : connectorKind === 'jupyterhub' ? 'https://jupyter.example.com' : 'https://mybinder.org'} /></label>
             <label><span>Kernel</span><input value={profile.kernelName} onChange={(event) => updateProfile(profile.id, { kernelName: event.target.value })} /></label>
             {connectorKind !== 'binderhub' && <label><span>{connectorKind === 'jupyterhub' ? 'Hub API Token' : 'Token'}</span><input type="password" value={token} onChange={(event) => setToken(profile.id, event.target.value)} placeholder={connectorKind === 'jupyterhub' ? '有限权限 Token' : 'Jupyter Token'} /></label>}
             {profile.connector?.kind === 'jupyterhub' && <><label><span>用户名（可选校验）</span><input value={profile.connector.username ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, username: event.target.value } as ComputeConnectorConfig })} placeholder="由 Token 自动识别" /></label><label><span>命名 Server</span><input value={profile.connector.serverName ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, serverName: event.target.value } as ComputeConnectorConfig })} placeholder="tensornote" /></label></>}

@@ -5,9 +5,19 @@ import { describe, expect, it } from 'vitest'
 import { collectReleaseArtifacts } from './collect-release-artifacts.mjs'
 import { createWindowsReleaseConfig } from './create-release-config.mjs'
 import { generateReleaseManifest } from './generate-release-manifest.mjs'
+import { requiredReleaseCredentials } from './release-policy.mjs'
 import { validateRelease } from './validate-release.mjs'
 
 describe('release tooling', () => {
+  it('keeps updater signing mandatory and platform signing explicit by channel', () => {
+    const community = { channel: 'github-community', platformSigning: 'optional', updaterSigning: 'required' }
+    expect(requiredReleaseCredentials(community)).toEqual(['TAURI_SIGNING_PRIVATE_KEY', 'TAURI_SIGNING_PRIVATE_KEY_PASSWORD'])
+    expect(requiredReleaseCredentials({ ...community, channel: 'trusted-desktop', platformSigning: 'required' })).toContain('APPLE_CERTIFICATE')
+    expect(() => requiredReleaseCredentials({ ...community, updaterSigning: 'optional' })).toThrow('Invalid release policy')
+    expect(() => requiredReleaseCredentials({ ...community, channel: 'unknown' })).toThrow('Invalid release policy')
+    expect(() => requiredReleaseCredentials({ ...community, channel: 'trusted-desktop' })).toThrow('Invalid release policy')
+  })
+
   it('keeps repository release contracts aligned', async () => {
     await expect(validateRelease({ root: '.', tag: 'v1.6.0' })).resolves.toMatchObject({ ok: true, version: '1.6.0', tag: 'v1.6.0' })
     const mismatch = await validateRelease({ root: '.', tag: 'v1.6.1' })

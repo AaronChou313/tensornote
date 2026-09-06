@@ -1,5 +1,7 @@
 # TensorNote Workbench
 
+> 面向用户的最新安装与使用主线已拆分为 [中文说明（默认）](zh-CN/USER_GUIDE.md) / [English user guide](en/USER_GUIDE.md)。本文保留专题技术参考；当前 GitHub 社区发行策略以 [发布矩阵](RELEASE_MATRIX.md) 为准。
+
 v0.5.0 将 Workspace 的文件、笔记、知识上下文与计算入口放进一个可组合工作台。内容仍然是普通 Markdown；标签、窗格、历史和侧栏只是浏览器中的用户界面状态。
 
 ## 导航与布局

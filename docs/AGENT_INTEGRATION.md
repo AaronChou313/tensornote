@@ -1,5 +1,7 @@
 # TensorNote 智能体接口与 Skill 使用说明
 
+> 面向用户的最新安装与使用主线已拆分为 [中文说明（默认）](zh-CN/USER_GUIDE.md) / [English user guide](en/USER_GUIDE.md)。本文保留专题技术参考；当前 GitHub 社区发行策略以 [发布矩阵](RELEASE_MATRIX.md) 为准。
+
 TensorNote 提供一套可版本管理、可复制安装、可由不同智能体读取的知识库操作接口。它同时服务两类场景：让智能体按统一规格撰写知识库，以及让智能体正确安装、配置、启动、校验和维护 TensorNote。
 
 ## 1. 接口组成

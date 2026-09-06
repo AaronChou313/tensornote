@@ -1,5 +1,7 @@
 # TensorNote Compute Platform 使用说明
 
+> 面向用户的最新安装与使用主线已拆分为 [中文说明（默认）](zh-CN/USER_GUIDE.md) / [English user guide](en/USER_GUIDE.md)。本文保留专题技术参考；当前 GitHub 社区发行策略以 [发布矩阵](RELEASE_MATRIX.md) 为准。
+
 本文覆盖 `v0.4.0 — Compute Platform` 到 `v1.5.0 — Remote Compute Connectors`。TensorNote 始终使用标准 Compute Provider 执行 Python；Profile 可以直连 Jupyter，也可以先由 JupyterHub 或 BinderHub Connector 获得一个标准 Jupyter Endpoint。
 
 Python 环境、Conda、`venv`、`uv`、Jupyter 安装与每日启动命令见[环境配置与使用手册](ENVIRONMENT_SETUP.md)。

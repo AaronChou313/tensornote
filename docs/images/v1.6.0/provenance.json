@@ -1,0 +1,43 @@
+{
+  "version": "1.6.0",
+  "capturedOn": "2026-09-06",
+  "content": "Bundled AI Learning Notes only; no user knowledge content",
+  "images": [
+    {
+      "file": "web-reading.jpg",
+      "host": "Local Web",
+      "route": "/notes/initialization-normalization",
+      "dimensions": [
+        1212,
+        1049
+      ]
+    },
+    {
+      "file": "local-web-home.jpg",
+      "host": "Standalone production Local Web archive",
+      "route": "/",
+      "dimensions": [
+        1212,
+        1049
+      ]
+    },
+    {
+      "file": "desktop-reading.jpg",
+      "host": "Native macOS Apple Silicon app",
+      "route": "#/notes/initialization-normalization",
+      "dimensions": [
+        1229,
+        768
+      ]
+    },
+    {
+      "file": "desktop-overview.jpg",
+      "host": "Native macOS Apple Silicon app",
+      "route": "#/workspace",
+      "dimensions": [
+        1229,
+        768
+      ]
+    }
+  ]
+}

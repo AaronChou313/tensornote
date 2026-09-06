@@ -1,0 +1,5 @@
+{
+  "channel": "github-community",
+  "platformSigning": "optional",
+  "updaterSigning": "required"
+}

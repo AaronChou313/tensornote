@@ -3,6 +3,7 @@ import { access, readFile } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseDocument } from 'yaml'
+import { requiredReleaseCredentials } from './release-policy.mjs'
 
 const semver = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/
 
@@ -29,6 +30,8 @@ export async function validateRelease({ root = '.', tag } = {}) {
   const findings = []
   const add = (code, message, file) => findings.push({ code, message, file })
   const read = async (path) => readFile(join(repository, path), 'utf8')
+
+  try { requiredReleaseCredentials(JSON.parse(await read('release-policy.json'))) } catch { add('release-policy', 'A valid committed distribution policy is required', 'release-policy.json') }
 
   const packageJson = JSON.parse(await read('package.json'))
   const tauriConfig = JSON.parse(await read('src-tauri/tauri.conf.json'))

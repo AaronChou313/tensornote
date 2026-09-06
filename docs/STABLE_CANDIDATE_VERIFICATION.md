@@ -53,3 +53,21 @@
 用户实测发现上述候选的 macOS 侧栏空白：可访问性树包含目录，但实际画面不可见。此前原生 UI 操作通过不能证明该区域视觉正常，`1293bb8` 的旧安装资产不包含此修复。
 
 移除 Sidebar 的 Tailwind translate 工具类与叠加覆盖，统一由组件 CSS 的 transform 管理宽屏显示、主动收起和窄屏抽屉状态。重新构建本机 `.app` 后，使用真实 macOS 截图验证本地 Workspace 的 Overview、笔记页、收起与重新展开；未修改知识内容。169 项测试、Lint、TypeScript 和桌面应用构建通过。新的正式候选必须从包含此修复的提交重新构建，不能沿用旧资产。
+
+## 2026-09-06 GitHub 社区发行与首次使用收尾
+
+本节新增验收对应 `codex/github-community-release` 的后续候选，不回写旧 `1293bb8` 资产。用户已授权 GitHub 直接发布；平台开发者签名不再阻塞社区渠道，Updater 签名仍为必须。
+
+- 新增 Node.js 22 Local Web 独立启动包，包含编译产物、Git Bridge 和中英文手册；启动器限制 loopback Host、GET/HEAD 和应用目录，覆盖路径逃逸、符号链接、错误编码及 SPA 路由测试。
+- 首页、Compute、Git 入口按能力提供可折叠指引，阅读/写作不强制配置计算或 Git；用户取消目录选择不再显示失败。
+- `pnpm check`：50 文件、173 测试通过，lint 与 Local 构建通过；性能 3 测试通过，生产审计无已知漏洞。
+- 本机新版 `.app` 构建通过。Static 构建结果、实际 UI、独立下载包和 GitHub 发布证据在完成后追加。
+- README 与主使用说明完成中英文拆分，默认中文；旧专题文档增加新版入口，旧发行证书门标为历史规则。
+
+- Static 生产构建通过并确认无 Tauri IPC；真实 390px 目录抽屉打开/关闭、1280px 侧栏隐藏/恢复可用，宽屏 transform/translate 均为 none。
+- 独立 Local Web 包在源码外解压运行，无 node_modules；打开内置 Workspace 成功。概览刷新按现有产品行为返回首页，非服务器 404，手册明确重新打开步骤。
+- 同包 Git Bridge 对独立临时 Git 仓库启动、health/status 读取通过；默认 Web Origin 获准。
+- Rust fmt/clippy/test 通过；最新本机 app 构建通过。新版 Desktop Overview 与阅读截图实际侧栏可见，不再仅用 AX 元素存在性作为视觉验收。
+- 在线首次默认 Profile 改为留空的远程 Jupyter 地址，保留已有配置和旧 Token/Profile 迁移绑定；新增自动测试。
+
+- 独立包实测发现并修复 macOS 路径别名导致 Bridge 根目录误判，新增别名接受/嵌套目录拒绝测试；修复后独立 Bridge health/status 与笔记变更识别实测通过。

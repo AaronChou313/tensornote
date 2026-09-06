@@ -15,7 +15,7 @@ async function assetFiles(root, directory = root) {
   return result
 }
 
-export async function generateReleaseManifest({ assetsDirectory, outputDirectory = assetsDirectory, version, tag, revision }) {
+export async function generateReleaseManifest({ assetsDirectory, outputDirectory = assetsDirectory, version, tag, revision, distribution }) {
   if (tag !== `v${version}`) throw new Error(`Release tag ${tag} does not match v${version}`)
   if (!/^(?:[0-9a-f]{40}|[0-9a-f]{64})$/i.test(revision ?? '')) throw new Error('Release revision must be a complete Git commit SHA')
   const assetsRoot = resolve(assetsDirectory)
@@ -37,6 +37,7 @@ export async function generateReleaseManifest({ assetsDirectory, outputDirectory
     version,
     tag,
     revision,
+    ...(distribution ? { distribution } : {}),
     generatedAt: new Date().toISOString(),
     assets,
   }
@@ -57,12 +58,14 @@ function parseArguments(argv) {
     version: value('--version'),
     tag: value('--tag'),
     revision: value('--revision'),
+    policyFile: value('--policy'),
   }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const options = parseArguments(process.argv.slice(2))
   if (!options.assetsDirectory || !options.version || !options.tag || !options.revision) throw new Error('Usage: generate-release-manifest.mjs --assets DIR --version X.Y.Z --tag vX.Y.Z --revision SHA [--output DIR]')
+  if (options.policyFile) options.distribution = JSON.parse(await readFile(options.policyFile, 'utf8'))
   const result = await generateReleaseManifest(options)
   console.log(`TensorNote release manifest: ${result.assets.length} assets · ${result.tag}`)
 }

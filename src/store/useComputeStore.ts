@@ -1,6 +1,8 @@
+import { deploymentAdapter } from '../deployment/config'
+import { initialComputeProfile } from '../compute/defaultProfile'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { computeProfileTemplates, type ComputeConnectionEvent, type ComputeProfile } from '../compute/types'
+import { type ComputeConnectionEvent, type ComputeProfile } from '../compute/types'
 
 interface ComputeState {
   profiles: ComputeProfile[]
@@ -21,14 +23,15 @@ interface ComputeState {
 
 const tokenStorageKey = 'tensornote-compute-tokens'
 const legacyTokenStorageKey = 'tensornote-jupyter-token'
-const defaultProfile: ComputeProfile = { id: 'local-python', ...computeProfileTemplates[0] }
+const defaultProfile = initialComputeProfile(deploymentAdapter.mode)
+const legacyProfile = initialComputeProfile('local')
 
 function readTokens() {
   try {
     const stored = sessionStorage.getItem(tokenStorageKey)
     if (stored) return JSON.parse(stored) as Record<string, string>
     const legacyToken = sessionStorage.getItem(legacyTokenStorageKey)
-    return legacyToken ? { [defaultProfile.id]: legacyToken } : {}
+    return legacyToken ? { [legacyProfile.id]: legacyToken } : {}
   } catch {
     return {}
   }
@@ -125,9 +128,9 @@ export const useComputeStore = create<ComputeState>()(
         if (version >= 2) return persisted as ComputeState
         const legacy = persisted as { serverUrl?: string; kernelName?: string }
         const migrated: ComputeProfile = {
-          ...defaultProfile,
-          serverUrl: legacy.serverUrl || defaultProfile.serverUrl,
-          kernelName: legacy.kernelName || defaultProfile.kernelName,
+          ...legacyProfile,
+          serverUrl: legacy.serverUrl || legacyProfile.serverUrl,
+          kernelName: legacy.kernelName || legacyProfile.kernelName,
         }
         return { profiles: [migrated], activeProfileId: migrated.id }
       },

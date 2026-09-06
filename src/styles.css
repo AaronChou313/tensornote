@@ -4878,3 +4878,12 @@ button.trust-status {
   .publish-source-card__mark { width: 38px; height: 38px; }
   .publish-badges { grid-column: 1 / -1; justify-content: flex-start; }
 }
+
+/* Optional, contextual setup help; shared by Home and Compute settings. */
+.getting-started { margin-block: 24px; padding-block: 18px; border-block: 1px solid var(--line); font-size: 13px; line-height: 1.7; }
+.getting-started__heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
+.getting-started p { max-width: 75ch; margin-block: 10px; color: var(--muted); }
+.getting-started a { color: var(--accent); text-underline-offset: 3px; }
+.getting-started a:hover { text-decoration: underline; }
+.getting-started summary { cursor: pointer; padding-block: 5px; }
+.getting-started :is(a, summary):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }

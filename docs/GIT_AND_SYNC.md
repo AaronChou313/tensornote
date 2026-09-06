@@ -1,5 +1,7 @@
 # TensorNote Local Git 使用说明
 
+> 面向用户的最新安装与使用主线已拆分为 [中文说明（默认）](zh-CN/USER_GUIDE.md) / [English user guide](en/USER_GUIDE.md)。本文保留专题技术参考；当前 GitHub 社区发行策略以 [发布矩阵](RELEASE_MATRIX.md) 为准。
+
 TensorNote 为本地 Workspace 提供 Git 工作台：查看 Branch Info、Status、逐文件 Diff、History，暂存或取消暂存文件，并创建本地 Commit。v1.2.0 起 Desktop 直接使用受限 Native Git；Local Web 继续使用可选 localhost Git Bridge。Markdown 与资源文件仍是唯一数据源，Git 只负责版本记录。
 
 本版不包含 Clone、Push、Pull、Fetch、Branch 创建/切换、GitHub OAuth、私有仓库认证或冲突解决器。

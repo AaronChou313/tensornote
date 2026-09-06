@@ -1,5 +1,7 @@
 # TensorNote 环境配置与使用手册
 
+> 面向用户的最新安装与使用主线已拆分为 [中文说明（默认）](zh-CN/USER_GUIDE.md) / [English user guide](en/USER_GUIDE.md)。本文保留专题技术参考；当前 GitHub 社区发行策略以 [发布矩阵](RELEASE_MATRIX.md) 为准。
+
 本文从一台尚未配置开发环境的电脑开始，覆盖前端依赖、三种 Python 环境方案、Jupyter Server、Kernel 注册、TensorNote 连接设置，以及以后每天的启动和关闭顺序。
 
 v1.3.0 Desktop 用户可以优先使用“设置 → 计算与 Jupyter → 本地运行时助手”：它会只读检测已有工具，允许审核后创建最小基础环境，并启动/停止 TensorNote 自己拥有的 Jupyter。下方完整终端流程仍适用于 Local Web、远程 Jupyter、高级环境和故障排查。

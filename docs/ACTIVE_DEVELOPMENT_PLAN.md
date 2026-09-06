@@ -1,5 +1,7 @@
 # TensorNote 接管审计与当前开发计划
 
+> **2026-09-06 最新发行决定（优先于下方历史快照）：** 用户明确授权直接发布 GitHub 社区版，先保证在线/本地 Web 与 Desktop 可用，不以付费平台证书或应用商店发行作为前提。Tag 内 `release-policy.json` 固定 `github-community` 渠道：平台签名可选、Updater 签名必须。旧文中“缺 Apple/Windows 证书禁止所有 Tag”的门仅适用于未来 `trusted-desktop` 渠道，不阻止本次社区发行。发布执行、真实平台覆盖和回滚以 [RELEASE_MATRIX](RELEASE_MATRIX.md) 为准；公开状态须实时查询 GitHub。新版中英文用户手册见 [中文](zh-CN/USER_GUIDE.md) / [English](en/USER_GUIDE.md)。
+
 更新：2026-09-06。审计基线：`31135e12c91aaf4e83b961c6b650d12d681bcb9f`。
 
 本文把交接遗留项、历史编辑器待办和本次白绿简洁样式需求整理为可执行队列。它是当前工作的入口；历史阶段记录仍见 [Roadmap](ROADMAP.md)，公共契约仍以 [Platform Contracts](PLATFORM_CONTRACTS.md) 为准，发行操作仍以 [Release Matrix](RELEASE_MATRIX.md) 为准。本文中的“计划”不表示功能已实现或版本已发布。

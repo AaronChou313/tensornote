@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -41,6 +41,21 @@ describe('Git Bridge protocol parsing', () => {
     expect(validateRepositoryPaths(['notes/a.md'])).toEqual(['notes/a.md'])
     expect(() => validateRepositoryPaths(['../secret'])).toThrow('不能越过')
     expect(() => validateRepositoryPaths(['/tmp/file'])).toThrow('无效')
+  })
+
+
+  it('accepts an alias of the repository root but rejects a nested directory', async () => {
+    const fixture = await mkdtemp(join(tmpdir(), 'tensornote-git-root-'))
+    try {
+      const root = join(fixture, 'repository')
+      await mkdir(root)
+      await execFileAsync('git', ['init', root])
+      const alias = join(fixture, 'alias')
+      await symlink(root, alias, 'junction')
+      await expect(createGitService(alias).assertRepository()).resolves.toBe(await realpath(root))
+      await mkdir(join(root, 'notes'))
+      await expect(createGitService(join(root, 'notes')).assertRepository()).rejects.toThrow('不是仓库根目录')
+    } finally { await rm(fixture, { recursive: true, force: true }) }
   })
 
   it('stages and commits through the fixed repository service', async () => {

@@ -88,8 +88,8 @@ function SetupState({ native, bridgeDraft, busy, error, onDraft, onConnect }: {
       <span>{native ? 'Desktop capability' : 'Optional local companion'}</span>
       <h2>{native ? 'Connect Native Git' : 'Connect the Git Bridge'}</h2>
       {native
-        ? <p>TensorNote Desktop 使用当前 Workspace 的不透明授权调用系统 Git，不需要启动额外 Bridge。</p>
-        : <><p>浏览器不能直接执行系统 Git。请在第三个终端把 Bridge 固定到当前 Local Workspace 的仓库根目录。</p><code>pnpm git:bridge -- --workspace /absolute/path/to/workspace</code></>}
+        ? <p>桌面版直接使用系统 Git，无需额外服务。请确认已安装 Git，并且当前知识库目录已初始化或克隆为 Git 仓库。</p>
+        : <><p>需要管理 Git 时，在本地 Web 下载包目录另开终端，启动 Bridge 并指向当前知识库的 Git 仓库目录；保持该终端运行，再点击连接。</p><code>node scripts/git-bridge.mjs --workspace "/absolute/path/to/workspace"</code></>}
     </div>
     {!native && <div className="git-connect-form">
       <label><span>Bridge URL</span><input value={bridgeDraft} onChange={(event) => onDraft(event.target.value)} placeholder="http://127.0.0.1:4318" /></label>

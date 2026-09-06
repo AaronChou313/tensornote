@@ -41,7 +41,8 @@
     "validate:publication": "node scripts/validate-publication.mjs",
     "validate:release": "node scripts/validate-release.mjs",
     "check": "pnpm test && pnpm lint && pnpm build",
-    "check:desktop": "cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && cargo test --manifest-path src-tauri/Cargo.toml"
+    "check:desktop": "cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && cargo test --manifest-path src-tauri/Cargo.toml",
+    "package:local-web": "pnpm build && node scripts/package-local-web.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.0",

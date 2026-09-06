@@ -31,7 +31,7 @@
 - `v1.3.0 — Local Runtime Assistant`：已完成源码阶段；Desktop 可发现 Python/Conda/uv/Jupyter/Kernel、审核式创建最小环境并管理 Owned Jupyter，Static Web 继续不包含本地运行时 IPC，不单独创建 Release 或 Tag。
 - `v1.4.0 — Publish & Read Anywhere`：已完成源码阶段；公开 Workspace 可固定 commit 与笔记分享，使用 Repository-owned Workflow 发布 Pages，并具备发布检查、Badge、Fork/下载与受限 Desktop 深链，不单独创建 Release 或 Tag。
 - `v1.5.0 — Remote Compute Connectors`：已完成源码阶段；Generic HTTPS Jupyter、当前用户 JupyterHub 与固定 Revision BinderHub 统一解析为标准 Compute Lease，具备进度、诊断、所有权和临时凭据清理，不单独创建 Release 或 Tag。
-- `v1.6.0 — Distribution & Ecosystem Hardening`：发布基础设施与源码阶段已完成；跨平台安装资产、签名 Updater、校验清单、课程模板和回滚边界已落地，正式 Tag/Release 等待 Apple Developer ID 与 Windows 代码签名凭据。
+- `v1.6.0 — Distribution & Ecosystem Hardening`：发布基础设施与源码阶段已完成；跨平台安装资产、签名 Updater、校验清单、课程模板和回滚边界已落地，本次改为 GitHub 社区发行，平台签名可选、Updater 签名必须；公开状态以 GitHub Release 为准。
 
 ## 下一代 v1.x 路线（执行中）
 
@@ -39,7 +39,7 @@ v1.0.0 之后，TensorNote 将沿“双宿主、双来源、开放发布”方�
 
 该路线不得破坏下方已经发布的 v1 契约。HostAdapter、Native Workspace、Runtime Assistant、Pages 发布和 Remote Compute Connector 都必须以可选、能力驱动的方式增量接入。
 
-当前顺序：`v1.6.0 — Distribution & Ecosystem Hardening` 的仓库内工作已完成，正式公开安装包只剩外部平台签名资格门。公开发布仍复用 GitHubWorkspaceProvider 与 Static Runtime；WorkspaceProvider、ComputeProvider、HostAdapter 和 Jupyter Server 保持独立。
+当前顺序：`v1.6.0 — Distribution & Ecosystem Hardening` 的仓库内工作已完成，当前按 GitHub 社区渠道执行候选验收与发布，不等待付费平台签名资格。公开发布仍复用 GitHubWorkspaceProvider 与 Static Runtime；WorkspaceProvider、ComputeProvider、HostAdapter 和 Jupyter Server 保持独立。
 
 当前完成度、正式发布阻塞、验证债务和新维护者执行顺序见[接管说明](AGENT_HANDOFF.md)。本文没有定义 `v2.0.0` 范围；只有无法保持 v1 公共契约兼容的提案，才应先通过 v2 RFC、ADR 和迁移设计进入新的主版本。
 

@@ -1,3 +1,4 @@
+import { GettingStarted } from '../components/GettingStarted'
 import { useState } from 'react'
 import {
   ArrowRight,
@@ -65,7 +66,7 @@ export function HomePage() {
       }
       await open(await pickLocalWorkspace())
     } catch (reason) {
-      setInputError(reason instanceof Error ? reason.message : '无法打开本地目录')
+      if (!(reason instanceof DOMException && reason.name === 'AbortError')) setInputError(reason instanceof Error ? reason.message : '无法打开本地目录')
     }
   }
 
@@ -156,6 +157,8 @@ export function HomePage() {
             <ArrowRight size={17} />
           </button>}
         </section>
+
+        <GettingStarted />
 
         {visibleRecentWorkspaces.length > 0 && (
           <section className="recent-workspaces">

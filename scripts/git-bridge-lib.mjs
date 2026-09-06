@@ -1,3 +1,4 @@
+import { realpath } from 'node:fs/promises'
 import { execFile } from 'node:child_process'
 import { basename, resolve, sep } from 'node:path'
 import { promisify } from 'node:util'
@@ -144,8 +145,8 @@ export function createGitService(workspaceRoot) {
 
   const assertRepository = async () => {
     const topLevel = (await run(['rev-parse', '--show-toplevel'])).trim()
-    const resolvedTopLevel = resolve(topLevel)
-    if (resolvedTopLevel !== root) throw new Error(`配置目录不是仓库根目录：${root}`)
+    const [resolvedTopLevel, canonicalRoot] = await Promise.all([realpath(topLevel), realpath(root)])
+    if (resolvedTopLevel !== canonicalRoot) throw new Error(`配置目录不是仓库根目录：${root}`)
     return resolvedTopLevel
   }
 

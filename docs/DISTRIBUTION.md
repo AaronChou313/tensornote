@@ -1,5 +1,7 @@
 # TensorNote 分发与部署
 
+> 面向用户的最新安装与使用主线已拆分为 [中文说明（默认）](zh-CN/USER_GUIDE.md) / [English user guide](en/USER_GUIDE.md)。本文保留专题技术参考；当前 GitHub 社区发行策略以 [发布矩阵](RELEASE_MATRIX.md) 为准。
+
 TensorNote v0.8.4 起用 `DeploymentAdapter` 明确区分 Static Web、Local Web 与 Self-hosted Web；v1.1.0 再通过 `HostAdapter` 加入 Tauri Desktop。四种模式共享同一 React、Workspace、Document、Compute 与 Extension 代码，不复制业务逻辑。
 
 ## 1. Local Web
@@ -105,7 +107,7 @@ Desktop 仍要求用户自行安装系统 Git 才能使用 Native Git。运行 P
 
 Desktop 的 IPC 权限面见 [Tauri 安全 ADR](adr/0002-tauri-security-surface.md)、[Native Workspace ADR](adr/0003-native-workspace-capability.md)、[Local Runtime ADR](adr/0004-local-runtime-assistant.md)与[发布 ADR](adr/0005-publish-read-anywhere.md)。CI 对 macOS、Windows 和 Linux 运行 Rust 门与 `tauri build --no-bundle`，避免平台专属代码静默漂移；Static build 另有脚本阻止 Native IPC 与 Deep Link 插件进入 GitHub Pages 产物。
 
-正式 Tag 由 `.github/workflows/release.yml` 构建 Pages、Web archive 与多平台安装包。缺少 Apple Developer ID、公证、Windows 代码签名或 Updater Secret 时流程直接失败；候选先保持 Draft。资产、签名检查、SHA-256 与回滚步骤见 [Release Matrix](RELEASE_MATRIX.md)。
+正式 Tag 由 `.github/workflows/release.yml` 构建 Pages、Web archive 与多平台安装包。当前 github-community 渠道必须有 Updater Secret，平台开发者签名可选；未来 trusted-desktop 渠道才要求 Apple/Windows 凭据齐全。候选先保持 Draft。资产、签名检查、SHA-256 与回滚步骤见 [Release Matrix](RELEASE_MATRIX.md)。
 
 ## 7. 性能验证
 
