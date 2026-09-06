@@ -119,18 +119,22 @@ jobs:
             os: macos-latest
             target: aarch64-apple-darwin
             args: --target aarch64-apple-darwin
+            bundle-root: src-tauri/target/aarch64-apple-darwin/release/bundle
           - label: macOS Intel
             os: macos-latest
             target: x86_64-apple-darwin
             args: --target x86_64-apple-darwin
+            bundle-root: src-tauri/target/x86_64-apple-darwin/release/bundle
           - label: Windows x64
             os: windows-latest
             target: x86_64-pc-windows-msvc
             args: ''
+            bundle-root: src-tauri/target/release/bundle
           - label: Linux x64
             os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             args: ''
+            bundle-root: src-tauri/target/release/bundle
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -211,10 +215,16 @@ jobs:
           releaseBody: See docs/releases/v${{ needs.release-gate.outputs.version }}.md for the release matrix, verification and rollback instructions.
           releaseDraft: true
           prerelease: false
-          uploadWorkflowArtifacts: true
-          workflowArtifactNamePattern: TensorNote-[platform]-[arch]-[bundle]
+          uploadWorkflowArtifacts: false
           releaseAssetNamePattern: TensorNote-[version]-[platform]-[arch]-[bundle][setup][ext]
           args: ${{ steps.build-args.outputs.args }}
+      - name: Collect install and Updater artifacts
+        run: node scripts/collect-release-artifacts.mjs --bundle-root "${{ matrix.bundle-root }}" --output ".release/artifacts/${{ matrix.target }}" --platform "${{ runner.os }}"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: TensorNote-${{ matrix.target }}
+          path: .release/artifacts/${{ matrix.target }}
+          if-no-files-found: error
 
   container:
     runs-on: ubuntu-latest

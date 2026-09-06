@@ -72,7 +72,7 @@ export async function validateRelease({ root = '.', tag } = {}) {
   const releaseWorkflow = await read('.github/workflows/release.yml').catch(() => '')
   const releaseWorkflowDocument = parseDocument(releaseWorkflow)
   for (const error of releaseWorkflowDocument.errors) add('workflow', error.message, '.github/workflows/release.yml')
-  for (const marker of ['tags:', 'tauri-apps/tauri-action@v1', 'generate-release-manifest.mjs', 'release-gate', 'APPLE_CERTIFICATE', 'WINDOWS_CERTIFICATE', 'TAURI_SIGNING_PRIVATE_KEY', 'docker build', 'gh release download', 'actions/deploy-pages']) {
+  for (const marker of ['tags:', 'tauri-apps/tauri-action@v1', 'collect-release-artifacts.mjs', 'generate-release-manifest.mjs', 'release-gate', 'APPLE_CERTIFICATE', 'WINDOWS_CERTIFICATE', 'TAURI_SIGNING_PRIVATE_KEY', 'docker build', 'gh release download', 'actions/deploy-pages']) {
     if (!releaseWorkflow.includes(marker)) add('workflow', `Release workflow is missing ${marker}`, '.github/workflows/release.yml')
   }
 

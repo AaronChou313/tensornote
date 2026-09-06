@@ -2,6 +2,7 @@ import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { collectReleaseArtifacts } from './collect-release-artifacts.mjs'
 import { createWindowsReleaseConfig } from './create-release-config.mjs'
 import { generateReleaseManifest } from './generate-release-manifest.mjs'
 import { validateRelease } from './validate-release.mjs'
@@ -31,5 +32,23 @@ describe('release tooling', () => {
     const config = await createWindowsReleaseConfig({ output: path, thumbprint: 'ab'.repeat(20), timestampUrl: 'https://timestamp.example.com' })
     expect(config.bundle.windows).toEqual({ certificateThumbprint: 'AB'.repeat(20), digestAlgorithm: 'sha256', timestampUrl: 'https://timestamp.example.com/' })
     await expect(createWindowsReleaseConfig({ output: path, thumbprint: 'bad', timestampUrl: 'http://timestamp.example.com' })).rejects.toThrow('THUMBPRINT')
+  })
+
+  it('collects only distributable installers and updater signatures', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'tensornote-artifacts-'))
+    const bundle = join(root, 'bundle')
+    const output = join(root, 'output')
+    await mkdir(join(bundle, 'macos/TensorNote.app/Contents'), { recursive: true })
+    await mkdir(join(bundle, 'dmg'), { recursive: true })
+    await writeFile(join(bundle, 'macos/TensorNote.app/Contents/Info.plist'), 'internal')
+    await writeFile(join(bundle, 'macos/TensorNote.app.tar.gz'), 'updater')
+    await writeFile(join(bundle, 'macos/TensorNote.app.tar.gz.sig'), 'signature')
+    await writeFile(join(bundle, 'dmg/TensorNote.dmg'), 'installer')
+    await expect(collectReleaseArtifacts({ bundleRoot: bundle, outputDirectory: output, platform: 'macOS' })).resolves.toEqual([
+      'TensorNote.app.tar.gz',
+      'TensorNote.app.tar.gz.sig',
+      'TensorNote.dmg',
+    ])
+    await expect(readFile(join(output, 'Info.plist'), 'utf8')).rejects.toThrow()
   })
 })
