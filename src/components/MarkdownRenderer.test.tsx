@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { StrictMode } from 'react'
-import { render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { parseDocument } from '../content/document'
 import type { Lab } from '../types'
 import { MarkdownRenderer } from './MarkdownRenderer'
@@ -24,6 +24,19 @@ const lab: Lab = {
 }
 
 describe('MarkdownRenderer', () => {
+  it('scrolls README fragment links within their own pane without replacing the app route', () => {
+    const { container } = render(<><section className="note-prose"><MarkdownRenderer content={'[目录](#%E7%AB%A0%E8%8A%82)\n\n## 章节'} labs={[]} /></section><section className="note-prose"><MarkdownRenderer content={'## 章节'} labs={[]} /></section></>)
+    const headings = container.querySelectorAll('h2')
+    const first = vi.fn(), second = vi.fn()
+    headings[0].scrollIntoView = first
+    headings[1].scrollIntoView = second
+    const hash = window.location.hash
+    expect(fireEvent.click(container.querySelector('a')!)).toBe(false)
+    expect(first).toHaveBeenCalledOnce()
+    expect(second).not.toHaveBeenCalled()
+    expect(window.location.hash).toBe(hash)
+  })
+
   it('keeps ordinary fenced code in a pre element', () => {
     const html = renderToStaticMarkup(<MarkdownRenderer content={'```python\nprint("hello")\n```'} labs={[]} />)
 

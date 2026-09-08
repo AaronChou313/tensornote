@@ -12,6 +12,7 @@ import { LabCard } from './LabCard'
 import { MermaidDiagram } from './MermaidDiagram'
 import { WorkspaceImage } from './WorkspaceImage'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
+import { scrollToHeading } from '../workbench/headingNavigation'
 
 const calloutLabels: Record<string, string> = {
   intuition: '直觉',
@@ -76,7 +77,15 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
             const fragment = resolved.heading ? `#${resolved.heading.id}` : ''
             return <Link className="knowledge-link" to={`/notes/${encodeURIComponent(resolved.note.id)}${fragment}`}>{children}</Link>
           }
-          if (href.startsWith('#')) return <a href={href}>{children}</a>
+          if (href.startsWith('#')) return <a href={href} onClick={(event) => {
+            // Fragment-only README links must not replace the HashRouter route.
+            event.preventDefault()
+            const root = event.currentTarget.closest('.note-prose, .embedded-note')
+            if (!root) return
+            let id = href.slice(1)
+            try { id = decodeURIComponent(id) } catch { /* Keep malformed fragments inert. */ }
+            scrollToHeading(root, id)
+          }}>{children}</a>
           return <a href={href} target="_blank" rel="noreferrer">{children}</a>
         },
         img: ({ src, alt }) => (
