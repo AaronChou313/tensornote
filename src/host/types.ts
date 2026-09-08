@@ -68,6 +68,17 @@ export interface EnvironmentPlanRequest {
   name: string
   pythonVersion: string
   baseEnvironmentId?: string
+  workspaceId?: string
+  dependencyFiles?: string[]
+  manifestDigest?: string
+  manifestPath?: string
+  revision?: string
+}
+
+export interface EnvironmentPlanDependency {
+  path: string
+  sha256: string
+  size: number
 }
 
 export interface EnvironmentPlan {
@@ -81,6 +92,10 @@ export interface EnvironmentPlan {
   steps: string[]
   confirmation: string
   expiresAt: number
+  dependencies?: EnvironmentPlanDependency[]
+  manifestDigest?: string
+  manifestSha256?: string
+  revision?: string
 }
 
 export interface RuntimeLogLine {
@@ -144,6 +159,7 @@ export interface HostAdapter {
   applyLocalEnvironment?(planId: string, confirmation: string): Promise<RuntimeOperation>
   getLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>
   cancelLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>
+  removeLocalEnvironment?(environmentId: string, confirmation: string): Promise<void>
   startOwnedJupyter?(environmentId: string, workspaceId: string | undefined, origin: string): Promise<JupyterServerLaunch>
   listOwnedJupyter?(): Promise<OwnedJupyterServer[]>
   getOwnedJupyterLogs?(serverId: string): Promise<RuntimeLogLine[]>

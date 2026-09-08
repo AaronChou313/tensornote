@@ -2,6 +2,7 @@ use crate::native_workspace::NativeWorkspaceRegistry;
 use getrandom::getrandom;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     env, fs,
@@ -88,6 +89,20 @@ pub struct EnvironmentPlanRequest {
     name: String,
     python_version: String,
     base_environment_id: Option<String>,
+    workspace_id: Option<String>,
+    #[serde(default)]
+    dependency_files: Vec<String>,
+    manifest_digest: Option<String>,
+    manifest_path: Option<String>,
+    revision: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EnvironmentPlanDependency {
+    path: String,
+    sha256: String,
+    size: u64,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -103,6 +118,10 @@ pub struct EnvironmentPlan {
     steps: Vec<String>,
     confirmation: String,
     expires_at: u64,
+    dependencies: Vec<EnvironmentPlanDependency>,
+    manifest_digest: Option<String>,
+    manifest_sha256: Option<String>,
+    revision: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -164,6 +183,8 @@ struct PlanRecord {
     target: PathBuf,
     executable: PathBuf,
     base_python: Option<PathBuf>,
+    dependency_files: Vec<PathBuf>,
+    manifest_file: Option<PathBuf>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -453,7 +474,11 @@ impl LocalRuntimeManager {
         markers
     }
 
-    fn plan(&self, request: EnvironmentPlanRequest) -> Result<EnvironmentPlan, String> {
+    fn plan(
+        &self,
+        request: EnvironmentPlanRequest,
+        workspace_root: Option<&Path>,
+    ) -> Result<EnvironmentPlan, String> {
         validate_environment_name(&request.name)?;
         validate_python_version(&request.python_version)?;
         let slug = environment_slug(&request.name);
@@ -505,7 +530,35 @@ impl LocalRuntimeManager {
         let kernel_name = format!("tensornote-{slug}");
         let confirmation = format!("CREATE {}", request.name.trim());
         let expires_at = now_millis() + 15 * 60 * 1000;
-        let steps = vec![
+        if request.dependency_files.len() > 8 {
+            return Err("单个环境最多声明 8 个依赖文件".into());
+        }
+        let mut dependency_files = Vec::new();
+        let mut dependencies = Vec::new();
+        for relative in &request.dependency_files {
+            let root = workspace_root.ok_or("项目依赖计划需要已授权的本地 Workspace")?;
+            let path = secure_workspace_file(root, relative)?;
+            let source = fs::read(&path).map_err(error_string)?;
+            if source.len() > 2 * 1024 * 1024 {
+                return Err(format!("依赖文件过大：{relative}"));
+            }
+            dependencies.push(EnvironmentPlanDependency {
+                path: relative.clone(),
+                sha256: sha256_hex(&source),
+                size: source.len() as u64,
+            });
+            dependency_files.push(path);
+        }
+        let (manifest_file, manifest_sha256) =
+            if let Some(relative) = request.manifest_path.as_deref() {
+                let root = workspace_root.ok_or("项目环境计划需要已授权的本地 Workspace")?;
+                let path = secure_workspace_file(root, relative)?;
+                let source = fs::read(&path).map_err(error_string)?;
+                (Some(path), Some(sha256_hex(&source)))
+            } else {
+                (None, None)
+            };
+        let mut steps = vec![
             format!(
                 "使用 {} 创建独立 Python {} 环境",
                 display_tool_name(&request.manager),
@@ -515,6 +568,16 @@ impl LocalRuntimeManager {
             format!("注册 Jupyter Kernel：{kernel_name}"),
             "完成全部步骤后才标记为可用；失败或取消会清理未完成目录".into(),
         ];
+        for dependency in &dependencies {
+            steps.insert(
+                2,
+                format!(
+                    "从 Workspace 安装 {}（SHA-256 {}…）",
+                    dependency.path,
+                    &dependency.sha256[..12]
+                ),
+            );
+        }
         let public = EnvironmentPlan {
             id: id.clone(),
             manager: request.manager,
@@ -529,6 +592,10 @@ impl LocalRuntimeManager {
             steps,
             confirmation,
             expires_at,
+            dependencies,
+            manifest_digest: request.manifest_digest,
+            manifest_sha256,
+            revision: request.revision,
         };
         self.plans
             .lock()
@@ -540,6 +607,8 @@ impl LocalRuntimeManager {
                     target,
                     executable,
                     base_python,
+                    dependency_files,
+                    manifest_file,
                 },
             );
         Ok(public)
@@ -558,6 +627,19 @@ impl LocalRuntimeManager {
         }
         if confirmation != plan.public.confirmation {
             return Err("确认短语不匹配，未执行任何操作".into());
+        }
+        for (index, path) in plan.dependency_files.iter().enumerate() {
+            let source = fs::read(path).map_err(|_| "依赖文件已移动或无法读取，请重新生成计划")?;
+            if sha256_hex(&source) != plan.public.dependencies[index].sha256 {
+                return Err("依赖文件内容已变化，请重新检查并确认安装计划".into());
+            }
+        }
+        if let (Some(path), Some(expected)) = (&plan.manifest_file, &plan.public.manifest_sha256) {
+            let source = fs::read(path)
+                .map_err(|_| "Experiment Manifest 已移动或无法读取，请重新生成计划")?;
+            if sha256_hex(&source) != *expected {
+                return Err("Experiment Manifest 已变化，请重新检查并确认安装计划".into());
+            }
         }
         self.plans
             .lock()
@@ -648,6 +730,39 @@ impl LocalRuntimeManager {
                 run_operation_command(&python, &args, &control, &sensitive)?;
             }
 
+            for dependency in &plan.dependency_files {
+                control.progress(70);
+                if plan.public.manager == "uv" {
+                    run_operation_command(
+                        &plan.executable,
+                        &[
+                            "pip".into(),
+                            "install".into(),
+                            "--python".into(),
+                            python.as_os_str().into(),
+                            "--requirement".into(),
+                            dependency.as_os_str().into(),
+                        ],
+                        &control,
+                        &sensitive,
+                    )?;
+                } else {
+                    run_operation_command(
+                        &python,
+                        &[
+                            "-m".into(),
+                            "pip".into(),
+                            "install".into(),
+                            "--disable-pip-version-check".into(),
+                            "--requirement".into(),
+                            dependency.as_os_str().into(),
+                        ],
+                        &control,
+                        &sensitive,
+                    )?;
+                }
+            }
+
             control.progress(82);
             run_operation_command(
                 &python,
@@ -733,6 +848,50 @@ impl LocalRuntimeManager {
             }
         }
         operation.get()
+    }
+
+    fn remove_environment(&self, environment_id: &str, confirmation: &str) -> Result<(), String> {
+        let environment = self
+            .environments
+            .lock()
+            .map_err(|_| "Runtime environment registry is unavailable")?
+            .get(environment_id)
+            .cloned()
+            .ok_or("环境不存在，请重新检测")?;
+        if !environment.public.managed {
+            return Err("只能清理 TensorNote 创建的 Managed Environment".into());
+        }
+        if confirmation != format!("DELETE {}", environment.public.name) {
+            return Err("确认短语不匹配，未删除环境".into());
+        }
+        if self
+            .servers
+            .lock()
+            .map_err(|_| "Runtime server registry is unavailable")?
+            .values()
+            .any(|server| server.public.environment_id == environment_id)
+        {
+            return Err("环境仍被运行中的 Jupyter Server 使用，请先停止 Server".into());
+        }
+        let root = environment_root_from_python(&environment.python)
+            .ok_or("无法确定 Managed Environment 目录")?;
+        let managed_root = self
+            .app_data
+            .join("managed-environments")
+            .canonicalize()
+            .map_err(error_string)?;
+        let canonical = root.canonicalize().map_err(error_string)?;
+        if !canonical.starts_with(&managed_root)
+            || !canonical.join("tensornote-runtime.json").is_file()
+        {
+            return Err("环境目录未通过 Managed Environment 边界检查".into());
+        }
+        fs::remove_dir_all(canonical).map_err(error_string)?;
+        self.environments
+            .lock()
+            .map_err(|_| "Runtime environment registry is unavailable")?
+            .remove(environment_id);
+        Ok(())
     }
 
     fn start_server(
@@ -948,9 +1107,15 @@ pub async fn local_runtime_discover(
 #[tauri::command]
 pub fn local_runtime_plan_environment(
     manager: State<'_, LocalRuntimeManager>,
+    registry: State<'_, NativeWorkspaceRegistry>,
     request: EnvironmentPlanRequest,
 ) -> Result<EnvironmentPlan, String> {
-    manager.plan(request)
+    let root = request
+        .workspace_id
+        .as_deref()
+        .map(|id| registry.root(id))
+        .transpose()?;
+    manager.plan(request, root.as_deref())
 }
 
 #[tauri::command]
@@ -976,6 +1141,15 @@ pub fn local_runtime_cancel_operation(
     operation_id: String,
 ) -> Result<RuntimeOperation, String> {
     manager.cancel_operation(&operation_id)
+}
+
+#[tauri::command]
+pub fn local_runtime_remove_environment(
+    manager: State<'_, LocalRuntimeManager>,
+    environment_id: String,
+    confirmation: String,
+) -> Result<(), String> {
+    manager.remove_environment(&environment_id, &confirmation)
 }
 
 #[tauri::command]
@@ -1435,6 +1609,36 @@ fn validate_environment_name(name: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn secure_workspace_file(root: &Path, relative: &str) -> Result<PathBuf, String> {
+    let candidate = Path::new(relative);
+    if relative.is_empty()
+        || candidate.is_absolute()
+        || candidate.components().any(|part| {
+            matches!(
+                part,
+                std::path::Component::ParentDir
+                    | std::path::Component::RootDir
+                    | std::path::Component::Prefix(_)
+            )
+        })
+    {
+        return Err("依赖文件必须是 Workspace 内的安全相对路径".into());
+    }
+    let canonical_root = root.canonicalize().map_err(error_string)?;
+    let canonical = canonical_root
+        .join(candidate)
+        .canonicalize()
+        .map_err(|_| format!("依赖文件不存在：{relative}"))?;
+    if !canonical.starts_with(&canonical_root) || !canonical.is_file() {
+        return Err("依赖文件超出 Workspace 边界或不是普通文件".into());
+    }
+    Ok(canonical)
+}
+
+fn sha256_hex(source: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(source))
+}
+
 fn validate_python_version(version: &str) -> Result<(), String> {
     if matches!(version, "3.10" | "3.11" | "3.12" | "3.13" | "3.14") {
         Ok(())
@@ -1612,5 +1816,18 @@ mod tests {
         assert_eq!(completed.state, "completed");
         assert_eq!(completed.progress, 100);
         assert_eq!(completed.environment_id.as_deref(), Some("python:opaque"));
+    }
+
+    #[test]
+    fn hashes_dependency_files_and_rejects_workspace_traversal() {
+        let temp = tempdir().expect("tempdir");
+        let requirements = temp.path().join("requirements.txt");
+        fs::write(&requirements, "numpy==2.0\n").expect("requirements");
+        assert_eq!(
+            secure_workspace_file(temp.path(), "requirements.txt").expect("safe"),
+            requirements.canonicalize().expect("canonical")
+        );
+        assert!(secure_workspace_file(temp.path(), "../requirements.txt").is_err());
+        assert_eq!(sha256_hex(b"numpy==2.0\n").len(), 64);
     }
 }

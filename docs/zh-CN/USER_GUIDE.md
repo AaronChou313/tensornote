@@ -29,7 +29,7 @@
 
 ### 本地 Web
 
-1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.9.0.tar.gz`，解压。
+1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.10.0.tar.gz`，解压。
 2. 安装 Node.js 22 或更高版本。首次下载工具需要网络；包内已编译应用，**无需 pnpm、npm install 或前端构建**。
 3. 在解压得到的 `TensorNote-local-web` 文件夹打开终端，运行：
 
@@ -42,7 +42,7 @@ node start.mjs
 
 不要双击 `app/index.html`。端口被占用时先停止另一个本地 Web 服务。建议始终用同一个地址：`localhost` 与 `127.0.0.1` 的浏览器授权、设置和 Token 存储彼此独立。
 
-`TensorNote-web-1.9.0.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
+`TensorNote-web-1.10.0.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
 
 ### 桌面版
 

@@ -182,6 +182,12 @@ export default function LocalRuntimeAssistant() {
     }
   }
 
+  const removeEnvironment = async (environmentId: string, name: string) => {
+    if (!adapter.removeLocalEnvironment || !window.confirm(`清理 Managed Environment「${name}」？已安装的包会从本机删除。`)) return
+    try { await adapter.removeLocalEnvironment(environmentId, `DELETE ${name}`); await discover(); setMessage(`已清理 ${name}。`) }
+    catch (reason) { setMessage(errorMessage(reason)) }
+  }
+
   if (!adapter.capabilities.environmentDiscovery) return null
 
   return <section className="local-runtime-assistant" aria-label="本地运行时助手">
@@ -200,6 +206,7 @@ export default function LocalRuntimeAssistant() {
       <div><small>Python</small><strong>{discovery.environments.length}</strong><span>{discovery.environments.filter((item) => item.jupyterInstalled).length} 个可运行 Jupyter</span></div>
       <div><small>Kernel</small><strong>{discovery.kernels.length}</strong><span>{servers.length} 个由 TensorNote 管理的 Server</span></div>
     </div>
+    {discovery.environments.some((item) => item.managed) && <details className="local-runtime-warnings"><summary>清理 Managed Environments</summary>{discovery.environments.filter((item) => item.managed).map((environment) => <p key={environment.id}><span>{environment.name} · Python {environment.pythonVersion}</span> <Button variant="danger" size="sm" onClick={() => void removeEnvironment(environment.id, environment.name)}>清理</Button></p>)}</details>}
 
     <details className="local-runtime-create">
       <summary>创建 TensorNote Managed Environment</summary>

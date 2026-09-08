@@ -85,6 +85,11 @@ export class TauriHostAdapter implements HostAdapter {
     return invoke<RuntimeOperation>('local_runtime_cancel_operation', { operationId })
   }
 
+  async removeLocalEnvironment(environmentId: string, confirmation: string): Promise<void> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    await invoke('local_runtime_remove_environment', { environmentId, confirmation })
+  }
+
   async startOwnedJupyter(environmentId: string, workspaceId: string | undefined, origin: string): Promise<JupyterServerLaunch> {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<JupyterServerLaunch>('local_runtime_start_jupyter', { environmentId, workspaceId, origin })

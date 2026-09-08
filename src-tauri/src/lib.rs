@@ -103,6 +103,7 @@ pub fn run() {
             local_runtime::local_runtime_apply_environment,
             local_runtime::local_runtime_operation,
             local_runtime::local_runtime_cancel_operation,
+            local_runtime::local_runtime_remove_environment,
             local_runtime::local_runtime_start_jupyter,
             local_runtime::local_runtime_owned_servers,
             local_runtime::local_runtime_server_logs,

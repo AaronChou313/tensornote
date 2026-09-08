@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.10.0 候选：Desktop Project Experiment 环境准备（2026-09-09）
+
+实验页接入桌面运行时发现、继承依赖解析、安装计划、确认、进度日志、取消和 Managed Environment 清理。原生端重新解析 Workspace 授权路径，计划绑定 Manifest 与依赖文件 SHA-256；内容变化或计划过期会拒绝应用。隔离环境位于应用数据目录，不写入知识库。
+
 ### v1.9.0 候选：Project Experiment 只读产品界面（2026-09-09）
 
 笔记引用可渲染为 Experiment Card，侧栏与命令面板提供实验入口，独立实验页展示 Environment、Steps、Files、Run、Artifacts。页面根据平台能力、执行开关、Revision trust、只读与诊断状态提供准确说明；本阶段不安装依赖、不启动进程。
