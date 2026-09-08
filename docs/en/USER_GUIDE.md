@@ -59,7 +59,7 @@ This GitHub community distribution does not have Apple Developer ID notarization
 
 ## 3. Read, write and organize
 
-- Overview provides workspace entry points and statistics. Files in the sidebar is the folder tree; collapsing a section differs from hiding the whole sidebar.
+- Overview provides workspace entry points and statistics. Files preserves the filesystem hierarchy and directory names, places folders first, and naturally sorts by real directory and file names. Frontmatter `section` does not rename Files entries. Collapsing a section differs from hiding the whole sidebar.
 - Switch between reading, editing and split preview. Save writes changes to Markdown. Resolve unsaved drafts or external modification conflicts before overwriting.
 - WikiLinks, backlinks, tags and Properties connect knowledge. Images and attachments remain in the workspace folder.
 - Bundled examples are read-only. Open your own local copy to edit them.

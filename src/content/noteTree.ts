@@ -13,6 +13,8 @@ interface MutableTreeItem extends NoteTreeItem {
   children: MutableTreeItem[]
 }
 
+const fileNameCollator = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' })
+
 function fallbackLabel(value: string) {
   return value
     .replace(/^\d+[-_. ]*/, '')
@@ -32,7 +34,7 @@ export function buildNoteTree(documents: Note[], contentRoot: string, directoryP
       const folderPath = parentPath ? `${parentPath}/${segment}` : segment
       let folder = folders.get(folderPath)
       if (!folder) {
-        folder = { label: /[\p{Script=Han}]/u.test(segment) ? segment : fallbackLabel(segment), kind: 'directory', path: folderPath, children: [] }
+        folder = { label: segment, kind: 'directory', path: folderPath, children: [] }
         folders.set(folderPath, folder)
         parent.children.push(folder)
       }
@@ -42,7 +44,7 @@ export function buildNoteTree(documents: Note[], contentRoot: string, directoryP
     return parent
   }
 
-  for (const directoryPath of directoryPaths.sort((a, b) => a.localeCompare(b))) {
+  for (const directoryPath of [...directoryPaths].sort(fileNameCollator.compare)) {
     const normalized = normalizeWorkspacePath(directoryPath)
     if (!normalized || normalized === normalizedRoot) continue
     if (normalizedRoot && !normalized.startsWith(`${normalizedRoot}/`)) continue
@@ -58,17 +60,6 @@ export function buildNoteTree(documents: Note[], contentRoot: string, directoryP
     const fileName = segments.pop() ?? basename(note.path)
     const parent = ensureFolder(segments)
 
-    if (/^(?:\d+[-_. ]*)?overview\.md$/i.test(fileName) && parent !== root) {
-      parent.noteId = note.id
-      parent.label = note.frontmatter.title
-      continue
-    }
-
-    if (parent !== root && parent.label === fallbackLabel(segments.at(-1) ?? '')) {
-      const sectionLabel = typeof note.properties.section === 'string' ? note.properties.section.split('/').map((part) => part.trim()).filter(Boolean).at(-1) : undefined
-      if (sectionLabel) parent.label = sectionLabel
-    }
-
     parent.children.push({
       label: note.frontmatter.title || fallbackLabel(fileName.replace(/\.md$/i, '')),
       kind: 'file',
@@ -77,6 +68,16 @@ export function buildNoteTree(documents: Note[], contentRoot: string, directoryP
       children: [],
     })
   }
+
+  const sortChildren = (item: MutableTreeItem) => {
+    item.children.sort((left, right) => {
+      const kindOrder = Number(left.kind !== 'directory') - Number(right.kind !== 'directory')
+      if (kindOrder) return kindOrder
+      return fileNameCollator.compare(basename(left.path ?? left.label), basename(right.path ?? right.label))
+    })
+    item.children.forEach(sortChildren)
+  }
+  sortChildren(root)
 
   const stripEmptyChildren = (items: MutableTreeItem[]): NoteTreeItem[] => items.map((item) => ({
     label: item.label,
