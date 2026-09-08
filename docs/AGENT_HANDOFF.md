@@ -4,15 +4,17 @@
 
 ## 当前交付
 
-### v1.6.3 发行准备：README 内嵌 HTML（2026-09-08）
+### v1.6.3 已发布：README 内嵌 HTML（2026-09-08）
 
-用户反馈 Happy-LLM GitHub Workspace 的 Overview 将 HTML 显示为源码。共享 MarkdownRenderer 已增加 HTML 解析与白名单净化，支持居中横幅、徽章和图片尺寸；HTML 相对图片继续通过 Workspace Provider 读取。脚本、事件属性、危险 URL、表单和自定义 CSS 被移除，代码围栏中的 HTML 保持源码。Web 与 Desktop 共用该修复。184 项测试、lint、类型检查、生产构建、Static 边界检查、3 项性能测试及生产依赖审计通过；实际 GitHub README 在本地 Web 中已验证横幅和徽章，macOS App 已重新构建。此修复尚未发布，下面的 v1.6.2 公开资产不包含它。
+用户反馈 Happy-LLM GitHub Workspace 的 Overview 将 HTML 显示为源码。共享 MarkdownRenderer 已增加 HTML 解析与白名单净化，支持居中横幅、徽章和图片尺寸；HTML 相对图片继续通过 Workspace Provider 读取。脚本、事件属性、危险 URL、表单和自定义 CSS 被移除，代码围栏中的 HTML 保持源码。Web 与 Desktop 共用该修复。184 项测试、lint、类型检查、生产构建、Static 边界检查、3 项性能测试及生产依赖审计通过；实际 GitHub README 在本地 Web 中已验证横幅和徽章，macOS App 已重新构建。
 
 ### 已发布版本
 
-**v1.6.2 已于 2026-09-08 02:43:46 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.6.2) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `cc11a3fa35878a6d72bab2308af5cb9ea4b63b01`，22 个附件齐全（20 项资产及两份校验元数据）。[CI 34179375641](https://github.com/AaronChou313/tensornote/actions/runs/34179375641)、[发行演练 34179377924](https://github.com/AaronChou313/tensornote/actions/runs/34179377924) 与 [正式 Release 34180140822](https://github.com/AaronChou313/tensornote/actions/runs/34180140822) 均通过。独立核对 20 项 SHA-256、7 个 Updater 签名与 11 个更新目标，通过；公开 latest.json 已为 1.6.2。
+**v1.6.3 已于 2026-09-08 08:15:40 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.6.3) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `39147f9cd250c4a62bec8569ea80a51a592cc64e`，22 个附件齐全；[正式 Release 34202544965](https://github.com/AaronChou313/tensornote/actions/runs/34202544965) 的发行检查、Web、本地 Web、Linux、Windows、Intel/Apple Silicon macOS、容器、Pages 与最终归档全部通过。公开 `latest.json` 已为 1.6.3。
 
-Pages 已部署，入口 JS/CSS 与发行静态包一致。首次部署被环境的精确 Tag 名单拒绝；只新增 `v1.6.2` 标签策略并重跑失败的部署步骤后通过（run attempt 2），未移动 Tag、未关闭保护规则或重建其他资产。既有 main 和 v1.6.1 规则保留。以后发行新 Tag 时须检查这个精确名单。
+v1.6.2 已于 2026-09-08 02:43:46 UTC 发布，Tag 固定到 `cc11a3fa35878a6d72bab2308af5cb9ea4b63b01`；其附件保持不变。
+
+Pages 已部署 v1.6.3。环境的精确 Tag 名单包含 `v1.6.3`；既有 main、v1.6.1 和 v1.6.2 规则保留。以后发行新 Tag 时仍须先检查这个精确名单。
 
 v1.6.1 保留为历史稳定版；其 Tag `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000` 与附件未改动。
 
