@@ -4,7 +4,7 @@
 
 ## 当前交付
 
-### v1.6.4 发行中：最近打开、GitHub 刷新、Files 与 Focus Mode（2026-09-08）
+### v1.6.4 已发布：最近打开、GitHub 刷新、Files 与 Focus Mode（2026-09-08）
 
 Home 的“最近打开”增加单条移除与全部清空；操作只删除本机快捷入口。GitHub Provider 的仓库、分支提交与文件树请求绕过浏览器 HTTP 缓存，未固定 Revision 的链接重新打开时解析最新提交。内置 Focus Mode 已移除，旧持久化设置通过 Extension Store v2 迁移清理；Extension API、本地扩展管理器和示例保留。
 
@@ -16,11 +16,13 @@ Files 导航严格使用 `content.root` 内的物理目录层级与目录名，�
 
 ### 已发布版本
 
-**v1.6.3 已于 2026-09-08 08:15:40 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.6.3) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `39147f9cd250c4a62bec8569ea80a51a592cc64e`，22 个附件齐全；[正式 Release 34202544965](https://github.com/AaronChou313/tensornote/actions/runs/34202544965) 的发行检查、Web、本地 Web、Linux、Windows、Intel/Apple Silicon macOS、容器、Pages 与最终归档全部通过。公开 `latest.json` 已为 1.6.3。
+**v1.6.4 已于 2026-09-08 14:59:41 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.6.4) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `b6f49df6e95884388dabc6d5cae3b31071122c69`，22 个附件齐全；[正式 Release 34240628441](https://github.com/AaronChou313/tensornote/actions/runs/34240628441) 的发行检查、Web、本地 Web、Linux、Windows、Intel/Apple Silicon macOS、容器、Pages 与最终归档全部通过。
+
+v1.6.3 已于 2026-09-08 08:15:40 UTC 发布，Tag 固定到 `39147f9cd250c4a62bec8569ea80a51a592cc64e`；其附件保持不变。
 
 v1.6.2 已于 2026-09-08 02:43:46 UTC 发布，Tag 固定到 `cc11a3fa35878a6d72bab2308af5cb9ea4b63b01`；其附件保持不变。
 
-Pages 已部署 v1.6.3。环境的精确 Tag 名单包含 `v1.6.3`；既有 main、v1.6.1 和 v1.6.2 规则保留。以后发行新 Tag 时仍须先检查这个精确名单。
+Pages 已部署 v1.6.4。环境的精确 Tag 名单包含 `v1.6.4`；既有规则保留。以后发行新 Tag 时仍须先检查这个精确名单。
 
 v1.6.1 保留为历史稳定版；其 Tag `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000` 与附件未改动。
 
