@@ -16,6 +16,7 @@ import { MermaidDiagram } from './MermaidDiagram'
 import { WorkspaceImage } from './WorkspaceImage'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 import { scrollToHeading } from '../workbench/headingNavigation'
+import { ExperimentCard } from './ExperimentCard'
 
 const calloutLabels: Record<string, string> = {
   intuition: '直觉',
@@ -113,6 +114,7 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
             const lab = labMap.get(source.trim())
             return lab ? <LabCard lab={lab} noteId={noteId} /> : null
           }
+          if (language === 'tensornote-experiment') return <ExperimentCard source={source} noteId={noteId} />
           if (language === 'tensornote-embed' && knowledgeIndex && noteId) {
             const reference = source.trim()
             const resolved = knowledgeIndex.resolveReference(reference, noteId)
@@ -144,7 +146,7 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
           const classNames = codeNode?.type === 'element' ? codeNode.properties.className : []
           const classes = Array.isArray(classNames) ? classNames.map(String) : [String(classNames ?? '')]
           const isCustomBlock = classes.some((className) =>
-            className === 'language-mermaid' || className === 'language-tensornote-lab' || className === 'language-tensornote-embed',
+            className === 'language-mermaid' || className === 'language-tensornote-lab' || className === 'language-tensornote-embed' || className === 'language-tensornote-experiment',
           )
           if (isCustomBlock) return <>{children}</>
           return <pre>{children}</pre>

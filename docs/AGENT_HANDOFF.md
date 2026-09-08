@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.9.0 候选：Project Experiment 只读产品界面（2026-09-09）
+
+笔记引用可渲染为 Experiment Card，侧栏与命令面板提供实验入口，独立实验页展示 Environment、Steps、Files、Run、Artifacts。页面根据平台能力、执行开关、Revision trust、只读与诊断状态提供准确说明；本阶段不安装依赖、不启动进程。
+
 ### v1.8.2 候选：Project Experiment 只读解析与索引（2026-09-08）
 
 新增 Experiment Fence、Manifest v1 校验、路径/环境继承/步骤 DAG 诊断、Workspace 实验索引，以及 Skill validator 与可复制模板。该阶段没有环境变更或代码执行副作用。

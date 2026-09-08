@@ -16,6 +16,7 @@ const KnowledgePage = lazy(() => import('./pages/KnowledgePage').then((module) =
 const StructuredKnowledgePage = lazy(() => import('./pages/StructuredKnowledgePage').then((module) => ({ default: module.StructuredKnowledgePage })))
 const GitWorkspacePage = lazy(() => import('./pages/GitWorkspacePage').then((module) => ({ default: module.GitWorkspacePage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })))
+const ExperimentPage = lazy(() => import('./pages/ExperimentPage').then((module) => ({ default: module.ExperimentPage })))
 
 function RouteFallback() {
   return <main className="route-status-page"><span className="workspace-spinner" /><p>正在载入工作区界面…</p></main>
@@ -60,6 +61,8 @@ export function App() {
           <Route path="database" element={deferred(<StructuredKnowledgePage />)} />
           <Route path="git" element={deferred(<GitWorkspacePage />)} />
           <Route path="settings" element={deferred(<SettingsPage />)} />
+          <Route path="experiments" element={deferred(<ExperimentPage />)} />
+          <Route path="experiments/:experimentKey" element={deferred(<ExperimentPage />)} />
           <Route path="notes" element={deferred(<NotePage />)} />
           <Route path="notes/:noteId" element={deferred(<NotePage />)} />
         </Route>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowClockwise, ArrowSquareOut, CaretDown, CaretUpDown, FilePlus, FileText, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, X } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowSquareOut, CaretDown, CaretUpDown, FilePlus, FileText, Flask, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -184,6 +184,9 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           <NavLink to="/database" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <Rows size={15} />Database
           </NavLink>
+          {session.experiments.length > 0 && <NavLink to="/experiments" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
+            <Flask size={15} />Experiments <small>{session.experiments.length}</small>
+          </NavLink>}
           {(deploymentAdapter.capabilities.gitBridge || hostAdapter.capabilities.nativeGit) && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <GitBranch size={15} />Git
           </NavLink>}

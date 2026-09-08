@@ -19,7 +19,7 @@ describe('release tooling', () => {
   })
 
   it('keeps repository release contracts aligned', async () => {
-    await expect(validateRelease({ root: '.', tag: 'v1.8.2' })).resolves.toMatchObject({ ok: true, version: '1.8.2', tag: 'v1.8.2' })
+    await expect(validateRelease({ root: '.', tag: 'v1.9.0' })).resolves.toMatchObject({ ok: true, version: '1.9.0', tag: 'v1.9.0' })
     const mismatch = await validateRelease({ root: '.', tag: 'v99.0.0' })
     expect(mismatch.findings).toContainEqual(expect.objectContaining({ code: 'tag' }))
   })
