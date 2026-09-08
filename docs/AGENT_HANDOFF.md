@@ -4,11 +4,11 @@
 
 ## 当前交付
 
-### main 未发布修订：最近打开与 Focus Mode（2026-09-08）
+### v1.6.4 发行中：最近打开、GitHub 刷新、Files 与 Focus Mode（2026-09-08）
 
-Home 的“最近打开”增加单条移除与全部清空；操作只删除本机快捷入口。GitHub Provider 的仓库、分支提交与文件树请求绕过浏览器 HTTP 缓存，未固定 Revision 的链接重新打开时解析最新提交。内置 Focus Mode 已移除，旧持久化设置通过 Extension Store v2 迁移清理；Extension API、本地扩展管理器和示例保留。该修订尚未进入 v1.6.3 公开资产。
+Home 的“最近打开”增加单条移除与全部清空；操作只删除本机快捷入口。GitHub Provider 的仓库、分支提交与文件树请求绕过浏览器 HTTP 缓存，未固定 Revision 的链接重新打开时解析最新提交。内置 Focus Mode 已移除，旧持久化设置通过 Extension Store v2 迁移清理；Extension API、本地扩展管理器和示例保留。
 
-Files 导航严格使用物理目录层级与目录名，不再由 Frontmatter `section` 或目录内 `overview.md` 覆盖目录标签；每一级先列文件夹，再以同一自然排序规则分别按真实目录名和文件名排列。显示标题仍来自笔记标题。该修订修复 Happy-LLM 多个 `chapterN` 被重复显示为“理论基础”的问题。
+Files 导航严格使用 `content.root` 内的物理目录层级与目录名，不再由 Frontmatter `section` 或目录内 `overview.md` 覆盖目录标签；每一级先列文件夹，再以同一自然排序规则分别按真实目录名和文件名排列。显示标题仍来自笔记标题。该修订修复 Happy-LLM 多个 `chapterN` 被重复显示为“理论基础”的问题。以上修改组成 v1.6.4。
 
 ### v1.6.3 已发布：README 内嵌 HTML（2026-09-08）
 
