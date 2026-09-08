@@ -58,6 +58,7 @@ import { editorCommandLabels, transformEditorCommand, type EditorCommandId } fro
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 import { draftRecovery, type DraftRecoveryRecord } from '../recovery/draftRecovery'
 import { LabInsertDialog } from './LabInsertDialog'
+import { useSplitScrollSync } from '../workbench/useSplitScrollSync'
 
 function NotePreview({ note, provider, compact = false }: { note: Note; provider: WorkspaceProvider; compact?: boolean }) {
   const session = useWorkspaceStore((state) => state.session)
@@ -198,6 +199,10 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const [codeLanguage, setCodeLanguage] = useState('python')
   const [labInitialCode, setLabInitialCode] = useState<string | null>(null)
   const viewRef = useRef<EditorView | null>(null)
+  const previewRef = useRef<HTMLElement | null>(null)
+  const [editorView, setEditorView] = useState<EditorView | null>(null)
+  const [syncScroll, setSyncScroll] = useState(true)
+  useSplitScrollSync(mode === 'split' && syncScroll, editorView, previewRef, getDocumentBody(draft))
   const headingRequest = useWorkbenchStore((state) => state.headingRequest)
   useEffect(() => {
     if (!isActive || mode !== 'edit' || !headingRequest) return
@@ -470,6 +475,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
           <button className={mode === 'read' ? 'is-active' : ''} onClick={() => setMode('read')}><Eye size={15} />阅读</button>
           <button className={mode === 'edit' ? 'is-active' : ''} onClick={() => setMode('edit')}><NotePencil size={15} />编辑</button>
           <button className={mode === 'split' ? 'is-active' : ''} onClick={() => setMode('split')}><Columns size={15} />双栏预览</button>
+          {mode === 'split' && <button aria-pressed={syncScroll} onClick={() => setSyncScroll((value) => !value)}>{syncScroll ? '同步滚动：开' : '同步滚动：关'}</button>}
         </div>
         <div className="authoring-toolbar__actions">
           {mode !== 'read' && <>
@@ -511,14 +517,15 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
               value={editableBody}
               extensions={[markdown(), ...(editorWordWrap ? [EditorView.lineWrapping] : []), ...extensionEditorExtensions.map((item) => item.extension)]}
               theme={theme}
-              minHeight="calc(100dvh - 166px)"
+              minHeight={mode === 'split' ? '100%' : 'calc(100dvh - 166px)'}
+              height={mode === 'split' ? '100%' : undefined}
               basicSetup={{ lineNumbers: editorLineNumbers, foldGutter: editorLineNumbers, history: true, autocompletion: true, highlightActiveLine: true }}
-              onCreateEditor={(view) => { viewRef.current = view }}
+              onCreateEditor={(view) => { viewRef.current = view; setEditorView(view) }}
               onChange={changeBody}
             />
           </section>
         )}
-        {mode !== 'edit' && <section className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} compact={mode === 'split'} /></section>}
+        {mode !== 'edit' && <section ref={previewRef} className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} compact={mode === 'split'} /></section>}
         {mode === 'read' && <KnowledgePanel noteId={note.id} />}
         {propertiesOpen && mode !== 'read' && <div id="document-properties"><PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} /></div>}
       </div>

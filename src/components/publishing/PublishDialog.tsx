@@ -4,11 +4,11 @@ import { useLocation } from 'react-router-dom'
 import { useAppStore } from '../../store/useAppStore'
 import { useWorkspaceStore } from '../../store/useWorkspaceStore'
 import { useWorkbenchStore } from '../../workbench/useWorkbenchStore'
-import { createGitHubPublicationTargets, isPinnedGitHubRevision } from '../../publishing/links'
+import { createGitHubPublicationTargets, createGitHubReaderUrl, isPinnedGitHubRevision } from '../../publishing/links'
 import { Button } from '../ui/Button'
 import { deploymentAdapter } from '../../deployment/config'
 
-type CopyTarget = 'link' | 'badge' | 'compatibility' | null
+type CopyTarget = 'link' | 'latest' | 'badge' | 'compatibility' | null
 type CopyFeedback = { target: Exclude<CopyTarget, null>; status: 'copied' | 'error' } | null
 
 function copyWithSelection(value: string) {
@@ -45,6 +45,7 @@ export function PublishDialog() {
   const owner = session?.descriptor.config?.owner
   const repo = session?.descriptor.config?.repo
   const revision = session?.descriptor.revision
+  const latestUrl = owner && repo ? createGitHubReaderUrl(deploymentAdapter.publicReaderUrl, owner, repo) : undefined
   const targets = useMemo(() => {
     if (!owner || !repo || !isPinnedGitHubRevision(revision)) return null
     return createGitHubPublicationTargets(deploymentAdapter.publicReaderUrl, { owner, repo, revision, ...(activeNote ? { noteId: activeNote } : {}) })
@@ -82,6 +83,11 @@ export function PublishDialog() {
         </div>
 
         {targets ? <>
+          <section className="publish-section">
+            <div><strong>知识库最新内容链接</strong><p>收件人直接进入在线阅读器，打开仓库默认分支；你更新仓库后，同一链接会显示新的内容。</p></div>
+            <div className="publish-copy-row"><code>{latestUrl}</code><button onClick={() => void copy(latestUrl!, 'latest')} aria-label="复制知识库最新内容链接"><Copy size={16} /></button></div>
+            {copyFeedback?.target === 'latest' && <small role="status">{copyFeedback.status === 'copied' ? '知识库链接已复制' : '复制失败，请手动选择链接'}</small>}
+          </section>
           <section className="publish-section">
             <div><strong>可复现阅读链接</strong><p>固定到当前 commit{activeNote ? ' 和当前笔记' : ''}；仓库后续更新不会改变这次分享的内容。</p></div>
             <div className="publish-copy-row"><code>{targets.webUrl}</code><button onClick={() => void copy(targets.webUrl, 'link')} aria-label={copyFeedback?.target === 'link' && copyFeedback.status === 'copied' ? '固定链接已复制' : '复制固定链接'}>{copyFeedback?.target === 'link' && copyFeedback.status === 'copied' ? <Check size={16} /> : <Copy size={16} />}</button></div>

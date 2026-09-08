@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createGitHubPublicationTargets, isPinnedGitHubRevision, parseTensorNoteDeepLink } from './links'
+import { createGitHubPublicationTargets, createGitHubReaderUrl, isPinnedGitHubRevision, parseTensorNoteDeepLink } from './links'
 
 const revision = '0123456789abcdef0123456789abcdef01234567'
 
@@ -31,4 +31,10 @@ describe('publication links', () => {
     expect(parseTensorNoteDeepLink(`https://open/github/demo/course?ref=${revision}`)).toBeNull()
     expect(parseTensorNoteDeepLink(`tensornote://open/github/demo/course?ref=${revision}&note=${'x'.repeat(513)}`)).toBeNull()
   })
+})
+
+it('creates a default-branch reader link without carrying page credentials or state', () => {
+  expect(createGitHubReaderUrl('https://example.org/tensornote/?token=private#/notes/old', 'demo', 'course')).toBe('https://example.org/tensornote/#/open/github/demo/course')
+  expect(() => createGitHubReaderUrl('https://example.org', '..', 'course')).toThrow()
+  expect(() => createGitHubReaderUrl('https://example.org', 'demo', 'course/other')).toThrow()
 })

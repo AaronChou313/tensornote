@@ -3,6 +3,7 @@ import { basename, normalizeWorkspacePath } from '../workspace/path'
 
 export interface NoteTreeItem {
   label: string
+  kind?: 'file' | 'directory'
   noteId?: string
   path?: string
   children?: NoteTreeItem[]
@@ -31,7 +32,7 @@ export function buildNoteTree(documents: Note[], contentRoot: string, directoryP
       const folderPath = parentPath ? `${parentPath}/${segment}` : segment
       let folder = folders.get(folderPath)
       if (!folder) {
-        folder = { label: fallbackLabel(segment), path: folderPath, children: [] }
+        folder = { label: /[\p{Script=Han}]/u.test(segment) ? segment : fallbackLabel(segment), kind: 'directory', path: folderPath, children: [] }
         folders.set(folderPath, folder)
         parent.children.push(folder)
       }
@@ -64,12 +65,13 @@ export function buildNoteTree(documents: Note[], contentRoot: string, directoryP
     }
 
     if (parent !== root && parent.label === fallbackLabel(segments.at(-1) ?? '')) {
-      const sectionLabel = note.frontmatter.section.split('/').map((part) => part.trim()).filter(Boolean).at(-1)
+      const sectionLabel = typeof note.properties.section === 'string' ? note.properties.section.split('/').map((part) => part.trim()).filter(Boolean).at(-1) : undefined
       if (sectionLabel) parent.label = sectionLabel
     }
 
     parent.children.push({
       label: note.frontmatter.title || fallbackLabel(fileName.replace(/\.md$/i, '')),
+      kind: 'file',
       noteId: note.id,
       path: relativePath,
       children: [],
@@ -78,6 +80,7 @@ export function buildNoteTree(documents: Note[], contentRoot: string, directoryP
 
   const stripEmptyChildren = (items: MutableTreeItem[]): NoteTreeItem[] => items.map((item) => ({
     label: item.label,
+    kind: item.kind,
     ...(item.noteId ? { noteId: item.noteId } : {}),
     ...(item.path ? { path: item.path } : {}),
     ...(item.children.length ? { children: stripEmptyChildren(item.children) } : {}),

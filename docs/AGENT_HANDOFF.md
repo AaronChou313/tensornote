@@ -59,3 +59,11 @@
 当前优先完成用户可用的社区发行与缺陷反馈闭环。后续候选包括干净平台安装、公开 Binder、第二个公开 Desktop 版本的升级测试、独立知识库发布、Git Remote Sync 和编辑体验增强；这些不是已经实现或已排期的功能。保持 [开发计划](ACTIVE_DEVELOPMENT_PLAN.md) 与 [路线图](ROADMAP.md) 的历史提案和实际交付状态分开。
 
 原始接管审计与旧发行门保存在 [历史交接快照](AGENT_HANDOFF_PRE_1_6_1.md)，仅用于追溯，不作为当前操作指令。
+
+## 2026-09-08：v1.6.1 使用反馈修订（尚未发行）
+
+分支 `codex/v1-6-1-user-experience` 修复宽屏阅读大纲粘滞定位、无 Frontmatter 中文目录被“未分类”覆盖、空附件目录文件图标误导，以及双栏独立滚动和按标题锚点同步。Overview 支持根目录 `OVERVIEW.md` 优先、`README.md` 回退；分享窗口增加默认分支阅读链接，固定 Revision 分享及执行信任边界保持不变。中英文使用手册已注明下一补丁的功能范围。版本号尚未递增，不能把这些改动描述成已上线的 v1.6.1。
+
+本机使用独立 bundle id 的 TensorNote QA 和 `/tmp/tensornote-ux-vault` 测试，避免重启用户正在编辑且未保存的 TensorNote 窗口。验证 README 相对图片和库内链接、中文目录、长文浮动上下文栏、双栏双向同步和关闭同步；同步覆盖章节间插值，并非每个段落像素精确匹配。用户课程目录只读检查，未改写用户笔记。
+
+验证：`pnpm check` 179 项测试通过；性能测试 3 项通过；生产依赖审计无已知漏洞；Static Web 构建及无 Tauri IPC 边界检查通过；`pnpm check:desktop` 含 14 项 Rust 测试通过；macOS arm64 应用构建成功。公开仓库直达 URL 及分享窗口在本地 Web 实测通过，仍显示 Revision 信任要求。尚未推送、打 Tag 或创建新 Release，既有 v1.6.1 发行资产未改动。

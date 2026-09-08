@@ -41,6 +41,15 @@ export function isPinnedGitHubRevision(value?: string): value is string {
   return Boolean(value && pinnedRevision.test(value))
 }
 
+/** A moving reader link; opening still resolves a commit and requires revision trust. */
+export function createGitHubReaderUrl(appUrl: string, owner: string, repo: string) {
+  if (!isRepositorySegment(owner) || !isRepositorySegment(repo)) throw new Error('Invalid GitHub repository')
+  const url = new URL(appUrl)
+  url.search = ''
+  url.hash = `/open/github/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`
+  return url.toString()
+}
+
 export function createGitHubPublicationTargets(appUrl: string, source: GitHubPublicationSource): PublicationTargets {
   assertSource(source)
   const base = new URL(appUrl)

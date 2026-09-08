@@ -144,3 +144,24 @@ describe('loadWorkspace', () => {
     expect(provider.readBinary).not.toHaveBeenCalled()
   })
 })
+
+it('loads root README outside content.root without indexing attachments or enabling execution', async () => {
+  const session = await loadWorkspace(createProvider('local', {
+    'tensornote.yaml': 'schemaVersion: 1\ncontent:\n  root: notes',
+    'README.md': '# Course\n\n[Start](notes/hello.md)\n![Image](images/one.png)',
+    'notes/hello.md': note,
+    'images/one.png': 'binary fixture',
+  }), [])
+  expect(session.overview?.path).toBe('README.md')
+  expect(session.documents.map((item) => item.path)).toEqual(['notes/hello.md'])
+  expect(session.manifest.features.executable).toBe(false)
+  expect(session.knowledgeIndex.resolveMarkdownHref('notes/hello.md', '')?.note.id).toBe('hello')
+})
+
+it('prefers a dedicated root overview and refreshes edited introductions', async () => {
+  const files = { 'README.md': '# GitHub README', 'OVERVIEW.md': '# Custom introduction' }
+  const provider = createProvider('local', files)
+  expect((await loadWorkspace(provider, [])).overview?.content).toContain('Custom introduction')
+  files['OVERVIEW.md'] = '# Updated introduction'
+  expect((await loadWorkspace(provider, [])).overview?.content).toContain('Updated introduction')
+})

@@ -5,10 +5,12 @@ import { createDocumentTemplate } from '../content/document'
 import { joinWorkspacePath } from '../workspace/path'
 import { Button } from '../components/ui/Button'
 import { WorkspaceImage } from '../components/WorkspaceImage'
+import { MarkdownRenderer } from '../components/MarkdownRenderer'
 
 export function WorkspacePage() {
   const navigate = useNavigate()
   const session = useWorkspaceStore((state) => state.session)
+  const provider = useWorkspaceStore((state) => state.provider)
   const createNote = useWorkspaceStore((state) => state.createNote)
   if (!session) return null
 
@@ -30,7 +32,7 @@ export function WorkspacePage() {
           {session.manifest.publishing.logo && <div className="workspace-public-logo"><WorkspaceImage src={session.manifest.publishing.logo} alt="" documentPath="tensornote.yaml" resolveAssetUrl={useWorkspaceStore.getState().provider?.resolveAssetUrl.bind(useWorkspaceStore.getState().provider)} /></div>}
           <span className="workspace-kicker">Workspace 概览</span>
           <h1>{session.manifest.publishing.title || session.manifest.workspace.name}</h1>
-          <p>{session.manifest.publishing.description || session.manifest.workspace.description || '一个保持 Markdown 可移植性的 TensorNote Workspace。'}</p>
+          {(session.manifest.publishing.description || session.manifest.workspace.description) && <p>{session.manifest.publishing.description || session.manifest.workspace.description}</p>}
           <div className="source-line">
             <span className={`source-dot source-dot--${session.descriptor.type}`} />
             {session.descriptor.sourceLabel}
@@ -50,7 +52,9 @@ export function WorkspacePage() {
           <div><Tag size={19} /><strong>{tagCount}</strong><span>标签</span></div>
         </section>
 
-        <section className="workspace-documents">
+        {session.overview ? <section className="workspace-readme note-prose" aria-label="知识库介绍">
+          <MarkdownRenderer content={session.overview.content} labs={[]} documentPath={session.overview.path} knowledgeIndex={session.knowledgeIndex} resolveAssetUrl={provider?.resolveAssetUrl.bind(provider)} />
+        </section> : <section className="workspace-documents">
           <div className="section-heading"><h2>开始阅读</h2><span>{session.manifest.content.root || 'Workspace 根目录'}</span></div>
           <div className="document-list">
             {startingDocuments.length ? startingDocuments.map((note) => (
@@ -61,7 +65,7 @@ export function WorkspacePage() {
               </Link>
             )) : <div className="workspace-empty-state"><span><FilePlus size={22} /></span><div><strong>这个 Workspace 还没有笔记</strong><p>创建第一篇 Markdown 笔记，内容仍会直接保存在所选文件夹中。</p></div>{session.capabilities.write && <Button variant="primary" size="sm" onClick={() => void createFirstNote()}>新建笔记</Button>}</div>}
           </div>
-        </section>
+        </section>}
 
         <Link className="workspace-knowledge-link" to="/knowledge">
           <span><ShareNetwork size={19} /></span>

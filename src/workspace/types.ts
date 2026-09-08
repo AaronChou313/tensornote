@@ -129,6 +129,8 @@ export interface WorkspaceEnvironmentFile {
 }
 
 export interface WorkspaceSession {
+  /** Optional root OVERVIEW.md / README.md, independent of content.root. */
+  overview?: Note
   descriptor: WorkspaceDescriptor
   capabilities: WorkspaceCapabilities
   manifest: WorkspaceManifest

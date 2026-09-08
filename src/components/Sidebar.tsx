@@ -38,6 +38,7 @@ function TreeItem({ item, depth = 0, onAction, onOpenNote }: { item: NoteTreeIte
   const closeSidebar = useAppStore((state) => state.setSidebarOpen)
   const session = useWorkspaceStore((state) => state.session)
   const hasChildren = Boolean(item.children?.length)
+  const isFolder = item.kind === 'directory' || (!item.noteId && !item.kind)
   const notePath = item.noteId ? session?.documentById.get(item.noteId)?.path : undefined
   const workspacePath = notePath ?? (item.path ? joinWorkspacePath(session?.manifest.content.root || '', item.path) : '')
   const kind = item.noteId ? 'file' as const : 'directory' as const
@@ -50,7 +51,7 @@ function TreeItem({ item, depth = 0, onAction, onOpenNote }: { item: NoteTreeIte
             <CaretDown size={12} weight="bold" className={cn('transition-transform', !expanded && '-rotate-90')} />
           </button>
         ) : (
-          <span className="tree-file-icon"><FileText size={13} /></span>
+          <span className="tree-file-icon">{isFolder ? <FolderOpen size={13} /> : <FileText size={13} />}</span>
         )}
         {item.noteId ? (
           <NavLink
@@ -61,7 +62,7 @@ function TreeItem({ item, depth = 0, onAction, onOpenNote }: { item: NoteTreeIte
             {item.label}
           </NavLink>
         ) : (
-          <button className="tree-folder" onClick={() => hasChildren && setExpanded((value) => !value)}>{item.label}</button>
+          <button className="tree-folder" title={hasChildren ? item.label : '文件夹中没有 Markdown 笔记；图片由正文引用显示'} onClick={() => hasChildren && setExpanded((value) => !value)}>{item.label}</button>
         )}
         {session?.capabilities.write && workspacePath && (
           <div className="tree-actions">

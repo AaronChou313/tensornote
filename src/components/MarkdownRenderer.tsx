@@ -71,7 +71,7 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
         h6: ({ children, node }) => <h6 id={String(node?.properties.id ?? '')}>{children}</h6>,
         a: ({ href = '', children }) => {
           if (href.startsWith('/notes/')) return <Link className="knowledge-link" to={href}>{children}</Link>
-          const resolved = knowledgeIndex && noteId ? knowledgeIndex.resolveMarkdownHref(href, noteId) : undefined
+          const resolved = knowledgeIndex?.resolveMarkdownHref(href, noteId ?? '')
           if (resolved) {
             const fragment = resolved.heading ? `#${resolved.heading.id}` : ''
             return <Link className="knowledge-link" to={`/notes/${encodeURIComponent(resolved.note.id)}${fragment}`}>{children}</Link>

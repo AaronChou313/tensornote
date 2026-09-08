@@ -71,7 +71,10 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
   })
   const documents = (await mapConcurrent(markdownEntries, 16, (entry) => loadDocument(provider, entry)))
     .sort((a, b) => a.path.localeCompare(b.path, 'zh-CN'))
+  const overviewEntry = ['overview.md', 'readme.md'].map((name) => rootEntries.find((entry) => entry.kind === 'file' && entry.name.toLowerCase() === name)).find(Boolean)
+  const overview = overviewEntry ? documents.find((note) => note.path === overviewEntry.path) ?? await loadDocument(provider, overviewEntry) : undefined
   const activePaths = new Set(markdownEntries.map((entry) => entry.path))
+  if (overviewEntry) activePaths.add(overviewEntry.path)
   const cache = documentCache.get(provider)
   if (cache) for (const path of cache.keys()) if (!activePaths.has(path)) cache.delete(path)
 
@@ -99,6 +102,7 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     manifest,
     compatibility,
     documents,
+    overview,
     documentById,
     knowledgeIndex: buildKnowledgeIndex(documents),
     propertyIndex: buildPropertyIndex(documents),
