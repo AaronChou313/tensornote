@@ -3,11 +3,14 @@ import { useEffect, useState } from 'react'
 interface WorkspaceImageProps {
   src: string
   alt: string
+  width?: string | number
+  height?: string | number
+  title?: string
   documentPath: string
   resolveAssetUrl?: (path: string, fromDocument: string) => Promise<string>
 }
 
-export function WorkspaceImage({ src, alt, documentPath, resolveAssetUrl }: WorkspaceImageProps) {
+export function WorkspaceImage({ src, alt, width, height, title, documentPath, resolveAssetUrl }: WorkspaceImageProps) {
   const requestKey = `${documentPath}:${src}`
   const isDirectSource = /^(?:https?:|data:|blob:)/i.test(src)
   const [result, setResult] = useState<{ key: string; resolved: string; failed: boolean }>(() => ({
@@ -29,5 +32,5 @@ export function WorkspaceImage({ src, alt, documentPath, resolveAssetUrl }: Work
   const failed = result.key === requestKey && result.failed
   if (failed) return <span className="workspace-image-error">无法加载图片：{src}</span>
   if (!resolved) return <span className="workspace-image-loading" aria-label={`正在加载图片 ${alt || src}`} />
-  return <img src={resolved} alt={alt} onError={() => setResult({ key: requestKey, resolved: '', failed: true })} />
+  return <img src={resolved} alt={alt} width={width} height={height} title={title} onError={() => setResult({ key: requestKey, resolved: '', failed: true })} />
 }

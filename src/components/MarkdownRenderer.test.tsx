@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { StrictMode } from 'react'
-import { fireEvent, render } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import { parseDocument } from '../content/document'
@@ -24,6 +24,37 @@ const lab: Lab = {
 }
 
 describe('MarkdownRenderer', () => {
+  it('renders README HTML layouts, badges and explicit image dimensions', () => {
+    const html = renderToStaticMarkup(<MarkdownRenderer content={'<div align="center"><img src="./images/head.jpg" width="100%" alt="banner"><h1>Happy-LLM</h1><a href="https://example.com"><img src="https://example.com/badge.svg" width="250" height="55" alt="badge"></a></div>'} labs={[]} />)
+    expect(html).toContain('<div align="center">')
+    expect(html).toContain('width="100%"')
+    expect(html).toContain('height="55"')
+    expect(html).toContain('<h1 id="happy-llm">Happy-LLM</h1>')
+    expect(html).not.toContain('&lt;div')
+  })
+
+  it('resolves HTML image paths through the workspace provider', async () => {
+    const resolveAssetUrl = vi.fn().mockResolvedValue('blob:resolved-workspace-image')
+    const view = render(<MarkdownRenderer content={'<img src="./images/head.jpg" width="100%" alt="local banner">'} labs={[]} documentPath="README.md" resolveAssetUrl={resolveAssetUrl} />)
+    await waitFor(() => expect(view.container.querySelector('img')?.getAttribute('src')).toBe('blob:resolved-workspace-image'))
+    expect(resolveAssetUrl).toHaveBeenCalledWith('./images/head.jpg', 'README.md')
+    expect(view.container.querySelector('img')?.getAttribute('width')).toBe('100%')
+  })
+
+  it('removes executable HTML, dangerous URLs, CSS and event handlers', () => {
+    const html = renderToStaticMarkup(<MarkdownRenderer content={'<div style="position:fixed" onclick="alert(1)"><script>alert(1)</script><iframe src="https://example.com"></iframe><img src="javascript:alert(1)" onerror="alert(1)"><a href="javascript:alert(1)">unsafe</a><form action="https://example.com"><input name="secret"></form>safe</div>'} labs={[]} />)
+    expect(html).not.toMatch(/<script|<iframe|<form|onclick|onerror|javascript:|position:fixed|alert\(1\)/)
+    expect(html).toContain('safe')
+  })
+
+  it('keeps math rendering and literal HTML code fences after sanitization', () => {
+    const html = renderToStaticMarkup(<MarkdownRenderer content={'$x^2$\n\n```html\n<div>example</div>\n```'} labs={[]} />)
+    expect(html).toContain('class="katex"')
+    expect(html).toContain('<pre>')
+    expect(html).toContain('&lt;')
+    expect(html).not.toContain('<div>example</div>')
+  })
+
   it('scrolls README fragment links within their own pane without replacing the app route', () => {
     const { container } = render(<><section className="note-prose"><MarkdownRenderer content={'[目录](#%E7%AB%A0%E8%8A%82)\n\n## 章节'} labs={[]} /></section><section className="note-prose"><MarkdownRenderer content={'## 章节'} labs={[]} /></section></>)
     const headings = container.querySelectorAll('h2')

@@ -1,6 +1,9 @@
 import { isValidElement, useMemo, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Link } from 'react-router-dom'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
+import { safeHtmlSchema, imageDimension } from '../content/safeHtml'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
@@ -57,7 +60,7 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[rehypeHeadingIds, rehypeKatex, rehypeHighlight]}
+      rehypePlugins={[rehypeRaw, [rehypeSanitize, safeHtmlSchema], rehypeHeadingIds, rehypeKatex, rehypeHighlight]}
       components={{
         h1: ({ children, node }) => {
           const duplicateDocumentTitle = firstH1Offset >= 0
@@ -88,8 +91,8 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
           }}>{children}</a>
           return <a href={href} target="_blank" rel="noreferrer">{children}</a>
         },
-        img: ({ src, alt }) => (
-          <WorkspaceImage src={src ?? ''} alt={alt ?? ''} documentPath={documentPath} resolveAssetUrl={resolveAssetUrl} />
+        img: ({ src, alt, width, height, title }) => (
+          <WorkspaceImage src={src ?? ''} alt={alt ?? ''} width={imageDimension(width)} height={imageDimension(height)} title={title} documentPath={documentPath} resolveAssetUrl={resolveAssetUrl} />
         ),
         blockquote: ({ children }) => {
           const text = textFromNode(children).trim()

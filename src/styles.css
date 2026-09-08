@@ -4909,3 +4909,10 @@ button.trust-status {
 .getting-started a:hover { text-decoration: underline; }
 .getting-started summary { cursor: pointer; padding-block: 5px; }
 .getting-started :is(a, summary):focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* Keep sanitized README image badges inline and preserve explicit dimensions. */
+.note-prose img { max-width: 100%; height: auto; }
+.note-prose [align="center"] { text-align: center; }
+.note-prose [align="right"] { text-align: right; }
+.note-prose [align="left"] { text-align: left; }
+.note-prose [align] img { display: inline-block; vertical-align: middle; }
