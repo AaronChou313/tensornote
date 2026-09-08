@@ -4,7 +4,7 @@
 
 ## 当前交付
 
-### v1.8.1 候选：Project Experiment 只读解析与索引（2026-09-08）
+### v1.8.2 候选：Project Experiment 只读解析与索引（2026-09-08）
 
 新增 Experiment Fence、Manifest v1 校验、路径/环境继承/步骤 DAG 诊断、Workspace 实验索引，以及 Skill validator 与可复制模板。该阶段没有环境变更或代码执行副作用。
 
