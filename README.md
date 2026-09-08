@@ -10,7 +10,7 @@
 
 [![CI](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml/badge.svg)](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/AaronChou313/tensornote?color=4f8061)](https://github.com/AaronChou313/tensornote/releases/latest) [![License](https://img.shields.io/badge/license-Apache--2.0-5d7869)](LICENSE)
 
-![TensorNote 阅读工作台](docs/images/v1.6.0/web-reading.jpg)
+![TensorNote 阅读工作台](docs/images/v1.6.2/web-reading.jpg)
 
 知识正文、属性、链接和实验都保存在 Markdown、附件与 `tensornote.yaml` 中。索引、图谱和 Database 可从源文件重建，内容不依赖私有数据库。应用采用白色与淡绿的简洁工作台，也提供深色主题。
 
@@ -68,11 +68,11 @@ Git 工作台支持 Status、Diff、Stage/Unstage、History 和 Commit。**Commi
 
 ## 最新界面快照
 
-以下是真实 1.6.1 Web/Desktop 应用截图，使用随仓库提供的示例内容。
+以下是真实 1.6.2 Web/Desktop 应用截图，使用随仓库提供的示例内容。
 
 | 本地 Web 首页 | 桌面阅读 |
 | --- | --- |
-| ![Local Web](docs/images/v1.6.0/local-web-home.jpg) | ![Desktop](docs/images/v1.6.0/desktop-reading.jpg) |
+| ![Local Web](docs/images/v1.6.2/local-web-home.jpg) | ![Desktop](docs/images/v1.6.2/desktop-reading.jpg) |
 
 ## 让智能体维护知识库
 

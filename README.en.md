@@ -10,7 +10,7 @@
 
 [![CI](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml/badge.svg)](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/AaronChou313/tensornote?color=4f8061)](https://github.com/AaronChou313/tensornote/releases/latest) [![License](https://img.shields.io/badge/license-Apache--2.0-5d7869)](LICENSE)
 
-![TensorNote reading workspace](docs/images/v1.6.0/web-reading.jpg)
+![TensorNote reading workspace](docs/images/v1.6.2/web-reading.jpg)
 
 Content, properties, links and experiments live in Markdown, assets and `tensornote.yaml`. Indexes, graphs and Database views can be rebuilt from these files. There is no proprietary content database. A quiet white and pale-green workbench also supports a dark theme.
 
@@ -68,11 +68,11 @@ The Git workbench supports status, diff, stage/unstage, history and commit. **A 
 
 ## Current screenshots
 
-Real 1.6.1 Web/Desktop screenshots using bundled example content.
+Real 1.6.2 Web/Desktop screenshots using bundled example content.
 
 | Local Web home | Desktop reading |
 | --- | --- |
-| ![Local Web](docs/images/v1.6.0/local-web-home.jpg) | ![Desktop](docs/images/v1.6.0/desktop-reading.jpg) |
+| ![Local Web](docs/images/v1.6.2/local-web-home.jpg) | ![Desktop](docs/images/v1.6.2/desktop-reading.jpg) |
 
 ## Let an agent maintain your knowledge base
 

@@ -1,6 +1,6 @@
 # v1.6 稳定候选与发行验收记录
 
-日期：2026-09-06。下方分节保留每个候选当时的验收与失败记录，不合并为虚假的同一产物。最新 v1.6.1 已公开，最终结果见文末；平台签名与干净安装覆盖仍以 RELEASE_MATRIX 为准。
+更新：2026-09-08。下方分节保留每个候选当时的验收与失败记录，不合并为虚假的同一产物。最新 v1.6.2 已公开，最终结果见文末；平台签名与干净安装覆盖仍以 RELEASE_MATRIX 为准。
 
 ## 已执行的本机门
 
@@ -90,3 +90,16 @@
 - 线上 index.html、入口 JS 和 CSS 与此 Tag 的 Static Web archive 逐字节/哈希一致，不能用本地开发截图替代这项部署证据。
 - 保留限制：无平台受信开发者签名/公证；非本机平台仅构建覆盖；公共 Binder 完整执行和跨版本升级未冒充通过。首次社区发行不再以付费证书阻塞。
 - 发布后匿名访问 latest.json 为 1.6.1，Updater 的 GitHub asset API 在 application/octet-stream 下返回真实 gzip 资产；下载的 1.6.1 桌面包点击检查更新，实际显示“当前已是最新版本”。这证明当前查询入口可用，不等于跨版本安装升级已验证。
+
+## v1.6.2：2026-09-08 已公开
+
+- 不可变 Tag：`v1.6.2` → `cc11a3fa35878a6d72bab2308af5cb9ea4b63b01`；公开时间 02:43:46 UTC，GitHub Latest 为 v1.6.2。
+- CI `34179375641`、dry run `34179377924` 通过；正式 Release `34180140822` 全部通过。初次 Pages 部署因精确 Tag 名单不包含 v1.6.2 被拒绝；新增该 Tag 策略、仅重跑失败部署后成功，既有保护保留。
+- 本地最终 180 项 JavaScript 测试、3 项性能测试、生产审计、Static 边界、Rust fmt/clippy 与 14 项测试通过。Skill quick validation、两套 strict 模板及仓库 strict 校验通过。
+- 下载 22 个附件，20 项 SHA-256 与 manifest 版本/Tag/commit/渠道一致；独立 Ed25519/minisign 验证 7 个更新签名及 trusted comment，并用篡改消息确认验签拒绝；latest.json 的 11 个平台目标均映射到真实附件和相同签名。
+- 正式 macOS arm64 应用在 `.release/v1.6.2-installed/TensorNote.app` 解压启动，Info.plist 为 1.6.2，示例侧栏、阅读页和右侧目录可见。仍是无 Developer ID 的社区包，不宣称通过操作系统发行者签名验收。
+- dry-run 本地 Web 包在源码目录外解压，用原始 `node start.mjs` 启动，页面及 SPA 深路径正常。正式 local-web 归档解压后逐文件 SHA-256 与这份实测包完全相同。Safari 仅检查启动页；本地目录读写仍推荐 Chrome/Edge。
+- 正式 Skill 包在独立目录安装锁定依赖并校验两套模板，通过。
+- 已部署 Pages 入口资源为 `index-Djc0EP28.js` / `index-BTTnOq_V.css`，与正式 Static archive 一致。完整公开仓库分享 URL 在 Chrome/Safari 均能自动打开 Workspace；更新后只读复查用户公开课程仓库，中文章节名称和 Images 文件夹显示正确。
+- 截图只含内置/公开示例和无用户数据的启动页，见 [v1.6.2 来源说明](images/v1.6.2/PROVENANCE.md)。用户知识库未改写或公开到文档截图。
+- 干净 Windows/Linux/Intel macOS 安装、公共 Binder 完整执行和跨版本安装更新依然不冒充已实测。

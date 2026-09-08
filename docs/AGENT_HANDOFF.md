@@ -2,13 +2,13 @@
 
 更新：2026-09-08。仓库：`AaronChou313/tensornote`。本文件是项目继续开发和发行操作的首要入口；外部状态仍须实时查询 GitHub。
 
-## v1.6.2 发行准备
-
-用户已于 2026-09-08 明确授权发布 v1.6.2，包含下方使用反馈修订，并同步部署 Pages。本分支已更新应用、Skill、模板与双语版本说明；尚需 CI、dry run、不可变 Tag 构建和下载资产验收后公开。最新公开版在下面单独记录，不能把发行准备当作已发布。
-
 ## 当前交付
 
-**v1.6.1 已于 2026-09-06 13:04 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.6.1) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000`，共 22 个附件（20 项应用/Skill/Updater 资产及两份校验元数据）。[CI 34033833521](https://github.com/AaronChou313/tensornote/actions/runs/34033833521) 与 [Release 34033836481](https://github.com/AaronChou313/tensornote/actions/runs/34033836481) 全部通过；Pages 已部署。独立核对 20 项 SHA-256、7 个 Updater 签名与 11 个更新目标，通过；实际下载的 Apple Silicon 包版本、侧栏和帮助链接已检查。
+**v1.6.2 已于 2026-09-08 02:43:46 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.6.2) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `cc11a3fa35878a6d72bab2308af5cb9ea4b63b01`，22 个附件齐全（20 项资产及两份校验元数据）。[CI 34179375641](https://github.com/AaronChou313/tensornote/actions/runs/34179375641)、[发行演练 34179377924](https://github.com/AaronChou313/tensornote/actions/runs/34179377924) 与 [正式 Release 34180140822](https://github.com/AaronChou313/tensornote/actions/runs/34180140822) 均通过。独立核对 20 项 SHA-256、7 个 Updater 签名与 11 个更新目标，通过；公开 latest.json 已为 1.6.2。
+
+Pages 已部署，入口 JS/CSS 与发行静态包一致。首次部署被环境的精确 Tag 名单拒绝；只新增 `v1.6.2` 标签策略并重跑失败的部署步骤后通过（run attempt 2），未移动 Tag、未关闭保护规则或重建其他资产。既有 main 和 v1.6.1 规则保留。以后发行新 Tag 时须检查这个精确名单。
+
+v1.6.1 保留为历史稳定版；其 Tag `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000` 与附件未改动。
 
 用户已明确授权 GitHub 直接分发，当前不申请应用商店或付费平台证书。Tag 内 `release-policy.json` 固定 `github-community`：平台开发者签名可选，Updater 密码学签名必须。不要重新使用历史文档中的“没有 Apple/Windows 证书就禁止所有发行”规则。
 
@@ -29,11 +29,11 @@
 
 阅读和写作无需 Python。三版共享 Markdown、附件和 Schema v1。Git 目前支持 Status/Diff/Stage/Unstage/History/Commit，**没有 Push/Pull/Clone/分支切换**；远程同步由外部 Git 客户端负责。不要把未来 Git Sync 能力写进当前承诺。
 
-真实截图和来源记录在 `docs/images/v1.6.0/`；目录保留既有链接，图片及 provenance 已更新到 1.6.1。只使用内置示例，不公开用户知识库。
+当前真实截图和来源记录在 `docs/images/v1.6.2/`；旧版截图保留用于追溯。只使用内置示例，不公开用户知识库。
 
 ## 当前验证与限制
 
-- 本地 173 项 JavaScript 测试、Lint、TypeScript、Local build、3 项性能测试、生产审计、Static boundary 通过。
+- 本地 180 项 JavaScript 测试、Lint、TypeScript、Local build、3 项性能测试、生产审计、Static boundary 通过。
 - Rust fmt/clippy 与 14 项测试、Apple Silicon `.app` 构建通过。
 - Skill 结构、两套 strict 模板、内置 Workspace strict、独立 Skill 分发校验通过。
 - 真实 Web/Desktop 侧栏、宽窄屏、文件写入与 Owned Jupyter 主流程记录见 [候选验证](STABLE_CANDIDATE_VERIFICATION.md)。AX 中存在元素不代表像素可见，视觉问题必须检查实际截图。
@@ -64,10 +64,10 @@
 
 原始接管审计与旧发行门保存在 [历史交接快照](AGENT_HANDOFF_PRE_1_6_1.md)，仅用于追溯，不作为当前操作指令。
 
-## 2026-09-08：v1.6.1 使用反馈修订（尚未发行）
+## 2026-09-08：使用反馈修订（已随 v1.6.2 发行）
 
-分支 `codex/v1-6-1-user-experience` 修复宽屏阅读大纲粘滞定位、无 Frontmatter 中文目录被“未分类”覆盖、空附件目录文件图标误导，以及双栏独立滚动和按标题锚点同步。Overview 支持根目录 `OVERVIEW.md` 优先、`README.md` 回退；分享窗口增加默认分支阅读链接，固定 Revision 分享及执行信任边界保持不变。中英文使用手册已注明下一补丁的功能范围。版本号尚未递增，不能把这些改动描述成已上线的 v1.6.1。
+分支 `codex/v1-6-1-user-experience` 修复宽屏阅读大纲粘滞定位、无 Frontmatter 中文目录被“未分类”覆盖、空附件目录文件图标误导，以及双栏独立滚动和按标题锚点同步。Overview 支持根目录 `OVERVIEW.md` 优先、`README.md` 回退；分享窗口增加默认分支阅读链接，固定 Revision 分享及执行信任边界保持不变。中英文使用手册已注明 v1.6.2 的功能范围；此外修复 README 的片内目录链接覆盖 HashRouter 路由，并新增回归测试。
 
 本机使用独立 bundle id 的 TensorNote QA 和 `/tmp/tensornote-ux-vault` 测试，避免重启用户正在编辑且未保存的 TensorNote 窗口。验证 README 相对图片和库内链接、中文目录、长文浮动上下文栏、双栏双向同步和关闭同步；同步覆盖章节间插值，并非每个段落像素精确匹配。用户课程目录只读检查，未改写用户笔记。
 
-验证：`pnpm check` 179 项测试通过；性能测试 3 项通过；生产依赖审计无已知漏洞；Static Web 构建及无 Tauri IPC 边界检查通过；`pnpm check:desktop` 含 14 项 Rust 测试通过；macOS arm64 应用构建成功。公开仓库直达 URL 及分享窗口在本地 Web 实测通过，仍显示 Revision 信任要求。尚未推送、打 Tag 或创建新 Release，既有 v1.6.1 发行资产未改动。
+验证：`pnpm check` 最终 180 项测试通过；性能测试 3 项通过；生产依赖审计无已知漏洞；Static Web 构建及无 Tauri IPC 边界检查通过；`pnpm check:desktop` 含 14 项 Rust 测试通过；macOS arm64 应用构建成功。公开仓库直达 URL 及分享窗口在本地 Web 实测通过，仍显示 Revision 信任要求。代码已推送 main、打 v1.6.2 Tag 并公开 Release；既有 v1.6.1 发行资产未改动。正式 Apple Silicon 下载包已解压启动并核对版本和阅读布局。用户实际课程目录在候选桌面与已部署在线版均只读验证，中文章节及图片文件夹显示正确。
