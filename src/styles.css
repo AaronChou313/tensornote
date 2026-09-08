@@ -1157,13 +1157,49 @@ a {
   color: var(--ink);
 }
 
+.recent-heading {
+  justify-content: space-between;
+}
+
+.recent-heading > span,
+.recent-heading > button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.recent-heading > button {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .69rem;
+}
+
+.recent-heading > button:hover,
+.recent-heading > button:focus-visible {
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+
 .recent-list {
   display: grid;
   gap: 4px;
   margin-top: 13px;
 }
 
-.recent-list button {
+.recent-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  border-radius: 11px;
+}
+
+.recent-open {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr) auto;
   align-items: center;
@@ -1178,8 +1214,28 @@ a {
   text-align: left;
 }
 
-.recent-list button:hover {
+.recent-item:hover,
+.recent-item:focus-within {
   background: var(--surface-muted);
+}
+
+.recent-remove {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.recent-remove:hover,
+.recent-remove:focus-visible {
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .recent-mark {
@@ -1194,7 +1250,7 @@ a {
   font-weight: 700;
 }
 
-.recent-list button > span:nth-child(2) {
+.recent-open > span:nth-child(2) {
   min-width: 0;
   display: grid;
   gap: 2px;
@@ -3423,11 +3479,6 @@ button.trust-status {
 .extension-view-dialog > footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; border-top: 1px solid var(--line); background: var(--surface-muted); }
 .extension-view-dialog > footer > span { color: var(--faint); font-size: .56rem; }
 
-.tensornote-focus-mode .workspace-sidebar, .tensornote-focus-mode .workbench-topbar, .tensornote-focus-mode .workbench-tabs { display: none !important; }
-.tensornote-focus-mode .workbench-main { margin-left: 0 !important; }
-.tensornote-focus-mode .note-page { padding-top: 34px; }
-.tensornote-focus-mode .authoring-toolbar { top: 0; }
-.tensornote-focus-hide-status .extension-status-bar { display: none; }
 @keyframes extension-fade-in { from { opacity: 0; } }
 @keyframes extension-dialog-in { from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)) scale(.99); } }
 

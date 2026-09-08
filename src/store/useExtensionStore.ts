@@ -31,7 +31,7 @@ export const useExtensionStore = create<ExtensionState>()(persist((set) => ({
   }),
 }), {
   name: 'tensornote-extensions',
-  version: 1,
+  version: 2,
   migrate: (persisted) => migrateExtensionSettings(persisted),
   partialize: ({ enabled, grants, settings }) => ({ enabled, grants, settings }),
 }))

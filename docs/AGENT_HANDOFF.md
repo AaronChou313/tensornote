@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### main 未发布修订：最近打开与 Focus Mode（2026-09-08）
+
+Home 的“最近打开”增加单条移除与全部清空；操作只删除本机快捷入口。GitHub Provider 的仓库、分支提交与文件树请求绕过浏览器 HTTP 缓存，未固定 Revision 的链接重新打开时解析最新提交。内置 Focus Mode 已移除，旧持久化设置通过 Extension Store v2 迁移清理；Extension API、本地扩展管理器和示例保留。该修订尚未进入 v1.6.3 公开资产。
+
 ### v1.6.3 已发布：README 内嵌 HTML（2026-09-08）
 
 用户反馈 Happy-LLM GitHub Workspace 的 Overview 将 HTML 显示为源码。共享 MarkdownRenderer 已增加 HTML 解析与白名单净化，支持居中横幅、徽章和图片尺寸；HTML 相对图片继续通过 Workspace Provider 读取。脚本、事件属性、危险 URL、表单和自定义 CSS 被移除，代码围栏中的 HTML 保持源码。Web 与 Desktop 共用该修复。184 项测试、lint、类型检查、生产构建、Static 边界检查、3 项性能测试及生产依赖审计通过；实际 GitHub README 在本地 Web 中已验证横幅和徽章，macOS App 已重新构建。

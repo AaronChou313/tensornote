@@ -47,6 +47,7 @@ export class GitHubWorkspaceProvider implements WorkspaceProvider {
 
   private async api<T>(path: string): Promise<T> {
     const response = await fetch(`https://api.github.com${path}`, {
+      cache: 'no-store',
       headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
     })
     if (!response.ok) throw githubError(response)

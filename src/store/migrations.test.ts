@@ -42,9 +42,9 @@ describe('persisted settings migrations', () => {
 
   it('renames extension permissions to grants and removes unknown capabilities', () => {
     expect(migrateExtensionSettings({
-      enabled: { 'demo.ok': true, bad: 'yes' },
-      permissions: { 'demo.ok': ['workspace:read', 'camera', 'workspace:read'] },
-      settings: { 'demo.ok': { label: 'Hello', count: 3 } },
+      enabled: { 'demo.ok': true, 'tensornote.focus-mode': true, bad: 'yes' },
+      permissions: { 'demo.ok': ['workspace:read', 'camera', 'workspace:read'], 'tensornote.focus-mode': ['workspace:read'] },
+      settings: { 'demo.ok': { label: 'Hello', count: 3 }, 'tensornote.focus-mode': { hidden: true } },
     })).toEqual({
       enabled: { 'demo.ok': true },
       grants: { 'demo.ok': ['workspace:read'] },

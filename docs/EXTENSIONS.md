@@ -1,6 +1,6 @@
 # TensorNote Extension Platform v1
 
-TensorNote v0.6.0 支持官方扩展和用户从本机选择的本地扩展。当前版本没有公共在线插件市场，也不会下载或自动更新第三方插件。
+TensorNote 支持用户从本机选择的本地扩展。当前版本没有公共在线插件市场，也不会下载或自动更新第三方插件。
 
 ## 1. 打开扩展管理器
 
@@ -11,7 +11,7 @@ TensorNote v0.6.0 支持官方扩展和用户从本机选择的本地扩展。�
 - 当前 View、Sidebar、Markdown、Editor 与 Provider 贡献数量。
 - `Load local` 本地加载入口。
 
-TensorNote 自带官方 `Focus Mode` 扩展。它是 Extension API 的首个真实使用者，注册了 Command、View、Sidebar Item、Setting 和 Status Bar Item。可以从左侧 `Extensions → Focus mode`、状态栏 `Focus` 或 `Ctrl/Cmd + P → Toggle focus mode` 调用。
+当前版本不再内置 `Focus Mode`。扩展管理器与 Extension API 仍保留，供用户加载自己信任的本地扩展；以后会继续完善插件体验。
 
 ## 2. 本地扩展包
 

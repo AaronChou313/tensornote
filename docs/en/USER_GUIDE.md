@@ -53,6 +53,8 @@ Choose the installer for your OS and architecture from Release Assets. macOS bui
 3. Create a note in the file tree, write and save. Return through the recent workspaces list next time.
 4. Reading and writing require no Node.js, web server or Python setup.
 
+Use **Clear history** beside Recent Workspaces to remove all entries, or remove one entry with its trailing button. This only removes shortcuts stored on the current device; it does not delete workspace files, a GitHub repository, or revision trust. Reopening a GitHub link without a pinned revision resolves the branch's latest commit again. A shared URL containing a full commit revision remains fixed to that version.
+
 This GitHub community distribution does not have Apple Developer ID notarization or a trusted Windows publisher signature. Your OS may display an unidentified developer warning. Check the release source and `SHA256SUMS`, then use the OS-provided “Open Anyway” or “More info” process only if you trust that package. Organization-managed devices may block installation. Updater signature verification is separate from OS publisher signing. Do not disable system-wide security protection.
 
 ## 3. Read, write and organize

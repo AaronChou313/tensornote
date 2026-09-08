@@ -13,7 +13,6 @@ import { CommandPalette } from './workbench/CommandPalette'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { ExtensionRuntime } from '../extensions/ExtensionRuntime'
 import { ExtensionRuntimeContext } from '../extensions/ExtensionContext'
-import { focusModeExtension, focusModeManifest } from '../extensions/official/focusMode'
 import { useExtensionStore } from '../store/useExtensionStore'
 import { ExtensionManagerDialog } from './extensions/ExtensionManagerDialog'
 import { ExtensionStatusBar } from './extensions/ExtensionStatusBar'
@@ -47,7 +46,6 @@ export function AppShell() {
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
   const previousPath = useRef(location.pathname)
   const legacyOpenAttempted = useRef(false)
-  const extensionsInitialised = useRef(false)
   const [registry] = useState(() => new CommandRegistry())
   const [extensionRuntime] = useState(() => new ExtensionRuntime({
     commandRegistry: registry,
@@ -73,18 +71,6 @@ export function AppShell() {
     navigate('/', { replace: true })
     return true
   }, [navigate])
-
-  useEffect(() => {
-    if (extensionsInitialised.current) return
-    extensionsInitialised.current = true
-    void (async () => {
-      await extensionRuntime.install(focusModeManifest, focusModeExtension, 'official')
-      if (useExtensionStore.getState().enabled[focusModeManifest.id] !== false) {
-        await extensionRuntime.activate(focusModeManifest.id)
-        useExtensionStore.getState().setEnabled(focusModeManifest.id, true)
-      }
-    })().catch(() => undefined)
-  }, [extensionRuntime])
 
   useEffect(() => {
     if (!session && status === 'idle' && (location.pathname === '/notes' || location.pathname.startsWith('/notes/')) && !legacyOpenAttempted.current) {

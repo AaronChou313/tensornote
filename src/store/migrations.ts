@@ -61,18 +61,22 @@ export function migrateWorkspaceSettings(persisted: unknown) {
 }
 
 export function migrateExtensionSettings(persisted: unknown) {
+  const removedExtensions = new Set(['tensornote.focus-mode'])
   const state = record(persisted)
   const rawGrants = record(state.grants ?? state.permissions)
   const grants: Record<string, ExtensionPermission[]> = {}
   for (const [id, values] of Object.entries(rawGrants)) {
+    if (removedExtensions.has(id)) continue
     if (!Array.isArray(values)) continue
     grants[id] = [...new Set(values.filter((value): value is ExtensionPermission => extensionPermissions.includes(value as ExtensionPermission)))]
   }
   const settings: Record<string, Record<string, boolean | string>> = {}
   for (const [id, values] of Object.entries(record(state.settings))) {
+    if (removedExtensions.has(id)) continue
     settings[id] = Object.fromEntries(Object.entries(record(values)).filter((entry): entry is [string, boolean | string] => typeof entry[1] === 'boolean' || typeof entry[1] === 'string'))
   }
-  return { enabled: booleanRecord(state.enabled), grants, settings }
+  const enabled = Object.fromEntries(Object.entries(booleanRecord(state.enabled)).filter(([id]) => !removedExtensions.has(id)))
+  return { enabled, grants, settings }
 }
 
 export function migrateGitSettings(persisted: unknown) {

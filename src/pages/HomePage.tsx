@@ -7,6 +7,8 @@ import {
   FolderOpen,
   GithubLogo,
   Plus,
+  Trash,
+  X,
 } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
 import logoSquare from '../../assets/images/TensorNote_logo.png'
@@ -38,6 +40,8 @@ export function HomePage() {
   const clearError = useWorkspaceStore((state) => state.clearError)
   const openProvider = useWorkspaceStore((state) => state.openProvider)
   const recentWorkspaces = useWorkspaceStore((state) => state.recentWorkspaces)
+  const removeRecentWorkspace = useWorkspaceStore((state) => state.removeRecentWorkspace)
+  const clearRecentWorkspaces = useWorkspaceStore((state) => state.clearRecentWorkspaces)
   const [repository, setRepository] = useState('')
   const [ref, setRef] = useState('')
   const [inputError, setInputError] = useState<string | null>(null)
@@ -162,14 +166,20 @@ export function HomePage() {
 
         {visibleRecentWorkspaces.length > 0 && (
           <section className="recent-workspaces">
-            <div className="section-heading"><ClockCounterClockwise size={17} /><h2>最近打开</h2></div>
+            <div className="section-heading recent-heading">
+              <span><ClockCounterClockwise size={17} /><h2>最近打开</h2></span>
+              <button type="button" onClick={clearRecentWorkspaces}><Trash size={14} />清空记录</button>
+            </div>
             <div className="recent-list">
               {visibleRecentWorkspaces.map((recent) => (
-                <button key={recent.id} onClick={() => void reopen(recent)} disabled={busy}>
-                  <span className="recent-mark">{recent.name.slice(0, 1).toUpperCase()}</span>
-                  <span><strong>{recent.name}</strong><small>{recent.detail || recent.sourceLabel}</small></span>
-                  <span className="recent-source">{recent.sourceLabel}</span>
-                </button>
+                <div className="recent-item" key={recent.id}>
+                  <button className="recent-open" onClick={() => void reopen(recent)} disabled={busy}>
+                    <span className="recent-mark">{recent.name.slice(0, 1).toUpperCase()}</span>
+                    <span><strong>{recent.name}</strong><small>{recent.detail || recent.sourceLabel}</small></span>
+                    <span className="recent-source">{recent.sourceLabel}</span>
+                  </button>
+                  <button className="recent-remove" type="button" onClick={() => removeRecentWorkspace(recent.id)} aria-label={`从最近打开中移除 ${recent.name}`} title="移除记录"><X size={15} /></button>
+                </div>
               ))}
             </div>
           </section>

@@ -6,7 +6,7 @@ import { useWorkspaceStore } from './useWorkspaceStore'
 describe('workspace lifecycle', () => {
   beforeEach(() => {
     localStorage.clear()
-    useWorkspaceStore.setState({ status: 'idle', loadingMessage: '', error: null, provider: null, session: null, executionOverrides: {} })
+    useWorkspaceStore.setState({ status: 'idle', loadingMessage: '', error: null, provider: null, session: null, recentWorkspaces: [], executionOverrides: {} })
   })
 
   it('releases the active provider and returns to idle', async () => {
@@ -43,5 +43,19 @@ describe('workspace lifecycle', () => {
     useWorkspaceStore.getState().setActiveWorkspaceExecution(true)
 
     expect(useWorkspaceStore.getState().executionOverrides).toEqual({ 'local:notes': true })
+  })
+
+  it('removes one or all recent workspace records without touching workspace data', () => {
+    const recentWorkspaces = [
+      { id: 'github:demo/one', type: 'github', name: 'One', sourceLabel: 'GitHub', openedAt: 1 },
+      { id: 'local:two', type: 'local', name: 'Two', sourceLabel: 'Local', openedAt: 2 },
+    ]
+    useWorkspaceStore.setState({ recentWorkspaces })
+
+    useWorkspaceStore.getState().removeRecentWorkspace('github:demo/one')
+    expect(useWorkspaceStore.getState().recentWorkspaces.map((item) => item.id)).toEqual(['local:two'])
+
+    useWorkspaceStore.getState().clearRecentWorkspaces()
+    expect(useWorkspaceStore.getState().recentWorkspaces).toEqual([])
   })
 })

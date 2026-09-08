@@ -36,6 +36,8 @@ interface WorkspaceState {
   closeWorkspace: () => Promise<void>
   trustActiveWorkspace: () => void
   setActiveWorkspaceExecution: (enabled: boolean) => void
+  removeRecentWorkspace: (id: string) => void
+  clearRecentWorkspaces: () => void
   clearError: () => void
 }
 
@@ -188,6 +190,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           if (!session || session.compatibility.status === 'future') return
           set((state) => ({ executionOverrides: { ...state.executionOverrides, [session.descriptor.id]: enabled } }))
         },
+        removeRecentWorkspace: (id) => set((state) => ({
+          recentWorkspaces: state.recentWorkspaces.filter((workspace) => workspace.id !== id),
+        })),
+        clearRecentWorkspaces: () => set({ recentWorkspaces: [] }),
         clearError: () => set({ error: null, status: get().session ? 'ready' : 'idle' }),
       }
     },
