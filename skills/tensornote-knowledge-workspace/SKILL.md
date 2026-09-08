@@ -24,6 +24,7 @@ Build knowledge bases that remain ordinary Markdown repositories while gaining T
 - Read [references/knowledge-authoring.md](references/knowledge-authoring.md) when creating, restructuring, reviewing, or linking notes and assets.
 - Read [references/workspace-configuration.md](references/workspace-configuration.md) when creating or changing `tensornote.yaml`, directory layout, capabilities, trust, or portability.
 - Read [references/executable-labs.md](references/executable-labs.md) when adding, editing, reviewing, or debugging Python Labs or Scratch-to-note content.
+- Read [references/project-experiments.md](references/project-experiments.md) when a lesson uses multiple scripts, dependency groups, Notebook workflows, training steps, parameters, or artifacts.
 - Read [references/runtime-operations.md](references/runtime-operations.md) when installing TensorNote, choosing Conda/venv/uv, configuring Jupyter, starting services, using Git Bridge, deploying, or troubleshooting.
 
 Read multiple references when a request spans those concerns. Do not infer executable permission from the presence of Python code alone.
@@ -46,6 +47,7 @@ Read multiple references when a request spans those concerns. Do not infer execu
 - Optionally copy [assets/AGENTS.md](assets/AGENTS.md) into a user Workspace so agents can discover the installed skill; merge with existing instructions instead of overwriting them.
 - Copy [assets/note-template.md](assets/note-template.md) for a conceptual note.
 - Copy [assets/lab-note-template.md](assets/lab-note-template.md) for a multi-cell executable note.
+- Copy [assets/project-experiment-workspace-template](assets/project-experiment-workspace-template) for a safe multi-file experiment Workspace.
 - Copy [assets/publish-tensornote.yml](assets/publish-tensornote.yml) to `.github/workflows/publish-tensornote.yml` when publishing a public Workspace with GitHub Pages. Add a root License and complete the `publishing` block before enabling the Workflow.
 
 Replace every placeholder, keep IDs unique, and validate after copying.

@@ -165,3 +165,35 @@ it('prefers a dedicated root overview and refreshes edited introductions', async
   files['OVERVIEW.md'] = '# Updated introduction'
   expect((await loadWorkspace(provider, [])).overview?.content).toContain('Updated introduction')
 })
+
+it('indexes Project Experiment references without executing them', async () => {
+  const manifest = `schemaVersion: 1
+experiment:
+  id: demo-project
+  title: Demo project
+  workingDirectory: .
+environments:
+  default:
+    python: '3.11'
+    files: [requirements.txt]
+presets:
+  smoke:
+    title: Smoke
+    environment: default
+    steps: [run]
+defaultPreset: smoke
+steps:
+  run:
+    title: Run
+    runner: python
+    file: run.py`
+  const session = await loadWorkspace(createProvider('local', {
+    'note.md': `${note}\n\`\`\`tensornote-experiment\nmanifest: ./experiment/tensornote.experiment.yaml\npreset: smoke\n\`\`\``,
+    'experiment/tensornote.experiment.yaml': manifest,
+    'experiment/requirements.txt': '',
+    'experiment/run.py': 'print(1)',
+  }), [])
+  expect(session.experiments).toHaveLength(1)
+  expect(session.experiments[0]).toMatchObject({ manifestPath: 'experiment/tensornote.experiment.yaml', readOnly: false })
+  expect(session.experiments[0].manifest?.experiment.id).toBe('demo-project')
+})

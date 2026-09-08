@@ -140,6 +140,7 @@ export interface WorkspaceSession {
   knowledgeIndex: KnowledgeIndex
   propertyIndex: PropertyIndex
   environmentFiles: WorkspaceEnvironmentFile[]
+  experiments: import('../experiments/types').IndexedExperiment[]
   navigation: NoteTreeItem[]
   trusted: boolean
   openedAt: number

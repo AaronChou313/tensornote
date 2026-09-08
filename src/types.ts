@@ -44,6 +44,7 @@ export interface Note {
   content: string
   renderedContent: string
   labs: Lab[]
+  experimentReferences: import('./experiments/types').ExperimentReference[]
   headings: Heading[]
   searchText: string
   sourceModifiedAt?: number

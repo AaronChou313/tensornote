@@ -1,0 +1,32 @@
+schemaVersion: 1
+experiment:
+  id: hello-project
+  title: Hello Project
+  description: A bounded CPU-safe smoke experiment
+  workingDirectory: .
+  difficulty: basic
+  estimatedMinutes: 1
+environments:
+  default:
+    python: '3.11'
+    files:
+      - requirements.txt
+presets:
+  smoke:
+    title: Smoke test
+    environment: default
+    steps:
+      - hello
+defaultPreset: smoke
+steps:
+  hello:
+    title: Run hello
+    runner: python
+    file: hello.py
+    outputs:
+      - output.txt
+artifacts:
+  output:
+    title: Output
+    path: output.txt
+    kind: file

@@ -204,6 +204,51 @@ export async function validateWorkspace(rootArg, { strict = false } = {}) {
         }
       }
       for (const cells of labs.values()) if ([...cells].sort((a, b) => a - b).some((cell, i) => cell !== i + 1)) report('warning', 'lab-cell-gap', doc.path, 'Lab cells should be sequential from 1')
+      for (const match of doc.body.matchAll(/```tensornote-experiment\s*\n([\s\S]*?)```/g)) {
+        const reference = yaml(match[1], doc.path)
+        if (!reference) continue
+        if (!portable(reference.manifest) || !reference.manifest) {
+          report('error', 'experiment-reference-path', doc.path, 'Experiment manifest must be a nonempty safe relative path')
+          continue
+        }
+        const experimentPath = resolve(dirname(doc.path), reference.manifest)
+        if (!inside(root, experimentPath) || !await safeExisting(experimentPath)) {
+          report('error', 'experiment-manifest-missing', doc.path, 'Referenced Experiment Manifest is missing or unsafe')
+          continue
+        }
+        const experiment = yaml(await readFile(experimentPath, 'utf8'), experimentPath)
+        if (!experiment) continue
+        checkSecrets(experiment, experimentPath)
+        if (experiment.schemaVersion !== 1) report('error', 'experiment-schema-version', experimentPath, Number(experiment.schemaVersion) > 1 ? 'Future Experiment Manifest is read-only and cannot be released as an executable v1 experiment' : 'Experiment Manifest must declare schemaVersion: 1')
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(experiment.experiment?.id ?? '')) report('error', 'experiment-id', experimentPath, 'experiment.id must use lowercase kebab-case')
+        if (!portable(experiment.experiment?.workingDirectory)) report('error', 'experiment-working-directory', experimentPath, 'experiment.workingDirectory must be a safe relative path')
+        const environments = object(experiment.environments) ? experiment.environments : {}
+        const presets = object(experiment.presets) ? experiment.presets : {}
+        const steps = object(experiment.steps) ? experiment.steps : {}
+        if (!Object.keys(environments).length) report('error', 'experiment-environments', experimentPath, 'Experiment must declare at least one environment')
+        if (!Object.keys(presets).length) report('error', 'experiment-presets', experimentPath, 'Experiment must declare at least one preset')
+        if (!Object.keys(steps).length) report('error', 'experiment-steps', experimentPath, 'Experiment must declare at least one step')
+        if (!presets[experiment.defaultPreset]) report('error', 'experiment-default-preset', experimentPath, 'defaultPreset must reference an existing preset')
+        if (reference.preset && !presets[reference.preset]) report('error', 'experiment-reference-preset', doc.path, 'Experiment reference preset does not exist')
+        const base = dirname(experimentPath)
+        for (const [id, environment] of Object.entries(environments)) {
+          if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || !object(environment)) report('error', 'experiment-environment', experimentPath, 'Environment IDs must use lowercase kebab-case and map to objects')
+          if (environment?.extends && !environments[environment.extends]) report('error', 'experiment-environment-parent', experimentPath, 'Environment extends must reference an existing environment')
+          for (const file of Array.isArray(environment?.files) ? environment.files : []) {
+            const target = resolve(base, file)
+            if (!portable(file) || !inside(root, target) || !await safeExisting(target)) report('error', 'experiment-environment-file', experimentPath, 'Environment dependency file is missing or unsafe')
+          }
+        }
+        for (const [id, step] of Object.entries(steps)) {
+          if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || !object(step)) report('error', 'experiment-step', experimentPath, 'Step IDs must use lowercase kebab-case and map to objects')
+          if (!['python', 'python-module', 'notebook', 'torchrun'].includes(step?.runner)) report('error', 'experiment-runner', experimentPath, 'Unsupported Experiment runner')
+          for (const dependency of Array.isArray(step?.dependsOn) ? step.dependsOn : []) if (!steps[dependency]) report('error', 'experiment-step-dependency', experimentPath, 'Step dependency does not exist')
+          if (step?.file) {
+            const target = resolve(base, experiment.experiment?.workingDirectory ?? '.', step.file)
+            if (!portable(step.file) || !inside(root, target) || !await safeExisting(target)) report('error', 'experiment-step-file', experimentPath, 'Step file is missing or unsafe')
+          }
+        }
+      }
     }
   } catch {
     report('error', 'workspace-io', root, 'Unable to read workspace entries; check filesystem permissions and retry')

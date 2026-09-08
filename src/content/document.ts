@@ -2,6 +2,7 @@ import matter from 'gray-matter'
 import { Buffer } from 'buffer'
 import type { Heading, Note, NoteFrontmatter } from '../types'
 import { extractLabs } from './labParser'
+import { extractExperimentReferences } from '../experiments/referenceParser'
 
 if (!globalThis.Buffer) globalThis.Buffer = Buffer
 
@@ -79,6 +80,7 @@ export function parseDocument(path: string, raw: string, source?: { modifiedAt?:
     content: parsed.content,
     renderedContent,
     labs,
+    experimentReferences: extractExperimentReferences(parsed.content),
     headings,
     searchText: [
       frontmatter.title,

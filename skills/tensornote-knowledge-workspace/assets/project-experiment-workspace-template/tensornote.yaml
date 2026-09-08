@@ -1,0 +1,15 @@
+schemaVersion: 1
+workspace:
+  name: Project Experiment Workspace
+  description: Safe multi-file experiment template
+content:
+  root: notes
+assets:
+  root: assets
+navigation:
+  mode: filesystem
+features:
+  executable: false
+environment:
+  files: []
+extensions: {}

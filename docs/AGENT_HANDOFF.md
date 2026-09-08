@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.8.0 候选：Project Experiment 只读解析与索引（2026-09-08）
+
+新增 Experiment Fence、Manifest v1 校验、路径/环境继承/步骤 DAG 诊断、Workspace 实验索引，以及 Skill validator 与可复制模板。该阶段没有环境变更或代码执行副作用。
+
 ### v1.7.0 候选：Project Experiment 契约基线（2026-09-08）
 
 新增 Project Experiment Manifest v1 规范、JSON Schema、合法/非法 fixtures、威胁模型和 Happy-LLM 第 5～6 章迁移表。该阶段只冻结声明与安全边界，不解析、安装或执行项目实验；Workspace Schema v1、Compute Provider v1 和 Inline Lab 保持不变。
