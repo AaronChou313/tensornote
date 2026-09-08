@@ -63,13 +63,13 @@ This GitHub community distribution does not have Apple Developer ID notarization
 - Bundled examples are read-only. Open your own local copy to edit them.
 - Markdown is durable content. Lab outputs, Scratch code and Kernel memory are not automatically saved notes. Explicitly save code, export or copy important results.
 
-### Customize Overview (next patch)
+### Customize Overview (v1.6.2+)
 
 Place `README.md` at the workspace root to display its Markdown body on Overview, including relative images and links to notes. No TensorNote-specific editor is required. If `OVERVIEW.md` also exists, it takes priority, allowing a separate reading homepage. Names are case-insensitive. Keep this file at the workspace root even when `content.root` points to a subfolder. Without either file, Overview retains the generated note entry points.
 
 The workspace name and statistics remain above the custom content. Edit `workspace.description` in an existing `tensornote.yaml` to customize the short introduction. Code blocks on the homepage are displayed, never automatically executed. Refresh or reopen the workspace after editing externally.
 
-### Folders, outline and split scrolling (next patch)
+### Folders, outline and split scrolling (v1.6.2+)
 
 Ordinary Markdown without `section` preserves the physical directory name. Directories such as `images` with no Markdown appear as folders; referenced images render inside notes. The outline stays visible while reading on wide screens and scrolls independently when long. On narrow screens, open it with the context sidebar button. Split preview enables synchronized scrolling by default, mapping heading positions between source and preview instead of copying pixel distances. Documents without headings use proportional progress. Alignment between headings is approximate; turn synchronization off to browse independently.
 
@@ -81,7 +81,7 @@ Replace `OWNER/REPO` with the public repository owner and name:
 https://aaronchou313.github.io/tensornote/#/open/github/OWNER/REPO
 ```
 
-Recipients can immediately read the repository's default branch. Append `?ref=main` to choose a branch (URL-encode other branch names). Existing releases support this URL; the next patch also adds a latest-content copy action to **Share Workspace**. Use the fixed Revision link in the same dialog for reproducible sharing. Links do not grant write access, automatically trust code, or contain Jupyter/GitHub tokens.
+Recipients can immediately read the repository's default branch. Append `?ref=main` to choose a branch (URL-encode other branch names). Existing releases support this URL; v1.6.2 also adds a latest-content copy action to **Share Workspace**. Use the fixed Revision link in the same dialog for reproducible sharing. Links do not grant write access, automatically trust code, or contain Jupyter/GitHub tokens.
 
 <a id="compute"></a>
 ## 4. Connect Jupyter when you need Python
