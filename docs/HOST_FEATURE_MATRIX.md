@@ -14,6 +14,7 @@
 | 系统文件关联、拖放/深链 | 受浏览器能力限制，无原生文件关联 | 同左 | 同左 | 原生支持 |
 | 应用更新 | 更新 Web 部署；可选 PWA | 更新 Web 部署；可选 PWA | 更新服务镜像/部署 | 显式检查并验证签名的 Updater |
 | 智能体维护知识文件与 JSON 校验 | 独立于应用；需要文件访问与 Node.js | 同左 | 同左 | 同左 |
+| Project Experiment Manifest v1（Preview） | 规划：读取与 Jupyter 子集 | 规划：只读、远程 Jupyter / Binder 引导 | 规划：读取与远程 Jupyter 子集 | 规划：环境、多脚本、Notebook、torchrun 与产物 |
 
 JupyterHub、BinderHub、Direct Jupyter 均走 Compute Connector 能力检查；HTTPS、CORS、WebSocket、用户认证和网络条件仍需满足。HTTPS 页面不能承诺连接任意 HTTP Jupyter。TensorNote 不托管公共 GPU，也不共享作者 Token。
 

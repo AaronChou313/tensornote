@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.7.0 候选：Project Experiment 契约基线（2026-09-08）
+
+新增 Project Experiment Manifest v1 规范、JSON Schema、合法/非法 fixtures、威胁模型和 Happy-LLM 第 5～6 章迁移表。该阶段只冻结声明与安全边界，不解析、安装或执行项目实验；Workspace Schema v1、Compute Provider v1 和 Inline Lab 保持不变。
+
 ### v1.6.4 已发布：最近打开、GitHub 刷新、Files 与 Focus Mode（2026-09-08）
 
 Home 的“最近打开”增加单条移除与全部清空；操作只删除本机快捷入口。GitHub Provider 的仓库、分支提交与文件树请求绕过浏览器 HTTP 缓存，未固定 Revision 的链接重新打开时解析最新提交。内置 Focus Mode 已移除，旧持久化设置通过 Extension Store v2 迁移清理；Extension API、本地扩展管理器和示例保留。

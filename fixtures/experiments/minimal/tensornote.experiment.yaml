@@ -1,0 +1,20 @@
+schemaVersion: 1
+experiment:
+  id: hello-project
+  title: Hello Project
+  workingDirectory: .
+environments:
+  default:
+    python: '3.11'
+    files: [requirements.txt]
+presets:
+  smoke:
+    title: Smoke test
+    environment: default
+    steps: [hello]
+defaultPreset: smoke
+steps:
+  hello:
+    title: Run hello
+    runner: python
+    file: hello.py

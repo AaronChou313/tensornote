@@ -126,3 +126,9 @@ v1.6.0 为 `HostAdapter` 增加可选的 update check、download/install progres
 `skills/tensornote-knowledge-workspace/` 将本页的运行时契约转换为智能体可执行的撰写、配置、运行和校验流程。Skill 不另定义内容格式：它必须继续使用 Workspace Schema v1、Executable Markdown Syntax v1 和 Settings / Secret Model v1。
 
 仓库级 `AGENTS.md` 负责自动路由；Skill 的 references 提供按需规格，assets 提供可复制模板，`validate-workspace.mjs` 提供确定性检查。完整安装与调用方式见[智能体接口与 Skill 使用说明](AGENT_INTEGRATION.md)。
+
+## 10. Project Experiment Preview 契约
+
+Project Experiment Manifest v1 是独立于 Workspace Schema v1 的可移植声明，用于多文件脚本、Notebook、结构化训练步骤、环境和产物。Preview 阶段不修改 Workspace Provider API v1、Compute Provider API v1 或 Executable Markdown Syntax v1。
+
+笔记通过 `tensornote-experiment` Fence 引用 Workspace 内的 `tensornote.experiment.yaml`。解析和索引没有执行、网络或写入副作用；未来 Manifest 版本只读。运行能力必须经独立 Experiment Runner capability、Workspace 执行授权、GitHub commit trust 和用户确认。完整格式见 [Project Experiment Manifest v1](PROJECT_EXPERIMENT_MANIFEST_V1.md)。

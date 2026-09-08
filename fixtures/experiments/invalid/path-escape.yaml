@@ -1,0 +1,20 @@
+schemaVersion: 1
+experiment:
+  id: unsafe-path
+  title: Unsafe path
+  workingDirectory: ../../outside
+environments:
+  default:
+    python: '3.11'
+    files: [../../requirements.txt]
+presets:
+  smoke:
+    title: Unsafe
+    environment: default
+    steps: [run]
+defaultPreset: smoke
+steps:
+  run:
+    title: Unsafe run
+    runner: python
+    file: ../../unsafe.py
