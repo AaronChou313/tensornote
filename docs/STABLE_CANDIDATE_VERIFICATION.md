@@ -124,3 +124,13 @@
 - 草稿全部 22 个附件在公开前下载到隔离目录；`SHA256SUMS` 覆盖的 20 项全部复核通过。Manifest 的版本、Tag 和 commit 一致，`latest.json` 包含 11 个平台映射和 11 份签名。
 - 正式 Apple Silicon 归档中 `Info.plist` 的短版本、构建版本均为 `1.17.0`，bundle id 为 `io.github.aaronchou313.tensornote`。未覆盖启动正在使用的同 bundle id 应用。
 - [公开 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.17.0) 于 2026-09-09 14:00 UTC 发布，非 Draft、非预发布并设为 Latest。Pages 部署入口脚本为 `index-Bk-Sz3Ce.js`，线上资源包含 `1.17.0`。
+
+## v1.18.0 Compute 与 Jupyter 体验正式发行
+
+- Desktop 采用环境优先的本地计算界面，Kernel 和 Owned Server 归入环境详情；Local Web 提供手动连接引导，在线 Web 只暴露远程连接。Remote 连接成功后自动发现 Kernel。
+- 最终 `pnpm check` 通过 63 个测试文件、226 项测试，以及 Lint、TypeScript 与 Local 生产构建；3 项性能测试、19 项 Rust 测试、Clippy、Static 边界、生产依赖审计和 Release validator 通过。
+- Skill quick validation、两套 strict 模板及仓库校验通过；本机 Apple Silicon 应用与 DMG 构建成功。
+- [Release dry run 34387736823](https://github.com/AaronChou313/tensornote/actions/runs/34387736823) 和 [正式 Tag Release 34388925373](https://github.com/AaronChou313/tensornote/actions/runs/34388925373) 全部成功。
+- 不可变 Tag `v1.18.0` 指向 `fe3d70698539f742a64e92757cb63ad6f8af4432`。公开前下载全部 22 个附件，SHA256SUMS 覆盖的 20 项全部复核通过；Manifest、latest.json 和正式 Apple Silicon 应用版本一致。
+- [公开 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.18.0) 于 2026-09-09 18:40 UTC 发布，非 Draft、非预发布并设为 Latest。Pages 已部署并确认入口资源包含 1.18.0。
+- GitHub Community 发行仍无 Apple Developer ID 公证与 Windows 商业签名；Updater 密码学签名保留。非本机平台由构建矩阵覆盖，不宣称完成物理设备安装验收。

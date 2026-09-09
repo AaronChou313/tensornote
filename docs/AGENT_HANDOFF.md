@@ -1,12 +1,12 @@
 # TensorNote 维护者交接
 
-更新：2026-09-09。仓库：`AaronChou313/tensornote`。本文件是项目继续开发和发行操作的首要入口；外部状态仍须实时查询 GitHub。
+更新：2026-09-10。仓库：`AaronChou313/tensornote`。本文件是项目继续开发和发行操作的首要入口；外部状态仍须实时查询 GitHub。
 
 ## 当前交付
 
-### v1.18.0 候选：以环境和连接为中心的 Compute UX（2026-09-10）
+### v1.18.0 已发布：以环境和连接为中心的 Compute UX（2026-09-10）
 
-Desktop 本地计算改为环境优先列表，Kernel 与 Owned Server 归入环境详情；支持受控补齐外部环境 Jupyter、复用 Server、日志和停止。Local Web 提供动态 Origin 的手动连接指引；Remote runtime 改为连接列表与详情弹窗，连接成功后自动枚举 Kernel。Compute Store v3 保持 token/Owned Profile 会话边界，并记录最后选择环境。Notebook 基础依赖与可选 ML 示例已分离。候选已通过 226 项前端测试、3 项性能测试、19 项 Rust 测试、Clippy、Local 与 Static 构建；尚未创建 Tag 或公开 Release。
+Desktop 本地计算改为环境优先列表，Kernel 与 Owned Server 归入环境详情；支持受控补齐外部环境 Jupyter、复用 Server、日志和停止。Local Web 提供动态 Origin 的手动连接指引；Remote runtime 改为连接列表与详情弹窗，连接成功后自动枚举 Kernel。Compute Store v3 保持 token/Owned Profile 会话边界，并记录最后选择环境。Notebook 基础依赖与可选 ML 示例已分离。版本已通过 226 项前端测试、3 项性能测试、19 项 Rust 测试、Clippy、Local 与 Static 构建，并发布 22 个附件及在线版。
 
 ### v1.17.0 已发布：环境管理与 Experiment 依赖安装（2026-09-09）
 
@@ -68,13 +68,15 @@ Files 导航严格使用 `content.root` 内的物理目录层级与目录名，�
 
 ### 已发布版本
 
-**v1.17.0 已于 2026-09-09 14:00 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.17.0) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `35e2eafc425c211f17f2264ab19670e744f8e590`，22 个附件齐全；[正式 Release 34357042729](https://github.com/AaronChou313/tensornote/actions/runs/34357042729) 的发行检查、Web、本地 Web、Linux、Windows、Intel/Apple Silicon macOS、容器、Pages 与最终归档全部通过。
+**v1.18.0 已于 2026-09-09 18:40 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.18.0) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `fe3d70698539f742a64e92757cb63ad6f8af4432`，22 个附件齐全；[正式 Release 34388925373](https://github.com/AaronChou313/tensornote/actions/runs/34388925373) 的发行检查、Web、本地 Web、Linux、Windows、Intel/Apple Silicon macOS、容器、Pages 与最终归档全部通过。
+
+v1.17.0 保留为历史稳定版；其 Tag 与附件未改动。
 
 v1.6.3 已于 2026-09-08 08:15:40 UTC 发布，Tag 固定到 `39147f9cd250c4a62bec8569ea80a51a592cc64e`；其附件保持不变。
 
 v1.6.2 已于 2026-09-08 02:43:46 UTC 发布，Tag 固定到 `cc11a3fa35878a6d72bab2308af5cb9ea4b63b01`；其附件保持不变。
 
-Pages 已部署 v1.17.0。环境仍使用精确 Tag 许可策略；既有规则保留。以后发行新 Tag 时仍须先检查该版本是否获准。
+Pages 已部署 v1.18.0。环境仍使用精确 Tag 许可策略；既有规则保留。以后发行新 Tag 时仍须先检查该版本是否获准。
 
 v1.6.1 保留为历史稳定版；其 Tag `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000` 与附件未改动。
 

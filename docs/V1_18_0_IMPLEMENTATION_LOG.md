@@ -9,16 +9,13 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：E3
-- 最后完成 Step：E2
-- 当前进行 Step：E3
-- 当前 HEAD：`a1ad295`（E2 提交前）
-- 工作树：v1.18.0 版本、双语文档、Skill template 与日志待提交
-- 当前已知问题：需要完成最终构建、提交、推送、Tag CI、资产核对和公开 Release。
-- 下一位智能体第一步：
-  1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
-  2. 支持复用已启动的 Server 与现有临时 Profile
-  3. 保持 token 仅在内存中流转
+- 当前阶段：完成
+- 最后完成 Step：E3
+- 当前进行 Step：无
+- 发布源码：`fe3d70698539f742a64e92757cb63ad6f8af4432`
+- 工作树：发布记录提交后应为 clean
+- 当前已知问题：无阻塞项；社区桌面包仍没有 Apple Developer ID / Windows 受信代码签名。
+- 下一位智能体第一步：从本日志、`docs/AGENT_HANDOFF.md` 与最新公开 Release 状态开始后续版本规划。
 
 ---
 
@@ -44,8 +41,8 @@
 | D2 | 依赖职责整理 | DONE | `26c4d8e` |
 | D3 | 样式与交互精修 | DONE | `f58f008` |
 | E1 | 全量测试与回归 | DONE | `a1ad295` |
-| E2 | 中英文文档 | DONE | 待提交 |
-| E3 | v1.18.0 Release | TODO | |
+| E2 | 中英文文档 | DONE | `8706b59` |
+| E3 | v1.18.0 Release | DONE | `fe3d706`（发行源码） |
 
 ---
 
@@ -995,7 +992,7 @@ E2：同步版本号、README、双语用户指南、Release Notes、交接与�
 
 状态：DONE
 完成时间：2026-09-10 03:17 CST
-提交：待提交
+提交：`8706b59`
 
 ### 本步目标
 
@@ -1036,6 +1033,54 @@ modified：E2 版本、文档、模板与日志待提交。
 ### 下一步
 
 E3：完成最终发行门、构建 GitHub 资产、推送 Tag、等待 CI、核对附件并公开 v1.18.0。
+
+
+---
+
+## E3 — v1.18.0 Release
+
+状态：DONE
+完成时间：2026-09-10 02:41 CST
+提交：`fe3d706`（发行源码；本节由发布后记录提交补充）
+
+### 本步目标
+
+冻结、验证并公开可下载的 v1.18.0 GitHub 社区稳定版，同时部署在线 Web。
+
+### 实际修改
+
+- 修正 Release Contract 中三处旧版本期望，冻结源码为 `fe3d70698539f742a64e92757cb63ad6f8af4432`。
+- 创建并推送不可变 annotated Tag `v1.18.0`。
+- Tag Workflow 完成 Web、Local Web、容器、Windows、Linux、Intel macOS、Apple Silicon macOS 与 Pages 构建。
+- 下载草稿的 22 个附件，逐项核对 SHA-256、Manifest、latest.json 与版本；正式 Apple Silicon 应用的 Info.plist 为 1.18.0。
+- 将 Release 公开为 Latest，并确认 Pages 入口加载 v1.18.0。
+
+### 测试 / 验证
+
+- `pnpm check`：63 个文件、226 项测试，Lint、TypeScript 与 Local 生产构建通过。
+- 3 项性能测试、19 项 Rust 测试、Clippy、Static 边界、生产依赖审计与 Release validator 通过。
+- Skill quick validation、两套 strict 模板及仓库校验通过。
+- [Release dry run 34387736823](https://github.com/AaronChou313/tensornote/actions/runs/34387736823) 与 [Tag Release 34388925373](https://github.com/AaronChou313/tensornote/actions/runs/34388925373) 全部成功。
+- [公开 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.18.0) 含 22 个附件；SHA256SUMS 覆盖的 20 项全部通过。
+- [在线版](https://aaronchou313.github.io/tensornote/) 已部署 v1.18.0。
+
+### 设计决定
+
+- GitHub Community 是当前稳定发行渠道；Updater 签名必须，平台开发者签名按现行策略可选。
+- Tag 保持指向发行源码，发布后的日志提交不移动 Tag。
+
+### 未完成 / 风险
+
+- 没有 Apple Developer ID 公证或 Windows 商业证书，首次打开桌面包仍可能显示操作系统来源提示。
+- 非本机安装体验由 CI 构建覆盖，不宣称完成所有物理设备验收。
+
+### Git 状态
+
+发布记录提交后应为 clean。
+
+### 下一步
+
+v1.18.0 计划全部完成；后续需求另立版本计划。
 
 
 ---
