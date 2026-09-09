@@ -162,3 +162,19 @@ describe('ComputeRuntime', () => {
     expect(events).not.toContain('error')
   })
 })
+
+describe('ComputeRuntime kernel discovery', () => {
+  it('uses the connector-resolved server when listing kernels', async () => {
+    const harness = providerHarness()
+    harness.provider.listKernels = vi.fn(async () => [{ name: 'python3', displayName: 'Python 3', language: 'python' }])
+    const connector: ComputeConnector = {
+      id: 'remote', kind: 'direct', label: 'Remote',
+      connect: vi.fn(async () => { throw new Error('not used') }),
+      diagnose: vi.fn(async () => ({ checks: [], connection: { serverUrl: 'https://example.test/user/', token: 'resolved', kernelName: 'python3' } })),
+    }
+    const runtime = new ComputeRuntime(() => harness.provider, () => connector)
+    await expect(runtime.listKernels(profile, 'secret')).resolves.toEqual([{ name: 'python3', displayName: 'Python 3', language: 'python' }])
+    expect(harness.provider.listKernels).toHaveBeenCalledWith(expect.objectContaining({ serverUrl: 'https://example.test/user/', token: 'resolved' }))
+    expect(harness.provider.disconnect).toHaveBeenCalledTimes(1)
+  })
+})

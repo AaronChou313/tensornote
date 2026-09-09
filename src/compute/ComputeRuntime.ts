@@ -236,6 +236,14 @@ export class ComputeRuntime {
   }
 
   async listKernels(profile: ComputeProfile, token: string, context: ComputeContext = { workspaceId: 'workspace' }) {
+    if (this.lease && this.configSignature === this.signature(profile, token, context)) {
+      const provider = await this.providerFactory(profile.kind)
+      try {
+        return await provider.listKernels(this.lease.connection)
+      } finally {
+        await provider.disconnect().catch(() => undefined)
+      }
+    }
     const connector = await this.connectorFactory(computeConnectorKind(profile.connector))
     const connectorResult = await connector.diagnose(this.request(profile, token, context))
     if (!connectorResult.connection) throw new Error('Compute 环境尚未就绪，请先启动或连接环境。')

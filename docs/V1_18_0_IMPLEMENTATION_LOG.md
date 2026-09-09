@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：C4
-- 最后完成 Step：C3
-- 当前进行 Step：C4
-- 当前 HEAD：`06ea301`（C3 提交前）
-- 工作树：C3 Remote Details 高级分组、样式与日志待提交
-- 当前已知问题：Kernel 仍依赖手填名称，连接验证后尚未自动枚举 KernelSpec。
+- 当前阶段：D1
+- 最后完成 Step：C4
+- 当前进行 Step：D1
+- 当前 HEAD：`477a197`（C4 提交前）
+- 工作树：C4 Kernel 自动发现源码、测试与日志待提交
+- 当前已知问题：Compute Store 的版本迁移、Local/Remote 分类和临时 Owned Profile 持久化边界需要审查。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -38,8 +38,8 @@
 | B6 | Owned Server 高级管理 | DONE | `a18dcf5` |
 | C1 | Local Web 专用体验 | DONE | `fc0de92` |
 | C2 | Remote Connection List | DONE | `06ea301` |
-| C3 | Remote Connection Details | DONE | 待提交 |
-| C4 | Kernel 自动发现 | TODO | |
+| C3 | Remote Connection Details | DONE | `477a197` |
+| C4 | Kernel 自动发现 | DONE | 待提交 |
 | D1 | Store 与 Migration | TODO | |
 | D2 | 依赖职责整理 | TODO | |
 | D3 | 样式与交互精修 | TODO | |
@@ -745,7 +745,7 @@ C3：整理远程详情 Dialog 的基础字段、高级设置、诊断、生命�
 
 状态：DONE
 完成时间：2026-09-10 02:11 CST
-提交：待提交
+提交：`477a197`
 
 ### 本步目标
 
@@ -780,6 +780,51 @@ modified：C3 源码、样式与日志待提交。
 ### 下一步
 
 C4：连接验证后自动获取 KernelSpec，并保留高级手动覆盖。
+
+
+## C4 — Kernel 自动发现
+
+状态：DONE
+完成时间：2026-09-10 02:19 CST
+提交：待提交
+
+### 本步目标
+
+让 Generic Jupyter、JupyterHub 与 BinderHub 在连接可用后自动读取 KernelSpec。
+
+### 实际修改
+
+- 诊断无失败项后自动调用统一 `ComputeRuntime.listKernels`。
+- JupyterHub/BinderHub 启动完成后复用 Connector 已解析的 lease 枚举 Kernel。
+- 优先保留已有选择，其次选择 `python3`，最后选择首个 Kernel。
+- 有枚举结果时显示下拉选项；高级设置保留手动覆盖名称。
+- Kernel 枚举结果与 Profile id 绑定，切换连接不会显示旧列表。
+
+### 修改文件
+
+- `src/components/settings/ComputeSettings.tsx`
+- `src/compute/ComputeRuntime.ts`
+- `src/compute/ComputeRuntime.test.ts`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：Lint、TypeScript、ComputeRuntime 与 Jupyter Provider 定向测试。
+
+结果：2 个文件、10 项测试通过；Lint 与 TypeScript 通过。
+
+### 设计决定
+
+- Kernel 列表是会话态探测结果，不写入持久化 store；最终选择仍保存于 Profile。
+- Binder 枚举必须复用启动得到的 lease，避免再次创建远程环境。
+
+### Git 状态
+
+modified：C4 源码、测试与日志待提交。
+
+### 下一步
+
+D1：审查 Store、持久化边界和 v1.17 → v1.18 migration。
 
 
 ---

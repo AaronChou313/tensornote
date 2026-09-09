@@ -6,7 +6,7 @@ import { computeRuntime } from '../../compute/ComputeRuntime'
 import { formatComputeDiagnosticReport } from '../../compute/compatibility'
 import { computeConnectorKind } from '../../compute/connectors'
 import { profileRuntimeLocation, resolveComputeCapabilities, runtimeLocationsForCapabilities, type RuntimeLocation } from '../../compute/runtimeSettings'
-import { computeProfileTemplates, type ComputeConnectorConfig, type ComputeContext, type ComputeSessionScope, type DiagnosticCheck } from '../../compute/types'
+import { computeProfileTemplates, type ComputeConnectorConfig, type ComputeContext, type ComputeKernelSpec, type ComputeSessionScope, type DiagnosticCheck } from '../../compute/types'
 import { deploymentAdapter } from '../../deployment/config'
 import { getHostAdapter } from '../../host/runtime'
 import type { RuntimeDiscovery } from '../../host/types'
@@ -82,6 +82,7 @@ export function ComputeSettings() {
   const fallbackTemplate = useMemo(() => runtimeLocation === 'local' ? computeProfileTemplates[0] : computeProfileTemplates.find((item) => item.name === 'Remote Server')!, [runtimeLocation])
   const profile = visibleProfiles.find((item) => item.id === activeProfileId) ?? visibleProfiles[0] ?? { id: `new-${runtimeLocation}-profile`, ...fallbackTemplate }
   const [diagnostics, setDiagnostics] = useState<DiagnosticCheck[]>([])
+  const [kernelDiscovery, setKernelDiscovery] = useState<{ profileId: string; kernels: ComputeKernelSpec[] }>({ profileId: '', kernels: [] })
   const [diagnosing, setDiagnosing] = useState(false)
   const [preparing, setPreparing] = useState(false)
   const [reportCopied, setReportCopied] = useState(false)
@@ -115,16 +116,31 @@ export function ComputeSettings() {
       : executionPolicy.enabled
         ? `已允许 ${session.manifest.workspace.name} 在所选 Compute Profile 中运行代码。`
         : '默认关闭。开启后，笔记实验和 Scratch Lab 可以向当前 Kernel 发送代码。'
+  const discoverKernels = async () => {
+    const kernels = await computeRuntime.listKernels(profile, token, computeContext)
+    setKernelDiscovery({ profileId: profile.id, kernels })
+    const preferred = kernels.find((item) => item.name === profile.kernelName) ?? kernels.find((item) => item.name === 'python3') ?? kernels[0]
+    if (preferred && preferred.name !== profile.kernelName) updateProfile(profile.id, { kernelName: preferred.name })
+    return kernels
+  }
   const diagnose = async () => {
     setDiagnosing(true)
-    try { setDiagnostics(await computeRuntime.diagnose(profile, token, computeContext)) }
+    try {
+      const checks = await computeRuntime.diagnose(profile, token, computeContext)
+      setDiagnostics(checks)
+      if (!checks.some((check) => check.status === 'fail')) await discoverKernels()
+    }
     catch (reason) { setDiagnostics([{ id: 'server', label: 'Diagnostics', status: 'fail', detail: reason instanceof Error ? reason.message : '诊断失败' }]) }
     finally { setDiagnosing(false) }
   }
   const prepare = async () => {
     setPreparing(true)
     setDiagnostics([])
-    try { setDiagnostics(await computeRuntime.prepare(profile, token, computeContext)) }
+    try {
+      const checks = await computeRuntime.prepare(profile, token, computeContext)
+      setDiagnostics(checks)
+      if (!checks.some((check) => check.status === 'fail')) await discoverKernels()
+    }
     catch (reason) {
       if (reason instanceof DOMException && reason.name === 'AbortError') setDiagnostics([])
       else setDiagnostics([{ id: 'server', label: 'Connection', status: 'fail', detail: reason instanceof Error ? reason.message : '连接失败' }])
@@ -151,12 +167,13 @@ export function ComputeSettings() {
             <label><span>Profile 名称</span><input value={profile.name} onChange={(event) => updateProfile(profile.id, { name: event.target.value })} /></label>
             <label><span>连接方式</span><select value={connectorKind} onChange={(event) => updateProfile(profile.id, { connector: connectorDefaults(event.target.value as keyof typeof connectorLabels), runtimeLocation })}><option value="direct">Generic Jupyter</option>{runtimeLocation === 'remote' && <><option value="jupyterhub">JupyterHub</option><option value="binderhub">BinderHub</option></>}</select></label>
             <label className="is-wide"><span>{connectorKind === 'direct' ? 'Server URL' : connectorKind === 'jupyterhub' ? 'Hub URL' : 'BinderHub URL'}</span><input value={profile.serverUrl} onChange={(event) => updateProfile(profile.id, { serverUrl: event.target.value, runtimeLocation })} placeholder={connectorKind === 'direct' ? (runtimeLocation === 'local' ? 'http://127.0.0.1:8888' : 'https://jupyter.example.com/') : connectorKind === 'jupyterhub' ? 'https://jupyter.example.com' : 'https://mybinder.org'} /></label>
-            <label><span>Kernel</span><input value={profile.kernelName} onChange={(event) => updateProfile(profile.id, { kernelName: event.target.value })} /></label>
+            <label><span>Kernel</span>{kernelDiscovery.profileId === profile.id && kernelDiscovery.kernels.length ? <select value={profile.kernelName} onChange={(event) => updateProfile(profile.id, { kernelName: event.target.value })}>{kernelDiscovery.kernels.map((kernel) => <option key={kernel.name} value={kernel.name}>{kernel.displayName} · {kernel.name}</option>)}</select> : <input value={profile.kernelName} onChange={(event) => updateProfile(profile.id, { kernelName: event.target.value })} placeholder="连接验证后自动发现" />}</label>
             {connectorKind !== 'binderhub' && <label><span>{connectorKind === 'jupyterhub' ? 'Hub API Token' : 'Token'}</span><input type="password" value={token} onChange={(event) => setToken(profile.id, event.target.value)} placeholder={connectorKind === 'jupyterhub' ? '有限权限 Token' : 'Jupyter Token'} /></label>}
           </div>
           <details className="settings-compute-advanced">
             <summary>高级设置与会话生命周期</summary>
             <div className="settings-form-grid">
+            <label className="is-wide"><span>手动覆盖 Kernel 名称</span><input value={profile.kernelName} onChange={(event) => updateProfile(profile.id, { kernelName: event.target.value })} placeholder="python3" /><small>通常无需填写；连接诊断会自动读取可用 Kernel。</small></label>
             <label className="is-wide"><span>Jupyter Workspace 路径</span><input value={profile.workspacePath ?? '.'} onChange={(event) => updateProfile(profile.id, { workspacePath: event.target.value })} placeholder="/srv/notebooks/my-workspace" /><small>Jupyter 进程中指向当前知识库根目录的路径；运行项目实验前会验证。</small></label>
             {profile.connector?.kind === 'jupyterhub' && <><label><span>用户名（可选校验）</span><input value={profile.connector.username ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, username: event.target.value } as ComputeConnectorConfig })} placeholder="由 Token 自动识别" /></label><label><span>命名 Server</span><input value={profile.connector.serverName ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, serverName: event.target.value } as ComputeConnectorConfig })} placeholder="tensornote" /></label></>}
             {profile.connector?.kind === 'binderhub' && <><label><span>Repository（可选）</span><input value={profile.connector.repository ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, repository: event.target.value } as ComputeConnectorConfig })} placeholder="默认使用当前 GitHub Workspace" /></label><label><span>完整 commit SHA（可选）</span><input value={profile.connector.revision ?? ''} onChange={(event) => updateProfile(profile.id, { connector: { ...profile.connector!, revision: event.target.value } as ComputeConnectorConfig })} placeholder="默认使用当前固定 Revision" /></label></>}
