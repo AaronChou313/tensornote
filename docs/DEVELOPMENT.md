@@ -26,7 +26,7 @@ git pull --ff-only origin main
 pnpm install --frozen-lockfile
 ```
 
-如果 `requirements-jupyter.txt` 有变化，激活 TensorNote 的 Python 环境后更新依赖：
+如果 Notebook 基础运行依赖 `requirements-jupyter.txt` 有变化，激活 TensorNote 的 Python 环境后更新依赖：
 
 ```bash
 # Conda 用户
@@ -99,7 +99,7 @@ git switch -c feat/功能短名称
 - 修改工作台标签、Pane、历史或侧栏：编辑 `src/workbench/`；它们是用户 UI 状态，不能写入 Markdown 或 Provider。
 - 新增可见操作：先注册到 `src/commands/CommandRegistry.ts`；Markdown 变换只进入 `src/commands/editor.ts`，不在工具栏或快捷键处理器复制字符串逻辑。
 - 修改扩展平台：核心契约与生命周期位于 `src/extensions/`，管理界面位于 `src/components/extensions/`；本地插件格式与权限要求见 [Extension Platform 指南](EXTENSIONS.md)。
-- 新增 Python 课程依赖：修改 `requirements-jupyter.txt`，并同步更新环境手册。
+- 修改 TensorNote Notebook 基础能力：更新 `requirements-jupyter.txt`。课程或实验依赖应放在对应 Workspace/Experiment 的 requirements 文件；仅维护本仓库可选示例时更新 `requirements-ml-example.txt`。
 - 新增前端依赖：使用 `pnpm add <包名>` 或 `pnpm add -D <包名>`，同时提交 `package.json` 与 `pnpm-lock.yaml`。
 
 ### 2.3 开发中验证

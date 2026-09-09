@@ -1,0 +1,5 @@
+# 可选：仓库内深度学习示例所需依赖
+# 实际知识库应在各 Experiment 的 requirements 文件中声明项目依赖。
+torch
+torchvision
+transformers

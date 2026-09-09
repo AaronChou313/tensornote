@@ -49,6 +49,7 @@ conda create -n tensornote python=3.11 pip -y
 conda activate tensornote
 python -m pip install --upgrade pip
 python -m pip install -r requirements-jupyter.txt
+# 再按 Experiment 声明安装其 requirements 文件
 ```
 
 ### Standard venv
@@ -58,6 +59,7 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements-jupyter.txt
+# 再按 Experiment 声明安装其 requirements 文件
 ```
 
 Windows PowerShell activation: `.venv\Scripts\Activate.ps1`.

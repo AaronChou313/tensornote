@@ -341,7 +341,8 @@ jupyter kernelspec list
 保持环境激活，在项目根目录运行：
 
 ```bash
-python -c "import torch, numpy, matplotlib, transformers, PIL; print('Python 环境正常'); print('PyTorch:', torch.__version__)"
+python -c "import numpy, matplotlib, PIL; print('Notebook 基础环境正常')"
+# 仅运行本仓库的 ML 示例时：python -m pip install -r requirements-ml-example.txt
 jupyter server --version
 jupyter kernelspec list
 ```

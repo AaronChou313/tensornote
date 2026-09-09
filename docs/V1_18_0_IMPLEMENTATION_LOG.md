@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：D2
-- 最后完成 Step：D1
-- 当前进行 Step：D2
-- 当前 HEAD：`2c7d716`（D1 提交前）
-- 工作树：D1 Store migration、环境选择偏好、测试与日志待提交
-- 当前已知问题：Notebook 基础依赖与项目 ML 依赖的文件职责仍需整理。
+- 当前阶段：D3
+- 最后完成 Step：D2
+- 当前进行 Step：D3
+- 当前 HEAD：`33374b0`（D2 提交前）
+- 工作树：D2 依赖文件、文档、Skill reference 与日志待提交
+- 当前已知问题：三端响应式、暗色主题、键盘焦点和弹窗细节需要最终视觉精修。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -40,8 +40,8 @@
 | C2 | Remote Connection List | DONE | `06ea301` |
 | C3 | Remote Connection Details | DONE | `477a197` |
 | C4 | Kernel 自动发现 | DONE | `2c7d716` |
-| D1 | Store 与 Migration | DONE | 待提交 |
-| D2 | 依赖职责整理 | TODO | |
+| D1 | Store 与 Migration | DONE | `33374b0` |
+| D2 | 依赖职责整理 | DONE | 待提交 |
 | D3 | 样式与交互精修 | TODO | |
 | E1 | 全量测试与回归 | TODO | |
 | E2 | 中英文文档 | TODO | |
@@ -831,7 +831,7 @@ D1：审查 Store、持久化边界和 v1.17 → v1.18 migration。
 
 状态：DONE
 完成时间：2026-09-10 02:27 CST
-提交：待提交
+提交：`33374b0`
 
 ### 本步目标
 
@@ -868,6 +868,52 @@ modified：D1 源码、测试与日志待提交。
 ### 下一步
 
 D2：整理 Notebook 基础依赖、项目 Experiment 依赖与开发依赖的文件职责。
+
+
+## D2 — 依赖职责整理
+
+状态：DONE
+完成时间：2026-09-10 02:35 CST
+提交：待提交
+
+### 本步目标
+
+区分 TensorNote Notebook Runtime、Workspace Experiment 与仓库示例依赖。
+
+### 实际修改
+
+- `requirements-jupyter.txt` 只保留 jupyter-server、ipykernel、numpy、matplotlib、pillow。
+- 新增 `requirements-ml-example.txt`，承载本仓库可选 torch、torchvision、transformers 示例。
+- 开发与环境手册明确项目依赖应由各 Experiment requirements 声明。
+- Skill runtime reference 同步说明先安装 Notebook 基础能力，再按 Experiment 声明安装。
+
+### 修改文件
+
+- `requirements-jupyter.txt`
+- `requirements-ml-example.txt`
+- `docs/DEVELOPMENT.md`
+- `docs/ENVIRONMENT_SETUP.md`
+- `skills/tensornote-knowledge-workspace/references/runtime-operations.md`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：Lint、TypeScript、git diff check、Skill quick_validate、严格模板验证、仓库 Workspace 验证。
+
+结果：全部通过；仓库验证保留既有 47 项 lab metadata info，无错误和警告。
+
+### 设计决定
+
+- 应用最小环境不随示例课程膨胀。
+- GPU 版 PyTorch 等平台相关依赖由 Workspace 作者提供分组 requirements，TensorNote 不固定选择。
+
+### Git 状态
+
+modified：D2 依赖、文档、Skill reference 与日志待提交。
+
+### 下一步
+
+D3：完成三端、响应式、暗色与交互视觉精修。
 
 
 ---

@@ -1,9 +1,6 @@
-# TensorNote 可执行笔记的 Python/Jupyter 依赖
+# TensorNote Notebook Runtime（连接、Kernel 与基础可视化）
 ipykernel
 jupyter-server
 matplotlib
 numpy
 pillow
-torch
-torchvision
-transformers
