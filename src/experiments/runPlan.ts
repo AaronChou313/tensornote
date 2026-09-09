@@ -15,7 +15,7 @@ export function materializeExperimentSteps(manifest: ExperimentManifest, presetI
   return preset.steps.map((id) => {
     const step = manifest.steps[id]
     if (!step) throw new Error(`步骤不存在：${id}`)
-    return { id, title: step.title, runner: step.runner, ...(step.file ? { file: step.file } : {}), ...(step.module ? { module: step.module } : {}), args: step.args.map(interpolate), outputs: step.outputs }
+    return { id, title: step.title, runner: step.runner, ...(step.file ? { file: step.file } : {}), ...(step.module ? { module: step.module } : {}), args: step.args.map(interpolate), outputs: step.outputs, ...(step.processes ? { processes: step.processes } : {}), ...(step.nodes ? { nodes: step.nodes } : {}), ...(step.nodeRank !== undefined ? { nodeRank: step.nodeRank } : {}), ...(step.masterAddress ? { masterAddress: step.masterAddress } : {}), ...(step.masterPort ? { masterPort: step.masterPort } : {}) }
   })
 }
 

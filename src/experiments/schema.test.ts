@@ -33,4 +33,18 @@ describe('experiment manifest v1', () => {
     expect(result.manifest).toBeUndefined()
     expect(result.diagnostics[0].code).toBe('future-schema')
   })
+
+  it('accepts bounded structured torchrun topology', () => {
+    const source = minimal
+      .replace('runner: python', 'runner: torchrun')
+      .replace('file: hello.py', 'file: hello.py\n    processes: 2\n    nodes: 1\n    masterPort: 29501')
+    const result = parseExperimentManifest(source)
+    expect(result.diagnostics).toEqual([])
+    expect(result.manifest?.steps.hello).toMatchObject({ processes: 2, nodes: 1, masterPort: 29501 })
+  })
+
+  it('rejects torchrun without a process count', () => {
+    const result = parseExperimentManifest(minimal.replace('runner: python', 'runner: torchrun'))
+    expect(result.diagnostics).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'torchrun-processes' })]))
+  })
 })

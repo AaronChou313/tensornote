@@ -118,6 +118,8 @@ pub fn run() {
             experiment_runtime::experiment_jobs,
             experiment_runtime::experiment_cancel_job,
             experiment_runtime::experiment_clear_jobs,
+            experiment_runtime::experiment_system_resources,
+            experiment_runtime::experiment_reveal_artifact,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

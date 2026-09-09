@@ -114,12 +114,14 @@ export interface RuntimeOperation {
   environmentId?: string
 }
 
-export interface ExperimentRunStepInput { id: string; title: string; runner: string; file?: string; module?: string; args: string[]; outputs: string[] }
+export interface ExperimentRunStepInput { id: string; title: string; runner: string; file?: string; module?: string; args: string[]; outputs: string[]; processes?: number; nodes?: number; nodeRank?: number; masterAddress?: string; masterPort?: number }
 export interface ExperimentRunPlanRequest { workspaceId: string; environmentId: string; experimentId: string; presetId: string; manifestPath: string; workingDirectory: string; steps: ExperimentRunStepInput[]; revision?: string }
 export interface ExperimentRunPlan { id: string; experimentId: string; presetId: string; environmentId: string; steps: ExperimentRunStepInput[]; inputs: Array<{ path: string; sha256: string }>; outputs: string[]; confirmation: string; expiresAt: number; revision?: string }
 export interface ExperimentLogLine { sequence: number; timestamp: number; stream: string; text: string }
 export interface ExperimentJobStep { id: string; title: string; state: 'pending' | 'running' | 'completed' | 'failed' | 'blocked' | 'cancelled' | 'interrupted'; exitCode?: number }
-export interface ExperimentJob { id: string; experimentId: string; presetId: string; state: 'running' | 'completed' | 'failed' | 'cancelled' | 'interrupted'; startedAt: number; finishedAt?: number; steps: ExperimentJobStep[]; logs: ExperimentLogLine[]; error?: string }
+export interface ExperimentJobArtifact { id: string; title: string; kind: 'notebook' | 'file'; path: string }
+export interface ExperimentJob { id: string; experimentId: string; presetId: string; state: 'running' | 'completed' | 'failed' | 'cancelled' | 'interrupted'; startedAt: number; finishedAt?: number; steps: ExperimentJobStep[]; logs: ExperimentLogLine[]; artifacts: ExperimentJobArtifact[]; error?: string }
+export interface SystemResourceSnapshot { cpuLogical: number; memoryTotalGB?: number; diskAvailableGB?: number; gpuCount: number; gpuMemoryGB?: number; cudaVersion?: string; warnings: string[] }
 
 export interface OwnedJupyterServer {
   id: string
@@ -173,6 +175,8 @@ export interface HostAdapter {
   listExperimentJobs?(): Promise<ExperimentJob[]>
   cancelExperimentJob?(jobId: string): Promise<ExperimentJob>
   clearExperimentJobs?(): Promise<void>
+  inspectSystemResources?(workspaceId?: string): Promise<SystemResourceSnapshot>
+  revealExperimentArtifact?(jobId: string, artifactId: string): Promise<void>
   startOwnedJupyter?(environmentId: string, workspaceId: string | undefined, origin: string): Promise<JupyterServerLaunch>
   listOwnedJupyter?(): Promise<OwnedJupyterServer[]>
   getOwnedJupyterLogs?(serverId: string): Promise<RuntimeLogLine[]>

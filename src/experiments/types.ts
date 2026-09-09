@@ -23,6 +23,11 @@ export interface ExperimentStep {
   args: string[]
   dependsOn: string[]
   outputs: string[]
+  processes?: number
+  nodes?: number
+  nodeRank?: number
+  masterAddress?: string
+  masterPort?: number
 }
 
 export interface ExperimentPreset {
@@ -49,6 +54,7 @@ export interface ExperimentManifest {
   parameters: Record<string, Record<string, unknown>>
   resources: Record<string, unknown>
   artifacts: Record<string, { title: string; path: string; kind: string }>
+  downloads?: Record<string, { title: string; url: string; sizeMB?: number; cache: string; sha256?: string; license?: string }>
 }
 
 export interface ExperimentDiagnostic {
@@ -75,4 +81,3 @@ export interface IndexedExperiment {
   diagnostics: ExperimentDiagnostic[]
   readOnly: boolean
 }
-

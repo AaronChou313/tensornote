@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.12.0 候选：Notebook、torchrun 与训练体验（2026-09-09）
+
+Desktop Notebook Runner 保留源 Notebook，并在应用数据目录生成可定位的执行副本。`torchrun` 使用结构化拓扑与固定 argv；本机资源检测覆盖 CPU、内存、磁盘、NVIDIA GPU/CUDA。资源不足需要明确继续，长任务显示运行时长、最近日志、步骤进度与唤醒提示。Manifest v1 可选 `downloads` 只读元数据说明来源、大小、缓存、许可和校验和。
+
 ### v1.11.0 候选：Desktop Python 多脚本 Job Runner（2026-09-09）
 
 新增原生 Experiment Runtime：运行计划绑定 Manifest 与脚本 SHA-256，使用固定环境 Python 与 argv 数组串行执行 `python` / `python-module`，提供逐步骤状态、受限日志、失败阻断、取消、全量重跑、失败续跑、历史清理和 interrupted 恢复。产物可在文件管理器中定位。

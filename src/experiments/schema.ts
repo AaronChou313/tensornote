@@ -36,6 +36,7 @@ export function parseExperimentManifest(source: string): ExperimentManifestResul
   const parameters = record(parsed.parameters)
   const resources = record(parsed.resources)
   const artifacts = record(parsed.artifacts)
+  const downloads = record(parsed.downloads)
   const id = typeof experiment.id === 'string' ? experiment.id : ''
   const title = typeof experiment.title === 'string' ? experiment.title.trim() : ''
   const workingDirectory = experiment.workingDirectory
@@ -78,9 +79,14 @@ export function parseExperimentManifest(source: string): ExperimentManifestResul
     if (file && !isPortableExperimentPath(file)) issue('path', '步骤文件必须是安全相对路径。', `steps.${stepId}.file`)
     const dependsOn = Array.isArray(item.dependsOn) ? item.dependsOn.map(String) : []
     const outputs = Array.isArray(item.outputs) ? item.outputs.map(String) : []
+    const processes = Number(item.processes), nodes = Number(item.nodes), nodeRank = Number(item.nodeRank), masterPort = Number(item.masterPort)
+    if (runner === 'torchrun' && (!Number.isInteger(processes) || processes < 1 || processes > 64)) issue('torchrun-processes', 'torchrun 必须声明 1–64 的 processes。', `steps.${stepId}.processes`)
+    if (item.nodes !== undefined && (!Number.isInteger(nodes) || nodes < 1 || nodes > 64)) issue('torchrun-nodes', 'nodes 必须是 1–64。', `steps.${stepId}.nodes`)
+    if (item.nodeRank !== undefined && (!Number.isInteger(nodeRank) || nodeRank < 0)) issue('torchrun-rank', 'nodeRank 必须是非负整数。', `steps.${stepId}.nodeRank`)
+    if (item.masterPort !== undefined && (!Number.isInteger(masterPort) || masterPort < 1024 || masterPort > 65535)) issue('torchrun-port', 'masterPort 必须是 1024–65535。', `steps.${stepId}.masterPort`)
     for (const dependency of dependsOn) if (!steps[dependency]) issue('step-dependency', 'dependsOn 引用了不存在的步骤。', `steps.${stepId}.dependsOn`)
     if (outputs.some((path) => !isPortableExperimentPath(path))) issue('path', '输出必须是安全相对路径。', `steps.${stepId}.outputs`)
-    normalizedSteps[stepId] = { title: String(item.title ?? stepId), runner: runner as ExperimentManifest['steps'][string]['runner'], ...(file ? { file } : {}), ...(module ? { module } : {}), args: Array.isArray(item.args) ? item.args.map(String) : [], dependsOn, outputs }
+    normalizedSteps[stepId] = { title: String(item.title ?? stepId), runner: runner as ExperimentManifest['steps'][string]['runner'], ...(file ? { file } : {}), ...(module ? { module } : {}), args: Array.isArray(item.args) ? item.args.map(String) : [], dependsOn, outputs, ...(Number.isInteger(processes) ? { processes } : {}), ...(Number.isInteger(nodes) ? { nodes } : {}), ...(Number.isInteger(nodeRank) ? { nodeRank } : {}), ...(typeof item.masterAddress === 'string' ? { masterAddress: item.masterAddress } : {}), ...(Number.isInteger(masterPort) ? { masterPort } : {}) }
   }
   const stepVisiting = new Set<string>(), stepVisited = new Set<string>()
   const visitStep = (stepId: string) => {
@@ -102,11 +108,19 @@ export function parseExperimentManifest(source: string): ExperimentManifestResul
   if (!presets[defaultPreset]) issue('default-preset', 'defaultPreset 必须引用存在的预设。', 'defaultPreset')
 
   for (const [artifactId, input] of Object.entries(artifacts)) if (!isPortableExperimentPath(record(input).path)) issue('path', '产物路径必须是安全相对路径。', `artifacts.${artifactId}.path`)
+  const normalizedDownloads: NonNullable<ExperimentManifest['downloads']> = {}
+  for (const [downloadId, input] of Object.entries(downloads)) {
+    const item = record(input)
+    let url: URL | undefined
+    try { url = new URL(String(item.url ?? '')) } catch { issue('download-url', '下载来源必须是有效 HTTPS URL。', `downloads.${downloadId}.url`) }
+    if (url && (url.protocol !== 'https:' || url.username || url.password)) issue('download-url', '下载来源必须是无凭据的 HTTPS URL。', `downloads.${downloadId}.url`)
+    if (!isPortableExperimentPath(item.cache)) issue('path', '下载缓存必须是安全相对路径。', `downloads.${downloadId}.cache`)
+    normalizedDownloads[downloadId] = { title: String(item.title ?? downloadId), url: String(item.url ?? ''), cache: String(item.cache ?? ''), ...(typeof item.sizeMB === 'number' ? { sizeMB: item.sizeMB } : {}), ...(typeof item.sha256 === 'string' ? { sha256: item.sha256 } : {}), ...(typeof item.license === 'string' ? { license: item.license } : {}) }
+  }
   if (diagnostics.some((item) => item.severity === 'error')) return { sourceVersion, readOnly: true, diagnostics }
   return { sourceVersion, readOnly: false, diagnostics, manifest: {
     schemaVersion: 1,
     experiment: { id, title, ...(typeof experiment.description === 'string' ? { description: experiment.description } : {}), workingDirectory: String(workingDirectory), difficulty: ['basic', 'medium', 'heavy'].includes(String(experiment.difficulty)) ? experiment.difficulty as ExperimentManifest['experiment']['difficulty'] : 'basic', ...(Number.isInteger(experiment.estimatedMinutes) ? { estimatedMinutes: Number(experiment.estimatedMinutes) } : {}) },
-    environments: normalizedEnvironments, presets: normalizedPresets, defaultPreset, steps: normalizedSteps, parameters: parameters as ExperimentManifest['parameters'], resources, artifacts: artifacts as ExperimentManifest['artifacts'],
+    environments: normalizedEnvironments, presets: normalizedPresets, defaultPreset, steps: normalizedSteps, parameters: parameters as ExperimentManifest['parameters'], resources, artifacts: artifacts as ExperimentManifest['artifacts'], downloads: normalizedDownloads,
   } }
 }
-

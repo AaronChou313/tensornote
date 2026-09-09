@@ -242,6 +242,7 @@ export async function validateWorkspace(rootArg, { strict = false } = {}) {
         for (const [id, step] of Object.entries(steps)) {
           if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || !object(step)) report('error', 'experiment-step', experimentPath, 'Step IDs must use lowercase kebab-case and map to objects')
           if (!['python', 'python-module', 'notebook', 'torchrun'].includes(step?.runner)) report('error', 'experiment-runner', experimentPath, 'Unsupported Experiment runner')
+          if (step?.runner === 'torchrun' && (!Number.isInteger(step.processes) || step.processes < 1 || step.processes > 64)) report('error', 'experiment-torchrun-processes', experimentPath, 'torchrun processes must be an integer from 1 to 64')
           for (const dependency of Array.isArray(step?.dependsOn) ? step.dependsOn : []) if (!steps[dependency]) report('error', 'experiment-step-dependency', experimentPath, 'Step dependency does not exist')
           if (step?.file) {
             const target = resolve(base, experiment.experiment?.workingDirectory ?? '.', step.file)

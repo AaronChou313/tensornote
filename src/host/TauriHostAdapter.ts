@@ -123,6 +123,16 @@ export class TauriHostAdapter implements HostAdapter {
     await invoke('experiment_clear_jobs')
   }
 
+  async inspectSystemResources(workspaceId?: string) {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<import('./types').SystemResourceSnapshot>('experiment_system_resources', { workspaceId })
+  }
+
+  async revealExperimentArtifact(jobId: string, artifactId: string): Promise<void> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    await invoke('experiment_reveal_artifact', { jobId, artifactId })
+  }
+
   async startOwnedJupyter(environmentId: string, workspaceId: string | undefined, origin: string): Promise<JupyterServerLaunch> {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<JupyterServerLaunch>('local_runtime_start_jupyter', { environmentId, workspaceId, origin })

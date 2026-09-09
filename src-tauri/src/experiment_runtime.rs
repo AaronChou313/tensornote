@@ -18,6 +18,18 @@ use tauri::{AppHandle, Manager, State};
 
 const MAX_LOG_LINES: usize = 1000;
 
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemResourceSnapshot {
+    cpu_logical: usize,
+    memory_total_gb: Option<f64>,
+    disk_available_gb: Option<f64>,
+    gpu_count: usize,
+    gpu_memory_gb: Option<f64>,
+    cuda_version: Option<String>,
+    warnings: Vec<String>,
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExperimentRunStep {
@@ -30,6 +42,11 @@ pub struct ExperimentRunStep {
     args: Vec<String>,
     #[serde(default)]
     outputs: Vec<String>,
+    processes: Option<u16>,
+    nodes: Option<u16>,
+    node_rank: Option<u16>,
+    master_address: Option<String>,
+    master_port: Option<u16>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -87,6 +104,15 @@ pub struct ExperimentJobStep {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ExperimentJobArtifact {
+    id: String,
+    title: String,
+    kind: String,
+    path: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExperimentJob {
     id: String,
     experiment_id: String,
@@ -96,6 +122,8 @@ pub struct ExperimentJob {
     finished_at: Option<u64>,
     steps: Vec<ExperimentJobStep>,
     logs: Vec<ExperimentLogLine>,
+    #[serde(default)]
+    artifacts: Vec<ExperimentJobArtifact>,
     error: Option<String>,
 }
 
@@ -147,6 +175,7 @@ pub struct ExperimentRuntimeManager {
     plans: Arc<Mutex<HashMap<String, PlanRecord>>>,
     jobs: Arc<Mutex<HashMap<String, Arc<JobControl>>>>,
     history_path: PathBuf,
+    runtime_root: PathBuf,
 }
 
 impl ExperimentRuntimeManager {
@@ -180,6 +209,7 @@ impl ExperimentRuntimeManager {
             plans: Arc::new(Mutex::new(HashMap::new())),
             jobs: Arc::new(Mutex::new(restored)),
             history_path,
+            runtime_root: root,
         })
     }
 
@@ -202,8 +232,11 @@ impl ExperimentRuntimeManager {
         });
         input_paths.push(manifest);
         for step in &request.steps {
-            if !matches!(step.runner.as_str(), "python" | "python-module") {
-                return Err(format!("{} 需要后续 Runner 支持", step.runner));
+            if !matches!(
+                step.runner.as_str(),
+                "python" | "python-module" | "notebook" | "torchrun"
+            ) {
+                return Err(format!("不支持的 Runner：{}", step.runner));
             }
             if step.args.len() > 128
                 || step
@@ -213,14 +246,17 @@ impl ExperimentRuntimeManager {
             {
                 return Err("步骤参数超出限制或包含非法字符".into());
             }
-            if step.runner == "python" {
-                let relative = step.file.as_deref().ok_or("python 步骤缺少文件")?;
+            if matches!(step.runner.as_str(), "python" | "notebook" | "torchrun") {
+                let relative = step.file.as_deref().ok_or("步骤缺少文件")?;
                 let file = secure_file(&working_directory, relative)?;
                 inputs.push(RunInput {
                     path: relative.into(),
                     sha256: hash_file(&file)?,
                 });
                 input_paths.push(file);
+                if step.runner == "torchrun" && !(1..=64).contains(&step.processes.unwrap_or(0)) {
+                    return Err("torchrun processes 必须是 1–64".into());
+                }
             } else if step.module.as_deref().map_or(true, |module| {
                 module.is_empty() || !module.split('.').all(valid_identifier)
             }) {
@@ -314,6 +350,7 @@ impl ExperimentRuntimeManager {
                 })
                 .collect(),
             logs: vec![],
+            artifacts: vec![],
             error: None,
         };
         let control = Arc::new(JobControl::new(job));
@@ -328,6 +365,14 @@ impl ExperimentRuntimeManager {
     }
 
     fn run(&self, plan: PlanRecord, python: PathBuf, control: Arc<JobControl>) {
+        let job_id = control
+            .snapshot()
+            .map(|job| job.id)
+            .unwrap_or_else(|_| "unknown".into());
+        let artifact_root = self
+            .runtime_root
+            .join("artifacts")
+            .join(job_id.replace(':', "-"));
         for (index, step) in plan.public.steps.iter().enumerate() {
             if control.cancelled.load(Ordering::Relaxed) {
                 break;
@@ -337,10 +382,44 @@ impl ExperimentRuntimeManager {
             }
             control.append("system", format!("开始：{}", step.title));
             let mut command = Command::new(&python);
-            if step.runner == "python" {
-                command.arg(step.file.as_deref().unwrap_or_default());
-            } else {
-                command.args(["-m", step.module.as_deref().unwrap_or_default()]);
+            match step.runner.as_str() {
+                "python" => {
+                    command.arg(step.file.as_deref().unwrap_or_default());
+                }
+                "python-module" => {
+                    command.args(["-m", step.module.as_deref().unwrap_or_default()]);
+                }
+                "torchrun" => {
+                    command.args(["-m", "torch.distributed.run"]);
+                    command.arg(format!("--nproc-per-node={}", step.processes.unwrap_or(1)));
+                    command.arg(format!("--nnodes={}", step.nodes.unwrap_or(1)));
+                    command.arg(format!("--node-rank={}", step.node_rank.unwrap_or(0)));
+                    command.arg(format!(
+                        "--master-addr={}",
+                        step.master_address.as_deref().unwrap_or("127.0.0.1")
+                    ));
+                    command.arg(format!(
+                        "--master-port={}",
+                        step.master_port.unwrap_or(29500)
+                    ));
+                    command.arg(step.file.as_deref().unwrap_or_default());
+                }
+                "notebook" => {
+                    let _ = fs::create_dir_all(&artifact_root);
+                    let output = format!("{}-executed.ipynb", step.id);
+                    command.args([
+                        "-m",
+                        "jupyter",
+                        "nbconvert",
+                        "--to",
+                        "notebook",
+                        "--execute",
+                    ]);
+                    command.args(["--output", &output]);
+                    command.arg("--output-dir").arg(&artifact_root);
+                    command.arg(step.file.as_deref().unwrap_or_default());
+                }
+                _ => unreachable!(),
             }
             command
                 .args(&step.args)
@@ -401,6 +480,17 @@ impl ExperimentRuntimeManager {
             if let Ok(mut job) = control.snapshot.lock() {
                 job.steps[index].state = "completed".into();
                 job.steps[index].exit_code = code;
+                if step.runner == "notebook" {
+                    let output = artifact_root.join(format!("{}-executed.ipynb", step.id));
+                    if output.is_file() {
+                        job.artifacts.push(ExperimentJobArtifact {
+                            id: step.id.clone(),
+                            title: format!("{}（执行副本）", step.title),
+                            kind: "notebook".into(),
+                            path: output.to_string_lossy().into_owned(),
+                        });
+                    }
+                }
             }
         }
         if let Ok(mut job) = control.snapshot.lock() {
@@ -528,6 +618,172 @@ pub fn experiment_cancel_job(
 #[tauri::command]
 pub fn experiment_clear_jobs(manager: State<'_, ExperimentRuntimeManager>) -> Result<(), String> {
     manager.clear()
+}
+
+#[tauri::command]
+pub fn experiment_system_resources(
+    registry: State<'_, NativeWorkspaceRegistry>,
+    workspace_id: Option<String>,
+) -> Result<SystemResourceSnapshot, String> {
+    let root = workspace_id
+        .as_deref()
+        .map(|id| registry.root(id))
+        .transpose()?;
+    Ok(inspect_resources(root.as_deref()))
+}
+
+#[tauri::command]
+pub fn experiment_reveal_artifact(
+    manager: State<'_, ExperimentRuntimeManager>,
+    job_id: String,
+    artifact_id: String,
+) -> Result<(), String> {
+    let job = manager.job(&job_id)?;
+    let artifact = job
+        .artifacts
+        .iter()
+        .find(|item| item.id == artifact_id)
+        .ok_or("运行产物不存在")?;
+    let path = PathBuf::from(&artifact.path)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let root = manager
+        .runtime_root
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    if !path.starts_with(root) {
+        return Err("运行产物不在 TensorNote 数据目录中".into());
+    }
+    tauri_plugin_opener::reveal_item_in_dir(path).map_err(|error| error.to_string())
+}
+
+fn inspect_resources(root: Option<&Path>) -> SystemResourceSnapshot {
+    let mut warnings = Vec::new();
+    let cpu_logical = std::thread::available_parallelism()
+        .map(usize::from)
+        .unwrap_or(1);
+    let memory_total_gb = total_memory_gb();
+    if memory_total_gb.is_none() {
+        warnings.push("无法读取系统内存总量".into());
+    }
+    let disk_available_gb = root.and_then(available_disk_gb);
+    if root.is_some() && disk_available_gb.is_none() {
+        warnings.push("无法读取 Workspace 可用磁盘".into());
+    }
+    let gpu_output = Command::new("nvidia-smi")
+        .args(["--query-gpu=memory.total", "--format=csv,noheader,nounits"])
+        .output()
+        .ok()
+        .filter(|output| output.status.success());
+    let gpu_memories = gpu_output
+        .as_ref()
+        .map(|output| {
+            String::from_utf8_lossy(&output.stdout)
+                .lines()
+                .filter_map(|line| line.trim().parse::<f64>().ok())
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let cuda_version = Command::new("nvidia-smi")
+        .args(["--query", "--display=COMPUTE"])
+        .output()
+        .ok()
+        .filter(|output| output.status.success())
+        .and_then(|output| {
+            let text = String::from_utf8_lossy(&output.stdout);
+            text.lines()
+                .find_map(|line| {
+                    line.split_once("CUDA Version").map(|(_, value)| {
+                        value
+                            .trim_matches(|char: char| char == ':' || char.is_whitespace())
+                            .to_string()
+                    })
+                })
+                .filter(|value| !value.is_empty())
+        });
+    SystemResourceSnapshot {
+        cpu_logical,
+        memory_total_gb,
+        disk_available_gb,
+        gpu_count: gpu_memories.len(),
+        gpu_memory_gb: gpu_memories
+            .iter()
+            .copied()
+            .reduce(f64::min)
+            .map(|mib| mib / 1024.0),
+        cuda_version,
+        warnings,
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn total_memory_gb() -> Option<f64> {
+    command_number("sysctl", &["-n", "hw.memsize"]).map(|bytes| bytes / 1_073_741_824.0)
+}
+#[cfg(target_os = "linux")]
+fn total_memory_gb() -> Option<f64> {
+    fs::read_to_string("/proc/meminfo")
+        .ok()?
+        .lines()
+        .find(|line| line.starts_with("MemTotal:"))?
+        .split_whitespace()
+        .nth(1)?
+        .parse::<f64>()
+        .ok()
+        .map(|kb| kb / 1_048_576.0)
+}
+#[cfg(windows)]
+fn total_memory_gb() -> Option<f64> {
+    command_number(
+        "powershell",
+        &[
+            "-NoProfile",
+            "-Command",
+            "[math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory)",
+        ],
+    )
+    .map(|bytes| bytes / 1_073_741_824.0)
+}
+
+#[cfg(unix)]
+fn available_disk_gb(root: &Path) -> Option<f64> {
+    let value = Command::new("df").args(["-Pk"]).arg(root).output().ok()?;
+    if !value.status.success() {
+        return None;
+    }
+    String::from_utf8_lossy(&value.stdout)
+        .lines()
+        .last()?
+        .split_whitespace()
+        .nth(3)?
+        .parse::<f64>()
+        .ok()
+        .map(|kb| kb / 1_048_576.0)
+}
+#[cfg(windows)]
+fn available_disk_gb(root: &Path) -> Option<f64> {
+    let drive = root.components().next()?.as_os_str().to_string_lossy();
+    command_number(
+        "powershell",
+        &[
+            "-NoProfile",
+            "-Command",
+            &format!(
+                "(Get-PSDrive '{}').Free",
+                drive.trim_end_matches('\\').trim_end_matches(':')
+            ),
+        ],
+    )
+    .map(|bytes| bytes / 1_073_741_824.0)
+}
+
+#[cfg(any(target_os = "macos", windows))]
+fn command_number(program: &str, args: &[&str]) -> Option<f64> {
+    let output = Command::new(program).args(args).output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    String::from_utf8_lossy(&output.stdout).trim().parse().ok()
 }
 
 fn valid_identifier(value: &str) -> bool {
