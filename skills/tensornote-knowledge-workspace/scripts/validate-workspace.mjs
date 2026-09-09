@@ -9,6 +9,19 @@ const object = (value) => value && typeof value === 'object' && !Array.isArray(v
 const slug = (value) => value.trim().toLowerCase().replace(/[\s/]+/g, '-').replace(/[^\p{L}\p{N}-]/gu, '')
 const portable = (value) => typeof value === 'string' && !/^(?:[a-z]+:|[\\/])/i.test(value) && !value.split(/[\\/]/).includes('..') && !value.includes('\0')
 const inside = (root, path) => { const rel = relative(root, path); return rel !== '..' && !rel.startsWith(`..${sep}`) && !/^(?:[a-z]:|[\\/])/i.test(rel) }
+const kebab = (value) => typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)
+function hasCycle(ids, dependencies) {
+  const visiting = new Set(), visited = new Set()
+  const visit = (id) => {
+    if (visiting.has(id)) return true
+    if (visited.has(id)) return false
+    visiting.add(id)
+    for (const dependency of dependencies(id)) if (ids.has(dependency) && visit(dependency)) return true
+    visiting.delete(id); visited.add(id)
+    return false
+  }
+  return [...ids].some(visit)
+}
 function proseOnly(source) {
   // Preserve line breaks so heading order stays aligned while ignoring fenced examples.
   let fence = null
@@ -220,11 +233,12 @@ export async function validateWorkspace(rootArg, { strict = false } = {}) {
         if (!experiment) continue
         checkSecrets(experiment, experimentPath)
         if (experiment.schemaVersion !== 1) report('error', 'experiment-schema-version', experimentPath, Number(experiment.schemaVersion) > 1 ? 'Future Experiment Manifest is read-only and cannot be released as an executable v1 experiment' : 'Experiment Manifest must declare schemaVersion: 1')
-        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(experiment.experiment?.id ?? '')) report('error', 'experiment-id', experimentPath, 'experiment.id must use lowercase kebab-case')
+        if (!kebab(experiment.experiment?.id ?? '')) report('error', 'experiment-id', experimentPath, 'experiment.id must use lowercase kebab-case')
         if (!portable(experiment.experiment?.workingDirectory)) report('error', 'experiment-working-directory', experimentPath, 'experiment.workingDirectory must be a safe relative path')
         const environments = object(experiment.environments) ? experiment.environments : {}
         const presets = object(experiment.presets) ? experiment.presets : {}
         const steps = object(experiment.steps) ? experiment.steps : {}
+        const parameters = object(experiment.parameters) ? experiment.parameters : {}
         if (!Object.keys(environments).length) report('error', 'experiment-environments', experimentPath, 'Experiment must declare at least one environment')
         if (!Object.keys(presets).length) report('error', 'experiment-presets', experimentPath, 'Experiment must declare at least one preset')
         if (!Object.keys(steps).length) report('error', 'experiment-steps', experimentPath, 'Experiment must declare at least one step')
@@ -232,22 +246,50 @@ export async function validateWorkspace(rootArg, { strict = false } = {}) {
         if (reference.preset && !presets[reference.preset]) report('error', 'experiment-reference-preset', doc.path, 'Experiment reference preset does not exist')
         const base = dirname(experimentPath)
         for (const [id, environment] of Object.entries(environments)) {
-          if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || !object(environment)) report('error', 'experiment-environment', experimentPath, 'Environment IDs must use lowercase kebab-case and map to objects')
+          if (!kebab(id) || !object(environment)) report('error', 'experiment-environment', experimentPath, 'Environment IDs must use lowercase kebab-case and map to objects')
           if (environment?.extends && !environments[environment.extends]) report('error', 'experiment-environment-parent', experimentPath, 'Environment extends must reference an existing environment')
           for (const file of Array.isArray(environment?.files) ? environment.files : []) {
             const target = resolve(base, file)
             if (!portable(file) || !inside(root, target) || !await safeExisting(target)) report('error', 'experiment-environment-file', experimentPath, 'Environment dependency file is missing or unsafe')
           }
         }
+        if (hasCycle(new Set(Object.keys(environments)), (id) => environments[id]?.extends ? [environments[id].extends] : [])) report('error', 'experiment-environment-cycle', experimentPath, 'Environment inheritance must be acyclic')
+        for (const [id, preset] of Object.entries(presets)) {
+          if (!kebab(id) || !object(preset)) { report('error', 'experiment-preset', experimentPath, 'Preset IDs must use lowercase kebab-case and map to objects'); continue }
+          if (!environments[preset.environment]) report('error', 'experiment-preset-environment', experimentPath, `Preset ${id} references an unknown environment`)
+          if (!Array.isArray(preset.steps) || !preset.steps.length) report('error', 'experiment-preset-steps', experimentPath, `Preset ${id} must contain at least one step`)
+          else for (const stepId of preset.steps) if (!steps[stepId]) report('error', 'experiment-preset-step', experimentPath, `Preset ${id} references an unknown step`)
+          if (preset.parameters !== undefined && !object(preset.parameters)) report('error', 'experiment-preset-parameters', experimentPath, `Preset ${id} parameters must be a mapping`)
+          else for (const parameterId of Object.keys(preset.parameters ?? {})) if (!parameters[parameterId]) report('error', 'experiment-preset-parameter', experimentPath, `Preset ${id} overrides an unknown parameter`)
+        }
         for (const [id, step] of Object.entries(steps)) {
-          if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || !object(step)) report('error', 'experiment-step', experimentPath, 'Step IDs must use lowercase kebab-case and map to objects')
+          if (!kebab(id) || !object(step)) report('error', 'experiment-step', experimentPath, 'Step IDs must use lowercase kebab-case and map to objects')
           if (!['python', 'python-module', 'notebook', 'torchrun'].includes(step?.runner)) report('error', 'experiment-runner', experimentPath, 'Unsupported Experiment runner')
           if (step?.runner === 'torchrun' && (!Number.isInteger(step.processes) || step.processes < 1 || step.processes > 64)) report('error', 'experiment-torchrun-processes', experimentPath, 'torchrun processes must be an integer from 1 to 64')
+          if (step?.nodes !== undefined && (!Number.isInteger(step.nodes) || step.nodes < 1 || step.nodes > 64)) report('error', 'experiment-torchrun-nodes', experimentPath, 'torchrun nodes must be an integer from 1 to 64')
+          if (step?.nodeRank !== undefined && (!Number.isInteger(step.nodeRank) || step.nodeRank < 0)) report('error', 'experiment-torchrun-rank', experimentPath, 'torchrun nodeRank must be a nonnegative integer')
+          if (step?.masterPort !== undefined && (!Number.isInteger(step.masterPort) || step.masterPort < 1024 || step.masterPort > 65535)) report('error', 'experiment-torchrun-port', experimentPath, 'torchrun masterPort must be 1024–65535')
+          if (step?.args !== undefined && (!Array.isArray(step.args) || step.args.some((arg) => typeof arg !== 'string'))) report('error', 'experiment-step-args', experimentPath, 'Step args must be an array of strings')
           for (const dependency of Array.isArray(step?.dependsOn) ? step.dependsOn : []) if (!steps[dependency]) report('error', 'experiment-step-dependency', experimentPath, 'Step dependency does not exist')
           if (step?.file) {
             const target = resolve(base, experiment.experiment?.workingDirectory ?? '.', step.file)
             if (!portable(step.file) || !inside(root, target) || !await safeExisting(target)) report('error', 'experiment-step-file', experimentPath, 'Step file is missing or unsafe')
           }
+          for (const output of Array.isArray(step?.outputs) ? step.outputs : []) if (!portable(output) || !output) report('error', 'experiment-step-output', experimentPath, 'Step outputs must be safe relative paths')
+        }
+        if (hasCycle(new Set(Object.keys(steps)), (id) => Array.isArray(steps[id]?.dependsOn) ? steps[id].dependsOn : [])) report('error', 'experiment-step-cycle', experimentPath, 'Step dependencies must be acyclic')
+        for (const [id, artifact] of Object.entries(object(experiment.artifacts) ? experiment.artifacts : {})) {
+          if (!kebab(id) || !object(artifact)) report('error', 'experiment-artifact', experimentPath, 'Artifact IDs must use lowercase kebab-case and map to objects')
+          if (!portable(artifact?.path) || !artifact.path) report('error', 'experiment-artifact-path', experimentPath, 'Artifact paths must be safe relative paths')
+          if (!['file', 'directory', 'image', 'json', 'csv', 'markdown', 'notebook', 'model'].includes(artifact?.kind)) report('error', 'experiment-artifact-kind', experimentPath, 'Artifact kind is unsupported')
+        }
+        for (const [id, download] of Object.entries(object(experiment.downloads) ? experiment.downloads : {})) {
+          if (!kebab(id) || !object(download)) report('error', 'experiment-download', experimentPath, 'Download IDs must use lowercase kebab-case and map to objects')
+          let source
+          try { source = new URL(download?.url ?? '') } catch {}
+          if (!source || source.protocol !== 'https:' || source.username || source.password) report('error', 'experiment-download-url', experimentPath, 'Download sources must be credential-free HTTPS URLs')
+          if (!portable(download?.cache) || !download.cache) report('error', 'experiment-download-cache', experimentPath, 'Download cache must be a safe relative path')
+          if (download?.sha256 !== undefined && !/^[a-f0-9]{64}$/i.test(download.sha256)) report('error', 'experiment-download-sha256', experimentPath, 'Download sha256 must contain 64 hexadecimal characters')
         }
       }
     }

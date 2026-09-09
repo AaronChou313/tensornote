@@ -29,7 +29,7 @@
 
 ### 本地 Web
 
-1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.14.0.tar.gz`，解压。
+1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.15.0.tar.gz`，解压。
 2. 安装 Node.js 22 或更高版本。首次下载工具需要网络；包内已编译应用，**无需 pnpm、npm install 或前端构建**。
 3. 在解压得到的 `TensorNote-local-web` 文件夹打开终端，运行：
 
@@ -42,7 +42,7 @@ node start.mjs
 
 不要双击 `app/index.html`。端口被占用时先停止另一个本地 Web 服务。建议始终用同一个地址：`localhost` 与 `127.0.0.1` 的浏览器授权、设置和 Token 存储彼此独立。
 
-`TensorNote-web-1.14.0.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
+`TensorNote-web-1.15.0.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
 
 ### 桌面版
 
@@ -176,7 +176,7 @@ git config user.email "you@example.com"
 
 ## 6. 让智能体维护知识库
 
-从同版本 Release 下载 `TensorNote-agent-skill-1.6.1.tar.gz`，解压后把 `tensornote-knowledge-workspace/SKILL.md` 连同所在目录交给支持 Skill 的智能体；不能只复制标题或丢弃引用文件。明确指定你的知识库目录，不要让它误改 TensorNote 应用源码目录。
+从同版本 Release 下载 `TensorNote-agent-skill-1.15.0.tar.gz`，解压后把 `tensornote-knowledge-workspace/SKILL.md` 连同所在目录交给支持 Skill 的智能体；不能只复制标题或丢弃引用文件。明确指定你的知识库目录，不要让它误改 TensorNote 应用源码目录。
 
 建议任务：“按照这个 Skill 审核并更新指定知识库，保持 Schema v1、稳定笔记 ID、WikiLinks、可执行代码元数据和附件相对路径；先读取现有内容，更新后运行自带验证器并说明变化，不把任何 Token 写入文件。”
 
@@ -188,6 +188,8 @@ node scripts/validate-workspace.mjs "/absolute/path/to/your-vault" --strict
 ```
 
 智能体仍通过文件读写维护可移植 Markdown；这不是给任意智能体开放桌面 Shell 的远程接口。更多格式与维护规则随 Skill 的 references 和 templates 分发。
+
+课程代码中的短小单笔记练习使用 Inline Lab；多脚本、分组依赖、Notebook、训练任务或产物使用 Project Experiment。Skill 提供最小与完整 Manifest 模板，严格校验会检查引用文件、环境继承、Preset、步骤依赖图、参数、产物和下载声明。Manifest 只描述内容，不会授权智能体或 TensorNote 自动安装依赖、下载模型或执行训练。
 
 ## 7. 更新、备份与问题反馈
 

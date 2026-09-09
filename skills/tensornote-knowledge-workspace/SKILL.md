@@ -48,6 +48,7 @@ Read multiple references when a request spans those concerns. Do not infer execu
 - Copy [assets/note-template.md](assets/note-template.md) for a conceptual note.
 - Copy [assets/lab-note-template.md](assets/lab-note-template.md) for a multi-cell executable note.
 - Copy [assets/project-experiment-workspace-template](assets/project-experiment-workspace-template) for a safe multi-file experiment Workspace.
+- Copy [assets/project-experiment-minimal.yaml](assets/project-experiment-minimal.yaml) into an existing lesson for a single bounded script, or [assets/project-experiment-full.yaml](assets/project-experiment-full.yaml) for dependency inheritance, parameters, training, downloads, and artifacts.
 - Copy [assets/publish-tensornote.yml](assets/publish-tensornote.yml) to `.github/workflows/publish-tensornote.yml` when publishing a public Workspace with GitHub Pages. Add a root License and complete the `publishing` block before enabling the Workflow.
 
 Replace every placeholder, keep IDs unique, and validate after copying.

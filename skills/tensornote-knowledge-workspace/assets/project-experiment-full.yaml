@@ -1,0 +1,84 @@
+schemaVersion: 1
+experiment:
+  id: replace-me
+  title: Replace me
+  description: Multi-step training lesson with a bounded smoke path
+  workingDirectory: .
+  difficulty: heavy
+  estimatedMinutes: 30
+resources:
+  cpu: 4
+  memoryGB: 8
+  diskGB: 10
+  gpu: { optional: true, count: 1, memoryGB: 8 }
+environments:
+  base:
+    python: '3.11'
+    files: [requirements-base.txt]
+  training:
+    python: '3.11'
+    extends: base
+    files: [requirements-training.txt]
+  distributed:
+    python: '3.11'
+    extends: training
+    files: [requirements-distributed.txt]
+parameters:
+  epochs:
+    type: integer
+    label: Epochs
+    default: 1
+    minimum: 1
+    maximum: 100
+presets:
+  smoke:
+    title: CPU smoke test
+    environment: base
+    steps: [prepare]
+    parameters: { epochs: 1 }
+  train:
+    title: Single-process training
+    environment: training
+    steps: [prepare, train]
+  distributed-train:
+    title: Two-process distributed training
+    environment: distributed
+    steps: [prepare, distributed-train]
+defaultPreset: smoke
+steps:
+  prepare:
+    title: Validate inputs
+    runner: python
+    file: prepare.py
+    args: []
+    outputs: [.tensornote-runs/inputs.json]
+  train:
+    title: Train
+    runner: python
+    file: train.py
+    args: [--epochs, '${parameters.epochs}']
+    dependsOn: [prepare]
+    outputs: [.tensornote-runs/checkpoints]
+  distributed-train:
+    title: Distributed train
+    runner: torchrun
+    file: train.py
+    processes: 2
+    nodes: 1
+    masterPort: 29501
+    args: [--epochs, '${parameters.epochs}']
+    dependsOn: [prepare]
+    outputs: [.tensornote-runs/checkpoints]
+artifacts:
+  checkpoints:
+    title: Checkpoints
+    path: .tensornote-runs/checkpoints
+    kind: directory
+downloads:
+  sample-data:
+    title: Sample dataset
+    url: https://example.org/sample-data.jsonl
+    sizeMB: 1
+    cache: .cache/sample-data.jsonl
+    sha256: 0000000000000000000000000000000000000000000000000000000000000000
+    license: Replace with the source license

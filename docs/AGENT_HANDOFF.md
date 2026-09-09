@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.15.0 候选：知识库 Skill 与 Happy-LLM 试点迁移（2026-09-09）
+
+Project Experiment 的智能体规范、最小/完整模板和独立 Validator 已与应用契约对齐；Validator 覆盖环境继承环、Preset、步骤 DAG、argv、产物与 HTTPS 下载声明。Happy-LLM 第 5、6 章保留原 CLI，并增加分组依赖、轻量检查、Notebook、单进程/分布式训练入口和声明式产物，严格校验为零错误、零警告。
+
 ### v1.14.0 候选：固定 Revision Binder 引导（2026-09-09）
 
 GitHub Project Experiment 使用已解析的 owner/repo/完整 commit SHA 生成 Binder 链接；Notebook 可作为直接入口。UI 明示构建等待、临时资源与非持久输出，配置不足时保持阅读并提供 Desktop/克隆指引，URL 不携带 Token 或授权。

@@ -1,0 +1,30 @@
+schemaVersion: 1
+experiment:
+  id: replace-me
+  title: Replace me
+  description: A bounded CPU-safe project experiment
+  workingDirectory: .
+  difficulty: basic
+  estimatedMinutes: 1
+environments:
+  default:
+    python: '3.11'
+    files: [requirements.txt]
+presets:
+  smoke:
+    title: Smoke test
+    environment: default
+    steps: [run]
+defaultPreset: smoke
+steps:
+  run:
+    title: Run the smoke experiment
+    runner: python
+    file: experiment.py
+    args: []
+    outputs: [.tensornote-runs/output.json]
+artifacts:
+  output:
+    title: Smoke result
+    path: .tensornote-runs/output.json
+    kind: file

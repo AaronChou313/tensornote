@@ -29,7 +29,7 @@ Open [TensorNote online](https://aaronchou313.github.io/tensornote/) and select 
 
 ### Local Web
 
-1. Download `TensorNote-local-web-1.14.0.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
+1. Download `TensorNote-local-web-1.15.0.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
 2. Install Node.js 22 or newer. Initial downloads require a network. The package contains the compiled application: **no pnpm, npm install or frontend build is needed**.
 3. Open a terminal in the extracted `TensorNote-local-web` directory and run:
 
@@ -42,7 +42,7 @@ node start.mjs
 
 Do not double-click `app/index.html`. If port 5173 is occupied, stop the other local web server first. Keep using the same address: `localhost` and `127.0.0.1` have separate browser permissions, settings and token storage.
 
-`TensorNote-web-1.14.0.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
+`TensorNote-web-1.15.0.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
 
 ### Desktop
 
@@ -176,7 +176,7 @@ Manage remotes, authentication, Push/Pull, branches and conflicts in your Git cl
 
 ## 6. Give an agent the knowledge workspace skill
 
-Download `TensorNote-agent-skill-1.6.1.tar.gz` from the same release. Extract it and give a skill-capable agent `tensornote-knowledge-workspace/SKILL.md` together with its containing directory. Do not copy only the title or omit referenced files. Explicitly identify your knowledge folder so the agent does not edit TensorNote's application source by mistake.
+Download `TensorNote-agent-skill-1.15.0.tar.gz` from the same release. Extract it and give a skill-capable agent `tensornote-knowledge-workspace/SKILL.md` together with its containing directory. Do not copy only the title or omit referenced files. Explicitly identify your knowledge folder so the agent does not edit TensorNote's application source by mistake.
 
 Suggested request: “Review and update this knowledge folder using the supplied skill. Preserve Schema v1, stable note IDs, WikiLinks, executable cell metadata and relative asset paths. Read existing content first, run the bundled validator after changes, summarize your edits and never write tokens into files.”
 
@@ -188,6 +188,8 @@ node scripts/validate-workspace.mjs "/absolute/path/to/your-vault" --strict
 ```
 
 The agent maintains portable Markdown through file access. This is not a remote interface exposing arbitrary Desktop shell commands. Format rules and maintenance instructions ship in the skill's references and templates.
+
+Use an Inline Lab for a short exercise contained in one note, and a Project Experiment for multiple scripts, dependency groups, notebooks, training jobs or artifacts. The Skill includes minimal and full manifest templates. Strict validation checks referenced files, environment inheritance, presets, step graphs, parameters, artifacts and download declarations. A manifest describes content only; it does not authorize the agent or TensorNote to install packages, download models or start training automatically.
 
 ## 7. Update, back up and report issues
 
