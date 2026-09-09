@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：E1
-- 最后完成 Step：D3
-- 当前进行 Step：E1
-- 当前 HEAD：`26c4d8e`（D3 提交前）
-- 工作树：D3 响应式、焦点样式与日志待提交
-- 当前已知问题：需要运行完整 Release Candidate 验证并处理真实失败。
+- 当前阶段：E2
+- 最后完成 Step：E1
+- 当前进行 Step：E2
+- 当前 HEAD：`f58f008`（E1 日志提交前）
+- 工作树：仅 E1 验证记录待提交
+- 当前已知问题：版本号、双语用户文档、Release Notes 与交接文档仍为 v1.17.0。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -42,8 +42,8 @@
 | C4 | Kernel 自动发现 | DONE | `2c7d716` |
 | D1 | Store 与 Migration | DONE | `33374b0` |
 | D2 | 依赖职责整理 | DONE | `26c4d8e` |
-| D3 | 样式与交互精修 | DONE | 待提交 |
-| E1 | 全量测试与回归 | TODO | |
+| D3 | 样式与交互精修 | DONE | `f58f008` |
+| E1 | 全量测试与回归 | DONE | 待提交 |
 | E2 | 中英文文档 | TODO | |
 | E3 | v1.18.0 Release | TODO | |
 
@@ -920,7 +920,7 @@ D3：完成三端、响应式、暗色与交互视觉精修。
 
 状态：DONE
 完成时间：2026-09-10 02:43 CST
-提交：待提交
+提交：`f58f008`
 
 ### 本步目标
 
@@ -957,6 +957,38 @@ modified：D3 样式与日志待提交。
 ### 下一步
 
 E1：执行完整测试、性能测试、原生测试、Local/Static 构建与发布审计。
+
+
+## E1 — 全量测试与回归
+
+状态：DONE
+完成时间：2026-09-10 03:02 CST
+提交：待提交
+
+### 本步目标
+
+对 v1.18.0 功能候选执行应用、原生、性能和 Static 边界验证。
+
+### 测试 / 验证
+
+- `pnpm check`：63 个文件、226 项测试，Lint、TypeScript、Local 生产构建通过。
+- `pnpm test:performance`：3 项通过。
+- `pnpm check:desktop`：Rust fmt、clippy `-D warnings`、19 项测试通过。
+- `pnpm build:web`：Static 构建与无 Tauri IPC 边界验证通过。
+- `pnpm validate:publication`：应用仓库根目录不是待发布知识库，按预期报告缺少 publication repository/revision；此验证不属于应用 Release 门。
+
+### 设计决定
+
+- 保留上游 JupyterLab/gray-matter eval 与既有大 chunk 警告，未发现新增失败。
+- 应用发行使用 E3 的 release validator；Workspace publication validator 只用于独立知识库。
+
+### Git 状态
+
+modified：仅 E1 日志待提交。
+
+### 下一步
+
+E2：同步版本号、README、双语用户指南、Release Notes、交接与平台文档。
 
 
 ---
