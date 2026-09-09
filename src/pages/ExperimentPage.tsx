@@ -2,13 +2,16 @@ import { ArrowLeft, CheckCircle, Clock, Cpu, FileCode, Flask, FolderOpen, Gauge,
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { deploymentAdapter } from '../deployment/config'
+import { computeRuntime } from '../compute/ComputeRuntime'
 import { describeExperimentCapability } from '../experiments/capabilities'
 import type { IndexedExperiment } from '../experiments/types'
 import type { EnvironmentPlan, ExperimentJob, ExperimentRunPlan, RuntimeDiscovery, RuntimeOperation, SystemResourceSnapshot } from '../host/types'
 import { resolveExperimentEnvironmentFiles } from '../experiments/environment'
 import { experimentWorkingDirectory, materializeExperimentSteps } from '../experiments/runPlan'
+import { jupyterStepCode, jupyterSupported, jupyterWorkspaceProbe } from '../experiments/jupyterRunner'
 import { getHostAdapter } from '../host/runtime'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
+import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
 import { resolveWorkspaceExecutionPolicy } from '../workspace/executionPolicy'
 
 const tabs = ['environment', 'steps', 'files', 'run', 'artifacts'] as const
@@ -101,6 +104,44 @@ function DesktopExperimentRunner({ experiment, presetId, enabled }: { experiment
   </div>
 }
 
+function JupyterExperimentRunner({ experiment, presetId, enabled }: { experiment: IndexedExperiment; presetId: string; enabled: boolean }) {
+  const session = useWorkspaceStore((state) => state.session)!
+  const profiles = useComputeStore((state) => state.profiles)
+  const activeProfileId = useComputeStore((state) => state.activeProfileId)
+  const tokens = useComputeStore((state) => state.tokens)
+  const profile = activeComputeProfile({ profiles, activeProfileId })
+  const manifest = experiment.manifest!
+  const steps = materializeExperimentSteps(manifest, presetId)
+  const unsupported = steps.filter((step) => !jupyterSupported(step))
+  const [checked, setChecked] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
+  const [state, setState] = useState<'idle' | 'checking' | 'ready' | 'running' | 'completed' | 'failed'>('idle')
+  const [logs, setLogs] = useState<string[]>([])
+  const root = profile.workspacePath?.trim() || '.'
+  const workingDirectory = experimentWorkingDirectory(manifest, experiment.manifestPath)
+  const context = { workspaceId: session.descriptor.id, noteId: experiment.noteId, ...(session.descriptor.type === 'github' && session.descriptor.config?.repository && session.descriptor.revision ? { workspaceSource: { provider: 'github' as const, repository: session.descriptor.config.repository, revision: session.descriptor.revision } } : {}) }
+  const execute = async (code: string) => {
+    let failure = ''
+    await computeRuntime.execute(profile, tokens[profile.id] ?? '', context, code, { onExecutionCount: () => undefined, onOutput: (output) => { const line = output.type === 'stream' ? output.text : output.type === 'error' ? `${output.name}: ${output.value}` : JSON.stringify(output.data); if (output.type === 'error') failure = line; setLogs((current) => [...current.slice(-300), line]) } })
+    if (failure) throw new Error(failure)
+  }
+  const probe = async () => {
+    setLogs([]); setState('checking'); setChecked(false)
+    try { await execute(jupyterWorkspaceProbe(root, workingDirectory, steps)); setChecked(true); setState('ready') }
+    catch (reason) { setLogs((current) => [...current, reason instanceof Error ? reason.message : String(reason)]); setState('failed') }
+  }
+  const run = async () => {
+    setState('running')
+    try { for (const step of steps) { setLogs((current) => [...current, `开始：${step.title}`]); await execute(jupyterStepCode(root, workingDirectory, step)) } setState('completed') }
+    catch (reason) { setLogs((current) => [...current, reason instanceof Error ? reason.message : String(reason)]); setState('failed') }
+  }
+  return <div className="experiment-runner"><header><div><small>Jupyter runner</small><strong>{manifest.presets[presetId]?.title ?? presetId}</strong></div><span>{profile.name} · {profile.kernelName}</span></header>
+    <section className="experiment-resource-check"><strong>Workspace 路径映射</strong><span>{root} / {workingDirectory}</span><small>此路径由 Jupyter Server 读取，与 Git Bridge 无关。</small></section>
+    {unsupported.length > 0 ? <div className="experiment-run-preview"><WarningCircle size={22} /><strong>当前预设含 Jupyter 不支持的步骤</strong><p>{unsupported.map((step) => `${step.title}（${step.runner}）`).join('、')}。请选择兼容预设，或在桌面版运行。</p></div> : <><button disabled={!enabled || state === 'checking' || state === 'running'} onClick={() => void probe()}><ShieldCheck size={15} />检查路径并连接 Kernel</button>{checked && <label className="experiment-jupyter-confirm"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} />我已检查脚本、参数和输出范围，允许在此 Jupyter 环境运行</label>}<button disabled={!checked || !confirmed || state === 'running'} onClick={() => void run()}><Play size={15} />运行兼容步骤</button></>}
+    {logs.length > 0 && <pre>{logs.join('\n')}</pre>}{state === 'running' && <button onClick={() => void computeRuntime.interrupt().then(() => setState('failed'))}>中断 Kernel</button>}<small>{state}</small>
+  </div>
+}
+
 function ExperimentList({ experiments }: { experiments: IndexedExperiment[] }) {
   return <main className="experiment-page"><div className="experiment-page__inner"><header className="experiment-page__hero"><span className="workspace-kicker">Project experiments</span><h1>实验</h1><p>查看 Workspace 中声明的多文件项目、环境要求、执行步骤和产物。打开实验不会运行任何代码。</p></header>
     {experiments.length ? <div className="experiment-list">{experiments.map((item) => <Link key={item.key} to={`/experiments/${encodeURIComponent(item.key)}`}><span><Flask size={19} /></span><div><strong>{item.manifest?.experiment.title ?? item.manifestPath}</strong><small>{item.notePath} · {item.requestedPreset ?? item.manifest?.defaultPreset ?? '未指定预设'}</small></div><em>{item.diagnostics.some((diagnostic) => diagnostic.severity === 'error') ? '需修复' : item.readOnly ? '只读' : '可检查'}</em></Link>)}</div> : <section className="experiment-empty"><Flask size={24} /><strong>此 Workspace 还没有项目实验</strong><p>在笔记中加入 tensornote-experiment 引用后，实验会自动出现在这里。</p></section>}
@@ -145,7 +186,7 @@ export function ExperimentPage() {
       {!manifest ? <div className="experiment-empty experiment-empty--compact"><WarningCircle size={22} /><strong>无法解析 Manifest</strong><p>修复诊断后刷新 Workspace，TensorNote 会重新索引。</p></div> : tab === 'environment' ? <><div className="experiment-environments">{Object.entries(manifest.environments).map(([id, environment]) => <article key={id} className={id === preset?.environment ? 'is-selected' : ''}><header><div><small>{id === preset?.environment ? '当前预设' : '可用环境'}</small><strong>{id}</strong></div><span>Python {environment.python || '未指定'}</span></header>{environment.extends && <p>继承 <code>{environment.extends}</code></p>}<ul>{environment.files.map((file) => <li key={file}><FileCode size={14} />{file}</li>)}</ul></article>)}</div>{Object.keys(manifest.downloads ?? {}).length > 0 && <div className="experiment-downloads"><strong>模型与数据下载</strong>{Object.entries(manifest.downloads ?? {}).map(([id, item]) => <article key={id}><a href={item.url} target="_blank" rel="noreferrer">{item.title}</a><span>{item.sizeMB ? `${item.sizeMB} MB` : '大小未声明'} · 缓存 {item.cache}{item.license ? ` · ${item.license}` : ''}</span><code>{item.sha256 ? `SHA-256 ${item.sha256}` : '未声明校验和'}</code></article>)}</div>}{preset && <DesktopEnvironmentPreparation experiment={experiment} environmentId={preset.environment} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} />}</>
       : tab === 'steps' ? <ol className="experiment-steps">{(preset?.steps ?? []).map((id, index) => { const step = manifest.steps[id]; return <li key={id}><span>{index + 1}</span><div><small>{step.runner}</small><strong>{step.title}</strong><code>{step.file ?? step.module}</code>{step.dependsOn.length > 0 && <p>依赖：{step.dependsOn.join('、')}</p>}</div></li> })}</ol>
       : tab === 'files' ? <div className="experiment-files"><article><small>Manifest</small><strong>{experiment.manifestPath}</strong></article>{Object.entries(manifest.steps).map(([id, step]) => <article key={id}><small>{step.runner}</small><strong>{step.file ?? step.module}</strong><span>{step.title}</span></article>)}</div>
-      : tab === 'run' ? <DesktopExperimentRunner experiment={experiment} presetId={presetId} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} />
+      : tab === 'run' ? getHostAdapter().capabilities.processManagement ? <DesktopExperimentRunner experiment={experiment} presetId={presetId} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} /> : <JupyterExperimentRunner experiment={experiment} presetId={presetId} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} />
       : <div className="experiment-artifacts">{Object.keys(manifest.artifacts).length ? Object.entries(manifest.artifacts).map(([id, artifact]) => { const workspaceId = session.descriptor.config?.provider === 'native-local' ? session.descriptor.config.workspaceId : undefined; const artifactPath = `${experimentWorkingDirectory(manifest, experiment.manifestPath)}/${artifact.path}`.replace(/^\.\//, ''); return <article key={id}><span><FolderOpen size={18} /></span><div><strong>{artifact.title}</strong><small>{artifact.kind} · {artifact.path}</small></div>{workspaceId && getHostAdapter().revealWorkspaceItem && <button onClick={() => void getHostAdapter().revealWorkspaceItem!(workspaceId, artifactPath)}>在文件管理器中显示</button>}</article> }) : <div className="experiment-empty experiment-empty--compact"><CheckCircle size={22} /><strong>未声明产物</strong><p>此实验不会在完成后收集特定文件。</p></div>}</div>}
     </section>
     <footer className="experiment-source"><span>来源笔记</span><Link to={`/notes/${encodeURIComponent(experiment.noteId)}`}>{session.documentById.get(experiment.noteId)?.frontmatter.title ?? experiment.notePath}</Link></footer>

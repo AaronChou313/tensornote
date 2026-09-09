@@ -29,7 +29,7 @@ Open [TensorNote online](https://aaronchou313.github.io/tensornote/) and select 
 
 ### Local Web
 
-1. Download `TensorNote-local-web-1.12.0.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
+1. Download `TensorNote-local-web-1.13.0.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
 2. Install Node.js 22 or newer. Initial downloads require a network. The package contains the compiled application: **no pnpm, npm install or frontend build is needed**.
 3. Open a terminal in the extracted `TensorNote-local-web` directory and run:
 
@@ -42,7 +42,7 @@ node start.mjs
 
 Do not double-click `app/index.html`. If port 5173 is occupied, stop the other local web server first. Keep using the same address: `localhost` and `127.0.0.1` have separate browser permissions, settings and token storage.
 
-`TensorNote-web-1.12.0.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
+`TensorNote-web-1.13.0.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
 
 ### Desktop
 
@@ -203,3 +203,7 @@ The agent maintains portable Markdown through file access. This is not a remote 
 [Jupyter Server](https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html) · [JupyterHub REST API](https://jupyterhub.readthedocs.io/en/stable/howto/rest.html) · [Binder usage limits](https://mybinder.readthedocs.io/en/latest/about/user-guidelines.html)
 
 Refreshing a workspace overview returns to Home; reopen it from Recent. Browser folder permission may need to be granted again.
+
+### Running project experiments on Web
+
+Choose a Compute Profile under Settings → Compute & Jupyter and set **Jupyter Workspace path** to the knowledge-base root as seen by the Jupyter process. The experiment page verifies that directory and all referenced scripts inside the kernel before confirmation. `python`, `python-module`, and notebooks with `nbformat`/`nbclient` are supported; use Desktop or a compatible remote runtime for `torchrun`. Git Bridge is unrelated to experiment execution and remains Git-only.

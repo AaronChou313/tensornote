@@ -173,6 +173,7 @@ export class ComputeRuntime {
       || this.activeProfile.kind !== profile.kind
       || this.activeProfile.serverUrl !== profile.serverUrl
       || this.activeProfile.kernelName !== profile.kernelName
+      || this.activeProfile.workspacePath !== profile.workspacePath
       || this.activeProfile.scope !== profile.scope
       || JSON.stringify(this.activeProfile.connector ?? { kind: 'direct' }) !== JSON.stringify(profile.connector ?? { kind: 'direct' })
     const workspaceChanged = this.activeContext.workspaceId !== context.workspaceId

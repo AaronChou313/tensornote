@@ -43,7 +43,7 @@ export function describeExperimentCapability(input: {
   const detail = host.processManagement
     ? '桌面版可生成绑定脚本摘要的运行计划；确认后按顺序运行受支持的步骤。'
     : deploymentMode === 'static'
-      ? '在线版当前提供安全阅读；后续将支持兼容的远程 Jupyter 与固定 Revision 的 Binder。'
-      : '本地 Web 后续可通过 Jupyter 运行兼容步骤；原生进程仍需要桌面版。'
-  return { availability: 'preview', platform, canInspect: true, canRun: host.processManagement, tone: 'success', title: host.processManagement ? '桌面运行器可用' : '实验计划可检查', detail }
+      ? '在线版提供安全阅读，并可通过已配置的远程 Jupyter 运行兼容步骤；原生进程仍需要桌面版。'
+      : '本地 Web 可通过同机或远程 Jupyter 运行兼容步骤；Git Bridge 不参与实验执行。'
+  return { availability: 'preview', platform, canInspect: true, canRun: true, tone: 'success', title: host.processManagement ? '桌面运行器可用' : 'Jupyter 兼容运行器可用', detail }
 }

@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.13.0 候选：Local Web / Remote Jupyter 实验子集（2026-09-09）
+
+Web 实验运行器在 Kernel 内验证 Workspace 路径映射和输入文件，再以无 Shell 的 Python 包装器运行 `python` / `python-module`；Notebook 通过 `nbclient` 生成执行副本。`torchrun` 明确降级到兼容预设或 Desktop，Git Bridge 保持 Git-only。
+
 ### v1.12.0 候选：Notebook、torchrun 与训练体验（2026-09-09）
 
 Desktop Notebook Runner 保留源 Notebook，并在应用数据目录生成可定位的执行副本。`torchrun` 使用结构化拓扑与固定 argv；本机资源检测覆盖 CPU、内存、磁盘、NVIDIA GPU/CUDA。资源不足需要明确继续，长任务显示运行时长、最近日志、步骤进度与唤醒提示。Manifest v1 可选 `downloads` 只读元数据说明来源、大小、缓存、许可和校验和。

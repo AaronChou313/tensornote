@@ -32,6 +32,7 @@ export interface ComputeProfile {
   scope: ComputeSessionScope
   description?: string
   runtimeServerId?: string
+  workspacePath?: string
   connector?: ComputeConnectorConfig
 }
 
