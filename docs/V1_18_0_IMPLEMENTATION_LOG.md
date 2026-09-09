@@ -9,16 +9,16 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：B1
-- 最后完成 Step：A3
-- 当前进行 Step：B1
-- 当前 HEAD：`ddf5104`（A3 提交前）
-- 工作树：A3 Compute Overview、测试、样式与本日志待提交
-- 当前已知问题：Desktop 本地页仍保留“便捷连接/手动连接”第一层心智，B1 将改为 Environment-first。
+- 当前阶段：B2
+- 最后完成 Step：B1
+- 当前进行 Step：B2
+- 当前 HEAD：`c162c13`（B1 提交前）
+- 工作树：B1 Environment view model、列表重构、测试与日志待提交
+- 当前已知问题：Kernel 已统计但尚未作为 Environment 详情子项展开；B2 处理。
 - 下一位智能体第一步：
-  1. 提取统一 Environment view model
-  2. 将 Desktop 本地页改为 Python 环境资源列表
-  3. 显示 manager/version/path/managed/Jupyter/kernel/running/current
+  1. 按 environmentId 将 0..N Kernel 关联到环境
+  2. 增加环境详情展开与当前 Kernel 状态
+  3. 保持环境列表主视图紧凑
 
 ---
 
@@ -29,8 +29,8 @@
 | A0 | 建立 v1.18 开发断点机制 | DONE | `297a1e2` |
 | A1 | 统一 ComputeCapabilities | DONE | `7e2b460` |
 | A2 | 拆分 ComputeSettings 组件 | DONE | `ddf5104` |
-| A3 | 新增 Compute Overview | DONE | 待提交 |
-| B1 | Desktop Environment-first 列表 | TODO | |
+| A3 | 新增 Compute Overview | DONE | `c162c13` |
+| B1 | Desktop Environment-first 列表 | DONE | 待提交 |
 | B2 | Kernel 子级展示 | TODO | |
 | B3 | 添加环境或连接 Dialog | TODO | |
 | B4 | Managed Environment 创建 UX | TODO | |
@@ -259,7 +259,7 @@ A3：新增 Compute Overview，提供平台、资源计数和当前计算状态�
 
 状态：DONE
 完成时间：2026-09-10 01:09 CST
-提交：待提交
+提交：`c162c13`
 
 ### 本步目标
 
@@ -316,6 +316,66 @@ modified：A3 组件、测试、样式与日志待提交。
 ### 下一步
 
 B1：提取 Environment view model，将 Desktop 本地主流程改为 Environment-first，并共享 Runtime discovery。
+
+
+
+---
+
+## B1 — Desktop Environment-first 列表
+
+状态：DONE
+完成时间：2026-09-10 01:15 CST
+提交：待提交
+
+### 本步目标
+
+将 Desktop 本地运行的第一层对象改为 Python Environment，并集中归一化资源状态。
+
+### 实际修改
+
+- 新增 Environment view model，集中计算 manager、路径、Kernel、Owned Server、当前使用和可用状态。
+- 明确 `current / running / ready / missing-jupyter / unavailable` 五种 UI 状态。
+- 环境列表增加完整 Python 版本、Managed/External、Jupyter 状态、Kernel 数量与完整路径提示。
+- Local Runtime 标题改为“本地 Python 环境”，移除“01 便捷连接”第一层标题。
+- 当前 Owned Profile 通过 `runtimeServerId` 与环境关联，不再由组件零散推断。
+
+### 修改文件
+
+- `src/components/settings/localEnvironmentViewModel.ts`
+- `src/components/settings/localEnvironmentViewModel.test.ts`
+- `src/components/settings/LocalRuntimeAssistant.tsx`
+- `src/components/settings/ComputeSettings.tsx`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：
+
+```bash
+pnpm vitest run src/components/settings/localEnvironmentViewModel.test.ts
+pnpm lint
+pnpm exec tsc -b
+```
+
+结果：2 项 view model 测试、Lint 和 TypeScript 全部通过。
+
+### 设计决定
+
+- 当前环境必须同时存在 Owned Server 和匹配的 active transient Profile，避免 `undefined === undefined` 误判。
+- External Environment 只显示来源与状态；删除能力仍严格限制为 Managed。
+
+### 未完成 / 风险
+
+- B2 才展示 Kernel 子项；本步只在主行提供数量。
+- B3 将把创建环境与 Existing Jupyter 收拢到统一入口，届时移除剩余“手动连接”分区标题。
+
+### Git 状态
+
+modified：B1 源码、测试与日志待提交。
+
+### 下一步
+
+B2：在环境详情中展示关联 Kernel，并表达默认/当前 Kernel。
 
 
 ---

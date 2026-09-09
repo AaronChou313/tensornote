@@ -5,6 +5,7 @@ import { getHostAdapter } from '../../host/runtime'
 import { useComputeStore } from '../../store/useComputeStore'
 import { useWorkspaceStore } from '../../store/useWorkspaceStore'
 import { Button } from '../ui/Button'
+import { localEnvironmentViewModels } from './localEnvironmentViewModel'
 
 const emptyDiscovery: RuntimeDiscovery = { tools: [], environments: [], kernels: [], servers: [], warnings: [] }
 const pythonVersions = ['3.10', '3.11', '3.12', '3.13', '3.14']
@@ -21,6 +22,7 @@ export default function LocalRuntimeAssistant() {
   const session = useWorkspaceStore((state) => state.session)
   const upsertProfile = useComputeStore((state) => state.upsertOwnedRuntimeProfile)
   const removeOwnedProfile = useComputeStore((state) => state.removeOwnedRuntimeProfile)
+  const activeRuntimeServerId = useComputeStore((state) => state.profiles.find((profile) => profile.id === state.activeProfileId)?.runtimeServerId)
   const workspaceId = session?.descriptor.config?.provider === 'native-local' ? session.descriptor.config.workspaceId : undefined
   const [discovery, setDiscovery] = useState(emptyDiscovery)
   const [discovering, setDiscovering] = useState(false)
@@ -72,6 +74,7 @@ export default function LocalRuntimeAssistant() {
     return { kind, status: available ? 'available' as const : 'missing' as const, detail: kind === 'venv' ? `${discovery.environments.length} 个基础 Python 可用` : `${available ? '已找到' : '未检测到'} ${managerLabel(kind)}` }
   }), [discovery])
   const selectedEnvironment = discovery.environments.find((item) => item.id === selectedEnvironmentId)
+  const environmentItems = useMemo(() => localEnvironmentViewModels({ environments: discovery.environments, kernels: discovery.kernels, servers, activeRuntimeServerId }), [activeRuntimeServerId, discovery.environments, discovery.kernels, servers])
 
   const selectManager = (manager: EnvironmentPlanRequest['manager']) => {
     const base = discovery.environments[0]
@@ -109,11 +112,11 @@ export default function LocalRuntimeAssistant() {
     try { await adapter.removeLocalEnvironment(environmentId, `DELETE ${name}`); await discover(); setMessage(`已删除 ${name}。`) } catch (reason) { setMessage(errorMessage(reason)) }
   }
 
-  return <section className="local-runtime-assistant" aria-label="便捷连接">
-    <header><div><span><TerminalWindow size={18} /></span><div><strong>选择环境并启动</strong><small>TensorNote 仅管理自己启动的本地 Jupyter Server</small></div></div><Button variant="ghost" size="sm" onClick={() => void discover()} disabled={discovering}>{discovering ? <CircleNotch size={15} className="spin" /> : <ArrowClockwise size={15} />}重新检测</Button></header>
+  return <section className="local-runtime-assistant" aria-label="本地 Python 环境">
+    <header><div><span><TerminalWindow size={18} /></span><div><strong>本地 Python 环境</strong><small>选择已有环境，TensorNote 会处理本地 Jupyter 连接</small></div></div><Button variant="ghost" size="sm" onClick={() => void discover()} disabled={discovering}>{discovering ? <CircleNotch size={15} className="spin" /> : <ArrowClockwise size={15} />}重新检测</Button></header>
     {message && <p className="local-runtime-message" role="status">{message}</p>}
     {discovery.warnings.length > 0 && <details className="local-runtime-warnings"><summary><WarningCircle size={14} />{discovery.warnings.length} 项检测提示</summary>{discovery.warnings.map((warning) => <p key={warning}>{warning}</p>)}</details>}
-    <div className="local-runtime-environment-list" role="radiogroup" aria-label="Python 环境">{discovery.environments.map((environment) => { const running = servers.some((server) => server.environmentId === environment.id); return <button key={environment.id} role="radio" aria-checked={selectedEnvironmentId === environment.id} className={selectedEnvironmentId === environment.id ? 'is-selected' : ''} onClick={() => setSelectedEnvironmentId(environment.id)}><span className="local-runtime-environment-list__icon"><Flask size={17} /></span><span><strong>{environment.name}</strong><small>{managerLabel(environment.manager)} · Python {environment.pythonVersion}</small><code title={environment.pythonPath}>{environment.pythonPath || environment.location || '路径信息不可用'}</code></span><em data-status={running ? 'running' : environment.jupyterInstalled ? 'ready' : 'missing'}>{running ? '运行中' : environment.jupyterInstalled ? '可启动' : '缺少 Jupyter'}</em></button> })}{!discovering && discovery.environments.length === 0 && <div className="local-runtime-empty"><WarningCircle size={18} /><span><strong>没有找到 Python 环境</strong><small>可先检查下方管理器，然后新建独立环境。</small></span></div>}</div>
+    <div className="local-runtime-environment-list" role="radiogroup" aria-label="Python 环境">{environmentItems.map((item) => { const { environment } = item; return <button key={environment.id} role="radio" aria-checked={selectedEnvironmentId === environment.id} className={selectedEnvironmentId === environment.id ? 'is-selected' : ''} onClick={() => setSelectedEnvironmentId(environment.id)}><span className="local-runtime-environment-list__icon"><Flask size={17} /></span><span><strong>{environment.name}</strong><small>{item.managerLabel} · Python {environment.pythonVersion} · {environment.managed ? 'TensorNote 管理' : '外部环境'}</small><code title={item.path}>{item.path}</code><small>{environment.jupyterInstalled ? 'Jupyter 就绪' : '缺少 Jupyter 支持'} · {item.kernels.length} 个 Kernel</small></span><em data-status={item.status}>{item.statusLabel}</em></button> })}{!discovering && discovery.environments.length === 0 && <div className="local-runtime-empty"><WarningCircle size={18} /><span><strong>没有找到 Python 环境</strong><small>可先检查下方管理器，然后新建独立环境。</small></span></div>}</div>
     <div className="local-runtime-launch"><div><strong>{selectedEnvironment?.jupyterInstalled ? `使用 ${selectedEnvironment.name}` : '选择可启动的环境'}</strong><small>{selectedEnvironment?.jupyterInstalled ? 'Server 仅绑定 127.0.0.1；Token 只保留在当前应用会话。' : '缺少 Jupyter 的外部环境暂时不能直接启动。'}</small></div><Button size="sm" onClick={() => void startServer()} disabled={!selectedEnvironment?.jupyterInstalled || servers.some((server) => server.environmentId === selectedEnvironmentId)}><Play size={14} weight="fill" />启动并连接</Button></div>
     {servers.length > 0 && <div className="local-runtime-servers">{servers.map((server) => <article key={server.id}><header><span><CheckCircle size={16} weight="fill" /></span><div><strong>{server.environmentName}</strong><small>{server.url} · 由 TensorNote 管理</small></div></header><div><Button variant="ghost" size="sm" onClick={() => void adapter.getOwnedJupyterLogs?.(server.id).then((next) => setLogs((current) => ({ ...current, [server.id]: next })))}>日志</Button><Button variant="danger" size="sm" onClick={() => void stopServer(server.id)}><Stop size={13} weight="fill" />停止</Button></div>{logs[server.id] && <pre>{logs[server.id].map((line) => `[${line.stream}] ${line.text}`).join('\n') || '暂无日志'}</pre>}</article>)}</div>}
     <details className="local-runtime-create"><summary>新建独立环境</summary><p>Conda 与 uv 可以获取所选 Python；venv 只能使用电脑中已有的同版本 Python。</p><div className="local-runtime-managers">{managerDiagnostics.map((diagnostic) => <div key={diagnostic.kind} className={request.manager === diagnostic.kind ? 'is-selected' : ''}><button disabled={diagnostic.status !== 'available'} onClick={() => selectManager(diagnostic.kind)}><span>{diagnostic.status === 'available' ? <CheckCircle size={15} weight="fill" /> : <WarningCircle size={15} />}</span><span><strong>{managerLabel(diagnostic.kind)}</strong><small>{diagnostic.detail}</small></span></button>{diagnostic.status !== 'available' && diagnostic.kind !== 'venv' && <button className="local-runtime-tool-picker" onClick={() => void selectTool(diagnostic.kind as 'uv' | 'conda')}>选择文件</button>}</div>)}</div>
