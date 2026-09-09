@@ -9,16 +9,16 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：B3
-- 最后完成 Step：B2
-- 当前进行 Step：B3
-- 当前 HEAD：`8f3062b`（B2 提交前）
-- 工作树：B2 Kernel 子级、样式、测试与日志待提交
-- 当前已知问题：创建环境与 Existing Jupyter 仍分散；B3 将建立统一入口。
+- 当前阶段：B4
+- 最后完成 Step：B3
+- 当前进行 Step：B4
+- 当前 HEAD：`6246b50`（B3 提交前）
+- 工作树：B3 统一添加 Dialog、连接入口、样式与日志待提交
+- 当前已知问题：Managed Environment 创建流程已复用旧 plan，但 B4 需补齐产品化说明和状态验收。
 - 下一位智能体第一步：
-  1. 新增“添加环境或连接”统一 Dialog
-  2. 分组 uv / Conda / venv 与 Existing Jupyter
-  3. 移除 Desktop 独立“手动连接”主模块
+  1. 完善 Managed Environment 创建字段与基础包说明
+  2. 验证 plan / progress / success / failure / cancel
+  3. 确认创建成功即 Jupyter Ready 的原生合同
 
 ---
 
@@ -31,8 +31,8 @@
 | A2 | 拆分 ComputeSettings 组件 | DONE | `ddf5104` |
 | A3 | 新增 Compute Overview | DONE | `c162c13` |
 | B1 | Desktop Environment-first 列表 | DONE | `8f3062b` |
-| B2 | Kernel 子级展示 | DONE | 待提交 |
-| B3 | 添加环境或连接 Dialog | TODO | |
+| B2 | Kernel 子级展示 | DONE | `6246b50` |
+| B3 | 添加环境或连接 Dialog | DONE | 待提交 |
 | B4 | Managed Environment 创建 UX | TODO | |
 | B5 | External Jupyter Support | TODO | |
 | B6 | Owned Server 高级管理 | TODO | |
@@ -385,7 +385,7 @@ B2：在环境详情中展示关联 Kernel，并表达默认/当前 Kernel。
 
 状态：DONE
 完成时间：2026-09-10 01:19 CST
-提交：待提交
+提交：`6246b50`
 
 ### 本步目标
 
@@ -435,6 +435,67 @@ modified：B2 源码、测试、样式与日志待提交。
 ### 下一步
 
 B3：实现单一“添加环境或连接”入口，分开环境管理器与 Existing Jupyter 概念。
+
+
+
+---
+
+## B3 — 添加环境或连接 Dialog
+
+状态：DONE
+完成时间：2026-09-10 01:24 CST
+提交：待提交
+
+### 本步目标
+
+以单一入口承载新建 Python Environment 与连接 Existing Jupyter，同时保持两者概念分组。
+
+### 实际修改
+
+- 本地环境标题栏增加“添加环境或连接”按钮和受约束焦点 Dialog。
+- Dialog 第一层分别展示“创建新的 Python 环境”和“使用已有 Jupyter”。
+- uv、Conda、venv 保持 Manager 语义；Existing Jupyter 作为独立连接分组。
+- Desktop 本地手动连接默认不再占据主页面，只有从统一入口选择后才展开。
+- Local Web 保持直接显示手动 Jupyter 主流程；Remote 页面不受影响。
+- 环境创建原有受控 plan 被移入 Dialog，没有新增第二套创建逻辑。
+
+### 修改文件
+
+- `src/components/settings/LocalRuntimeAssistant.tsx`
+- `src/components/settings/ComputeSettings.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：
+
+```bash
+pnpm lint
+pnpm exec tsc -b
+pnpm vitest run src/components/settings/localEnvironmentViewModel.test.ts src/components/settings/ComputeOverview.test.tsx
+```
+
+结果：Lint、TypeScript 和 5 项相关测试通过。
+
+### 设计决定
+
+- 使用共享 `ModalSurface`，继承焦点返回、Esc 和背景隔离行为。
+- Dialog 默认只显示选择方式；选择 Manager 后逐层进入表单，减少第一屏字段密度。
+- 手动 Jupyter 不建模为 Environment Manager。
+
+### 未完成 / 风险
+
+- B4 将对移入 Dialog 的创建计划、最小依赖与失败状态做专项检查。
+- C2/C3 会进一步把 Remote Profile 大表单改为 Connection List + Details。
+
+### Git 状态
+
+modified：B3 组件、样式与日志待提交。
+
+### 下一步
+
+B4：完善并验证 Managed Environment 创建 UX 与 Ready 合同。
 
 
 ---

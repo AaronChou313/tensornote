@@ -73,6 +73,7 @@ export function ComputeSettings() {
   const computeCapabilities = resolveComputeCapabilities(deploymentAdapter.mode, host.capabilities)
   const runtimeLocations = runtimeLocationsForCapabilities(computeCapabilities)
   const [runtimeLocation, setRuntimeLocation] = useState<RuntimeLocation>(runtimeLocations[0])
+  const [localManualVisible, setLocalManualVisible] = useState(false)
   const visibleProfiles = useMemo(() => profiles.filter((item) => !item.runtimeServerId && profileRuntimeLocation(item) === runtimeLocation), [profiles, runtimeLocation])
   const fallbackTemplate = useMemo(() => runtimeLocation === 'local' ? computeProfileTemplates[0] : computeProfileTemplates.find((item) => item.name === 'Remote Server')!, [runtimeLocation])
   const profile = visibleProfiles.find((item) => item.id === activeProfileId) ?? visibleProfiles[0] ?? { id: `new-${runtimeLocation}-profile`, ...fallbackTemplate }
@@ -146,8 +147,9 @@ export function ComputeSettings() {
       <ComputeRuntimeLocationTabs capabilities={computeCapabilities} value={runtimeLocation} onChange={(location) => { setRuntimeLocation(location); setDiagnostics([]) }} />
       <div className="settings-runtime-heading"><span>{runtimeLocation === 'local' ? 'Local runtime' : 'Remote runtime'}</span><h3>{runtimeLocation === 'local' ? '在这台电脑上运行' : '连接远程计算环境'}</h3><p>{runtimeLocation === 'local' ? (computeCapabilities.environmentManagement ? '便捷连接由 TensorNote 管理环境和 Server；手动连接适合你已经启动的 Jupyter。' : '浏览器不能启动本机进程。请先自行启动 Jupyter Server，再填写连接信息。') : '计算资源位于其他设备或云平台。在线版要求 HTTPS，并需要服务端允许当前网页来源和 WebSocket。'}</p></div>
       {runtimeLocation === 'local' && !LocalRuntimeAssistant && <div className="settings-local-web-help"><div><strong>先在 Workspace 根目录启动 Jupyter</strong><code>jupyter server --no-browser --ServerApp.allow_origin=http://127.0.0.1:5173</code><small>终端输出会包含 Server URL 和临时 Token；把它们填入下方。Token 只保存在当前浏览器会话。</small></div><Button variant="secondary" size="sm" onClick={() => void navigator.clipboard.writeText('jupyter server --no-browser --ServerApp.allow_origin=http://127.0.0.1:5173').then(() => { setLocalCommandCopied(true); window.setTimeout(() => setLocalCommandCopied(false), 1600) })}>{localCommandCopied ? '已复制' : '复制命令'}</Button></div>}
-      {runtimeLocation === 'local' && LocalRuntimeAssistant && <Suspense fallback={<p className="settings-message">正在加载本地环境…</p>}><LocalRuntimeAssistant /></Suspense>}
-      {runtimeLocation === 'local' && <div className="settings-connection-label"><div><strong>手动连接</strong><small>自行启动 Server，再填写地址、Kernel 与 Token</small></div></div>}
+      {runtimeLocation === 'local' && LocalRuntimeAssistant && <Suspense fallback={<p className="settings-message">正在加载本地环境…</p>}><LocalRuntimeAssistant onRequestExistingJupyter={() => setLocalManualVisible(true)} /></Suspense>}
+      {(runtimeLocation === 'remote' || !computeCapabilities.environmentManagement || localManualVisible) && <>
+      {runtimeLocation === 'local' && <div className="settings-connection-label"><div><strong>已有 Jupyter Server</strong><small>自行启动 Server，再填写地址、Kernel 与 Token</small></div></div>}
       <div className="settings-compute-layout">
         <aside className="settings-profile-list">
           <span>{runtimeLocation === 'local' ? '手动连接' : '远程 Profiles'}</span>
@@ -188,6 +190,7 @@ export function ComputeSettings() {
           {diagnostics.length > 0 && <div className="settings-diagnostics">{diagnostics.map((item, index) => <div key={`${item.id}-${index}`} data-status={item.status}><span>{item.status}</span><strong>{item.label}</strong><small>{item.detail}</small></div>)}</div>}
         </div>
       </div>
+      </>}
     </section>
   )
 }

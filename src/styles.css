@@ -3932,6 +3932,23 @@ button.trust-status {
 .local-runtime-assistant > header > div > div { display: grid; min-width: 0; gap: 2px; }
 .local-runtime-assistant > header strong { font-size: .73rem; }
 .local-runtime-assistant > header small { color: var(--faint); font-size: .6rem; line-height: 1.4; }
+.local-runtime-add-dialog { width: min(680px, calc(100vw - 32px)); max-height: min(760px, calc(100vh - 48px)); overflow: auto; border: 1px solid var(--line); border-radius: 16px; outline: 0; background: var(--surface-raised); padding: 20px; box-shadow: 0 20px 56px rgba(22, 34, 26, .2); }
+.local-runtime-add-dialog > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--line); padding-bottom: 15px; }
+.local-runtime-add-dialog > header > div { display: grid; gap: 4px; }
+.local-runtime-add-dialog > header small { color: var(--accent); font-size: .55rem; font-weight: 700; }
+.local-runtime-add-dialog > header strong { color: var(--ink); font-size: 1.08rem; }
+.local-runtime-add-dialog > header p { margin: 0; color: var(--muted); font-size: .62rem; line-height: 1.5; }
+.local-runtime-add-options { display: grid; gap: 18px; margin-top: 18px; }
+.local-runtime-add-options section { display: grid; gap: 7px; }
+.local-runtime-add-options section > span { color: var(--faint); font-size: .57rem; font-weight: 650; }
+.local-runtime-add-options section > button { display: grid; min-height: 58px; align-items: center; gap: 10px; grid-template-columns: auto minmax(0, 1fr); border: 1px solid var(--line); border-radius: 11px; background: var(--surface); padding: 10px 12px; color: var(--accent); cursor: pointer; text-align: left; }
+.local-runtime-add-options section > button:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-pale); }
+.local-runtime-add-options section > button:disabled { cursor: default; opacity: .58; }
+.local-runtime-add-options section > button > span:last-child { display: grid; gap: 2px; }
+.local-runtime-add-options strong { color: var(--ink); font-size: .67rem; }
+.local-runtime-add-options small { color: var(--muted); font-size: .56rem; }
+.local-runtime-add-dialog .local-runtime-create { margin-top: 16px; }
+.local-runtime-add-back { border: 0; background: transparent; padding: 0; color: var(--accent); font-size: .58rem; cursor: pointer; }
 .local-runtime-message { margin: 12px 0 0; border-radius: 9px; background: var(--accent-pale); padding: 9px 11px; color: var(--accent-strong); font-size: .63rem; line-height: 1.5; }
 .local-runtime-warnings { margin-top: 10px; border-radius: 9px; background: color-mix(in srgb, var(--warning) 8%, var(--surface-muted)); padding: 8px 10px; }
 .local-runtime-warnings summary { display: flex; align-items: center; gap: 6px; color: var(--warning); cursor: pointer; font-size: .62rem; }
