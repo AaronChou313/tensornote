@@ -1,6 +1,6 @@
 # Web 与 Desktop 功能边界
 
-适用于 v1.17.0 源码后的环境管理重构。这里的“支持”表示实现边界，正式安装包状态仍以 Release Matrix 为准。四种部署共用 Markdown、Schema v1、索引、编辑器、Workbench 与 Compute 接口，入口按 Host 与 Workspace Provider 的能力共同决定。
+适用于 v1.18.0 源码后的环境管理重构。这里的“支持”表示实现边界，正式安装包状态仍以 Release Matrix 为准。四种部署共用 Markdown、Schema v1、索引、编辑器、Workbench 与 Compute 接口，入口按 Host 与 Workspace Provider 的能力共同决定。
 
 | 能力 | Local Web | Static Web / Pages | Self-hosted Web | Desktop |
 | --- | --- | --- | --- | --- |
