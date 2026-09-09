@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：D1
-- 最后完成 Step：C4
-- 当前进行 Step：D1
-- 当前 HEAD：`477a197`（C4 提交前）
-- 工作树：C4 Kernel 自动发现源码、测试与日志待提交
-- 当前已知问题：Compute Store 的版本迁移、Local/Remote 分类和临时 Owned Profile 持久化边界需要审查。
+- 当前阶段：D2
+- 最后完成 Step：D1
+- 当前进行 Step：D2
+- 当前 HEAD：`2c7d716`（D1 提交前）
+- 工作树：D1 Store migration、环境选择偏好、测试与日志待提交
+- 当前已知问题：Notebook 基础依赖与项目 ML 依赖的文件职责仍需整理。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -39,8 +39,8 @@
 | C1 | Local Web 专用体验 | DONE | `fc0de92` |
 | C2 | Remote Connection List | DONE | `06ea301` |
 | C3 | Remote Connection Details | DONE | `477a197` |
-| C4 | Kernel 自动发现 | DONE | 待提交 |
-| D1 | Store 与 Migration | TODO | |
+| C4 | Kernel 自动发现 | DONE | `2c7d716` |
+| D1 | Store 与 Migration | DONE | 待提交 |
 | D2 | 依赖职责整理 | TODO | |
 | D3 | 样式与交互精修 | TODO | |
 | E1 | 全量测试与回归 | TODO | |
@@ -786,7 +786,7 @@ C4：连接验证后自动获取 KernelSpec，并保留高级手动覆盖。
 
 状态：DONE
 完成时间：2026-09-10 02:19 CST
-提交：待提交
+提交：`2c7d716`
 
 ### 本步目标
 
@@ -825,6 +825,49 @@ modified：C4 源码、测试与日志待提交。
 ### 下一步
 
 D1：审查 Store、持久化边界和 v1.17 → v1.18 migration。
+
+
+## D1 — Store 与 Migration
+
+状态：DONE
+完成时间：2026-09-10 02:27 CST
+提交：待提交
+
+### 本步目标
+
+稳定 v1.17 → v1.18 Compute 设置迁移，并明确持久化与会话态边界。
+
+### 实际修改
+
+- Compute store 升级到 version 3，补全 Connector 与 Local/Remote 分类。
+- 旧单 Server 配置迁移为 Local Direct Profile。
+- 迁移时剔除 Owned Server 临时 Profile，并修复指向临时 Profile 的 active id。
+- 新增最后选择的本地环境设备偏好，Desktop 重新进入时恢复选择。
+- 继续仅用 sessionStorage 保存 token；持久化 partialize 明确排除 Owned Profile。
+
+### 修改文件
+
+- `src/store/useComputeStore.ts`
+- `src/store/useComputeStore.test.ts`
+- `src/components/settings/LocalRuntimeAssistant.tsx`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：Lint、TypeScript、Compute Store migration 2 项测试。结果：全部通过。
+
+### 设计决定
+
+- 环境 id 是设备偏好，可以持久化；Owned Server id 与 token 是会话态，不能持久化。
+- 旧 Profile 地址仅用于迁移推断运行位置，之后由显式 `runtimeLocation` 管理。
+
+### Git 状态
+
+modified：D1 源码、测试与日志待提交。
+
+### 下一步
+
+D2：整理 Notebook 基础依赖、项目 Experiment 依赖与开发依赖的文件职责。
 
 
 ---

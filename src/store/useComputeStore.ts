@@ -10,7 +10,9 @@ interface ComputeState {
   tokens: Record<string, string>
   connectionEvent: ComputeConnectionEvent | null
   scratchOpen: boolean
+  lastLocalEnvironmentId: string
   setScratchOpen: (open: boolean) => void
+  setLastLocalEnvironment: (id: string) => void
   setActiveProfile: (id: string) => void
   addProfile: (template: Omit<ComputeProfile, 'id'>) => string
   updateProfile: (id: string, patch: Partial<Omit<ComputeProfile, 'id'>>) => void
@@ -20,6 +22,8 @@ interface ComputeState {
   upsertOwnedRuntimeProfile: (input: { serverId: string; environmentName: string; serverUrl: string; kernelName: string; token: string }) => string
   removeOwnedRuntimeProfile: (serverId: string) => void
 }
+
+type PersistedComputeState = Pick<ComputeState, 'profiles' | 'activeProfileId' | 'lastLocalEnvironmentId'>
 
 const tokenStorageKey = 'tensornote-compute-tokens'
 const legacyTokenStorageKey = 'tensornote-jupyter-token'
@@ -50,6 +54,34 @@ export function activeComputeProfile(state: Pick<ComputeState, 'profiles' | 'act
   return state.profiles.find((profile) => profile.id === state.activeProfileId) ?? state.profiles[0] ?? defaultProfile
 }
 
+export function migrateComputeState(persisted: unknown, version: number): PersistedComputeState {
+  if (version < 2) {
+    const legacy = persisted as { serverUrl?: string; kernelName?: string }
+    const migrated: ComputeProfile = {
+      ...legacyProfile,
+      serverUrl: legacy.serverUrl || legacyProfile.serverUrl,
+      kernelName: legacy.kernelName || legacyProfile.kernelName,
+      runtimeLocation: 'local',
+      connector: { kind: 'direct' },
+    }
+    return { profiles: [migrated], activeProfileId: migrated.id, lastLocalEnvironmentId: '' }
+  }
+  const current = (persisted ?? {}) as Partial<PersistedComputeState>
+  const profiles = (current.profiles ?? [])
+    .filter((profile) => !profile.runtimeServerId)
+    .map((profile) => ({
+      ...profile,
+      runtimeLocation: profile.runtimeLocation ?? (profile.serverUrl.startsWith('http://127.0.0.1') || profile.serverUrl.startsWith('http://localhost') ? 'local' : 'remote'),
+      connector: profile.connector ?? { kind: 'direct' as const },
+    }))
+  const safeProfiles = profiles.length > 0 ? profiles : [defaultProfile]
+  return {
+    profiles: safeProfiles,
+    activeProfileId: safeProfiles.some((profile) => profile.id === current.activeProfileId) ? current.activeProfileId! : safeProfiles[0].id,
+    lastLocalEnvironmentId: current.lastLocalEnvironmentId ?? '',
+  }
+}
+
 export const useComputeStore = create<ComputeState>()(
   persist(
     (set, get) => ({
@@ -58,7 +90,9 @@ export const useComputeStore = create<ComputeState>()(
       tokens: readTokens(),
       connectionEvent: null,
       scratchOpen: false,
+      lastLocalEnvironmentId: '',
       setScratchOpen: (scratchOpen) => set({ scratchOpen }),
+      setLastLocalEnvironment: (lastLocalEnvironmentId) => set({ lastLocalEnvironmentId }),
       setActiveProfile: (activeProfileId) => set({ activeProfileId }),
       addProfile: (template) => {
         const id = profileId(template.name)
@@ -123,18 +157,9 @@ export const useComputeStore = create<ComputeState>()(
     }),
     {
       name: 'tensornote-jupyter-config',
-      version: 2,
-      migrate: (persisted, version) => {
-        if (version >= 2) return persisted as ComputeState
-        const legacy = persisted as { serverUrl?: string; kernelName?: string }
-        const migrated: ComputeProfile = {
-          ...legacyProfile,
-          serverUrl: legacy.serverUrl || legacyProfile.serverUrl,
-          kernelName: legacy.kernelName || legacyProfile.kernelName,
-        }
-        return { profiles: [migrated], activeProfileId: migrated.id }
-      },
-      partialize: ({ profiles, activeProfileId }) => {
+      version: 3,
+      migrate: migrateComputeState,
+      partialize: ({ profiles, activeProfileId, lastLocalEnvironmentId }) => {
         const persistentProfiles = profiles.filter((profile) => !profile.runtimeServerId)
         const safeProfiles = persistentProfiles.length > 0 ? persistentProfiles : [defaultProfile]
         return {
@@ -142,6 +167,7 @@ export const useComputeStore = create<ComputeState>()(
           activeProfileId: safeProfiles.some((profile) => profile.id === activeProfileId)
             ? activeProfileId
             : safeProfiles[0].id,
+          lastLocalEnvironmentId,
         }
       },
     },

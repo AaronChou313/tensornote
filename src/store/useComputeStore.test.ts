@@ -1,42 +1,25 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { useComputeStore } from './useComputeStore'
+import { describe, expect, it } from 'vitest'
+import { migrateComputeState } from './useComputeStore'
 
-describe('compute store owned runtime profiles', () => {
-  beforeEach(() => {
-    useComputeStore.setState({
-      profiles: [{
-        id: 'local-python',
-        name: 'Local Python',
-        kind: 'jupyter',
-        serverUrl: 'http://127.0.0.1:8888',
-        kernelName: 'python3',
-        scope: 'note',
-      }],
-      activeProfileId: 'local-python',
-      tokens: {},
-    })
+describe('compute settings migration', () => {
+  it('migrates the legacy single-server shape into a local direct profile', () => {
+    const state = migrateComputeState({ serverUrl: 'http://127.0.0.1:9999', kernelName: 'python311' }, 1)
+    expect(state.profiles[0]).toMatchObject({ serverUrl: 'http://127.0.0.1:9999', kernelName: 'python311', runtimeLocation: 'local', connector: { kind: 'direct' } })
+    expect(state.lastLocalEnvironmentId).toBe('')
   })
 
-  it('creates and reuses a session-only profile for an owned server', () => {
-    const input = {
-      serverId: 'server:opaque',
-      environmentName: 'TensorNote Base',
-      serverUrl: 'http://127.0.0.1:43121',
-      kernelName: 'tensornote-base',
-      token: 'secret-token',
-    }
-    const id = useComputeStore.getState().upsertOwnedRuntimeProfile(input)
-    expect(useComputeStore.getState().profiles).toHaveLength(2)
-    expect(useComputeStore.getState().activeProfileId).toBe(id)
-    expect(useComputeStore.getState().tokens[id]).toBe('secret-token')
-
-    expect(useComputeStore.getState().upsertOwnedRuntimeProfile({ ...input, serverUrl: 'http://127.0.0.1:43122' })).toBe(id)
-    expect(useComputeStore.getState().profiles).toHaveLength(2)
-    expect(useComputeStore.getState().profiles[1].serverUrl).toBe('http://127.0.0.1:43122')
-
-    useComputeStore.getState().removeOwnedRuntimeProfile(input.serverId)
-    expect(useComputeStore.getState().profiles).toHaveLength(1)
-    expect(useComputeStore.getState().tokens[id]).toBeUndefined()
-    expect(useComputeStore.getState().activeProfileId).toBe('local-python')
+  it('drops transient owned profiles and repairs the active profile', () => {
+    const state = migrateComputeState({
+      profiles: [
+        { id: 'remote', name: 'Remote', kind: 'jupyter', serverUrl: 'https://jupyter.example.com', kernelName: 'python3', scope: 'workspace' },
+        { id: 'owned', name: 'Owned', kind: 'jupyter', serverUrl: 'http://127.0.0.1:1234', kernelName: 'python3', scope: 'workspace', runtimeServerId: 'server:secret' },
+      ],
+      activeProfileId: 'owned',
+      lastLocalEnvironmentId: 'python:remembered',
+    }, 2)
+    expect(state.profiles).toHaveLength(1)
+    expect(state.profiles[0]).toMatchObject({ id: 'remote', runtimeLocation: 'remote', connector: { kind: 'direct' } })
+    expect(state.activeProfileId).toBe('remote')
+    expect(state.lastLocalEnvironmentId).toBe('python:remembered')
   })
 })
