@@ -3118,18 +3118,23 @@ button.trust-status {
   padding: 12px 10px;
 }
 
-.knowledge-outline a {
+.knowledge-outline :is(a, button) {
+  width: 100%;
   overflow: hidden;
   padding: 6px 8px;
+  border: 0;
   border-radius: 7px;
+  background: transparent;
   color: var(--muted);
+  cursor: pointer;
   font-size: .64rem;
+  text-align: left;
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.knowledge-outline a:hover { background: var(--accent-pale); color: var(--ink); }
+.knowledge-outline :is(a, button):hover { background: var(--accent-pale); color: var(--ink); }
 .knowledge-outline .depth-2 { padding-left: 18px; }
 .knowledge-outline .depth-3 { padding-left: 28px; color: var(--faint); }
 .knowledge-outline .depth-4,

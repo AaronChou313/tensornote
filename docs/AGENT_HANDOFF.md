@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.16.1 候选：Desktop Outline 路由冲突修复（2026-09-09）
+
+Outline 条目从 `#heading` 链接改为当前窗格内的定位操作，避免 Desktop HashRouter 把标题锚点解释为应用路由；旧阅读页与 Workbench 右侧栏共用同一滚动实现，分栏不会互相抢占目标。
+
 ### v1.16.0 候选：Project Experiment 稳定收尾（2026-09-09）
 
 开发计划阶段 0～9 已完成。中英文 README、用户指南、作者/运行指南、平台契约、宿主矩阵和发布说明已统一到 Manifest v1 的真实能力；当前源码画面已验证文件系统目录、实验卡、独立实验页、固定 GitHub Revision、信任提示和平台降级。最终候选仍需完成本地发布门、Tag CI、22 个附件核对与公开 Release。
@@ -56,13 +60,13 @@ Files 导航严格使用 `content.root` 内的物理目录层级与目录名，�
 
 ### 已发布版本
 
-**v1.15.0 已于 2026-09-09 03:31 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.15.0) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `d805c2a`，22 个附件齐全；[正式 Release 34306637311](https://github.com/AaronChou313/tensornote/actions/runs/34306637311) 的发行检查、Web、本地 Web、Linux、Windows、Intel/Apple Silicon macOS、容器、Pages 与最终归档全部通过。
+**v1.16.0 已于 2026-09-09 05:23 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.16.0) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `d805c2a`，22 个附件齐全；[正式 Release 34306637311](https://github.com/AaronChou313/tensornote/actions/runs/34306637311) 的发行检查、Web、本地 Web、Linux、Windows、Intel/Apple Silicon macOS、容器、Pages 与最终归档全部通过。
 
 v1.6.3 已于 2026-09-08 08:15:40 UTC 发布，Tag 固定到 `39147f9cd250c4a62bec8569ea80a51a592cc64e`；其附件保持不变。
 
 v1.6.2 已于 2026-09-08 02:43:46 UTC 发布，Tag 固定到 `cc11a3fa35878a6d72bab2308af5cb9ea4b63b01`；其附件保持不变。
 
-Pages 已部署 v1.15.0。环境仍使用精确 Tag 许可策略；既有规则保留。以后发行新 Tag 时仍须先检查该版本是否获准。
+Pages 已部署 v1.16.0。环境仍使用精确 Tag 许可策略；既有规则保留。以后发行新 Tag 时仍须先检查该版本是否获准。
 
 v1.6.1 保留为历史稳定版；其 Tag `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56000` 与附件未改动。
 

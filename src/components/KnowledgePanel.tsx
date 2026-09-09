@@ -60,7 +60,7 @@ function GraphView({ graph }: { graph: LocalGraph }) {
   )
 }
 
-export function KnowledgePanel({ noteId, initialView = 'links', showNavigation = true, onNavigateHeading }: { noteId: string; showNavigation?: boolean; onNavigateHeading?: (id: string) => void; initialView?: 'links' | 'outline' | 'backlinks' | 'graph' }) {
+export function KnowledgePanel({ noteId, initialView = 'links', showNavigation = true, onNavigateHeading }: { noteId: string; showNavigation?: boolean; onNavigateHeading: (id: string) => void; initialView?: 'links' | 'outline' | 'backlinks' | 'graph' }) {
   const [view, setView] = useState<'links' | 'outline' | 'backlinks' | 'graph'>(initialView)
   const session = useWorkspaceStore((state) => state.session)
   if (!session) return null
@@ -106,9 +106,7 @@ export function KnowledgePanel({ noteId, initialView = 'links', showNavigation =
         </div>
       ) : (
         <nav className="knowledge-outline" aria-label="当前笔记目录">
-          {note.headings.length ? note.headings.map((heading) => <a key={heading.id} className={`depth-${heading.depth}`} href={`#${heading.id}`} onClick={(event) => {
-            if (onNavigateHeading && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigateHeading(heading.id) }
-          }}>{heading.text}</a>) : <p className="knowledge-muted">添加 Markdown Heading 后会生成目录。</p>}
+          {note.headings.length ? note.headings.map((heading) => <button key={heading.id} type="button" className={`depth-${heading.depth}`} onClick={() => onNavigateHeading(heading.id)}>{heading.text}</button>) : <p className="knowledge-muted">添加 Markdown Heading 后会生成目录。</p>}
         </nav>
       )}
 

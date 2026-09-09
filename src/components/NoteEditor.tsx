@@ -45,7 +45,7 @@ import type { Note } from '../types'
 import { getDocumentBody, getDocumentProperties, parseDocument, replaceDocumentBody, updateDocumentProperties, type DocumentProperties } from '../content/document'
 import { dirname, joinWorkspacePath, relativeWorkspacePath } from '../workspace/path'
 import { WorkspaceConflictError, type WorkspaceFileStat, type WorkspaceProvider } from '../workspace/types'
-import { headingSourceOffset } from '../workbench/headingNavigation'
+import { headingSourceOffset, scrollToHeading } from '../workbench/headingNavigation'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { useAppStore, type EditorMode } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
@@ -526,7 +526,9 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
           </section>
         )}
         {mode !== 'edit' && <section ref={previewRef} className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} compact={mode === 'split'} /></section>}
-        {mode === 'read' && <KnowledgePanel noteId={note.id} />}
+        {mode === 'read' && <KnowledgePanel noteId={note.id} onNavigateHeading={(id) => {
+          if (previewRef.current) scrollToHeading(previewRef.current, id)
+        }} />}
         {propertiesOpen && mode !== 'read' && <div id="document-properties"><PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} /></div>}
       </div>
       {labInitialCode !== null && <LabInsertDialog initialCode={labInitialCode} onInsert={insertLab} onClose={() => setLabInitialCode(null)} />}

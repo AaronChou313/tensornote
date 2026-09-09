@@ -2,7 +2,7 @@
 
 [中文（默认）](https://github.com/AaronChou313/tensornote/blob/main/docs/zh-CN/USER_GUIDE.md) · English
 
-For version 1.16.0. Follow download → open → configure only what you need → daily use. Reading and editing Markdown require no Jupyter installation. Running Python requires a compute environment. TensorNote does not host your knowledge base or provide public compute resources.
+For version 1.16.1. Follow download → open → configure only what you need → daily use. Reading and editing Markdown require no Jupyter installation. Running Python requires a compute environment. TensorNote does not host your knowledge base or provide public compute resources.
 
 <a id="choose"></a>
 ## 1. Choose your edition
@@ -29,7 +29,7 @@ Open [TensorNote online](https://aaronchou313.github.io/tensornote/) and select 
 
 ### Local Web
 
-1. Download `TensorNote-local-web-1.16.0.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
+1. Download `TensorNote-local-web-1.16.1.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
 2. Install Node.js 22 or newer. Initial downloads require a network. The package contains the compiled application: **no pnpm, npm install or frontend build is needed**.
 3. Open a terminal in the extracted `TensorNote-local-web` directory and run:
 
@@ -42,7 +42,7 @@ node start.mjs
 
 Do not double-click `app/index.html`. If port 5173 is occupied, stop the other local web server first. Keep using the same address: `localhost` and `127.0.0.1` have separate browser permissions, settings and token storage.
 
-`TensorNote-web-1.16.0.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
+`TensorNote-web-1.16.1.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
 
 ### Desktop
 
@@ -176,7 +176,7 @@ Manage remotes, authentication, Push/Pull, branches and conflicts in your Git cl
 
 ## 6. Give an agent the knowledge workspace skill
 
-Download `TensorNote-agent-skill-1.16.0.tar.gz` from the same release. Extract it and give a skill-capable agent `tensornote-knowledge-workspace/SKILL.md` together with its containing directory. Do not copy only the title or omit referenced files. Explicitly identify your knowledge folder so the agent does not edit TensorNote's application source by mistake.
+Download `TensorNote-agent-skill-1.16.1.tar.gz` from the same release. Extract it and give a skill-capable agent `tensornote-knowledge-workspace/SKILL.md` together with its containing directory. Do not copy only the title or omit referenced files. Explicitly identify your knowledge folder so the agent does not edit TensorNote's application source by mistake.
 
 Suggested request: “Review and update this knowledge folder using the supplied skill. Preserve Schema v1, stable note IDs, WikiLinks, executable cell metadata and relative asset paths. Read existing content first, run the bundled validator after changes, summarize your edits and never write tokens into files.”
 

@@ -6,7 +6,7 @@
 
 **Keep knowledge in ordinary Markdown files. Read, write, connect ideas and run Python experiments in one workspace.**
 
-[Try online](https://aaronchou313.github.io/tensornote/) · [Download](https://github.com/AaronChou313/tensornote/releases) · [User guide](docs/en/USER_GUIDE.md) · [Release notes](docs/releases/v1.16.0.en.md)
+[Try online](https://aaronchou313.github.io/tensornote/) · [Download](https://github.com/AaronChou313/tensornote/releases) · [User guide](docs/en/USER_GUIDE.md) · [Release notes](docs/releases/v1.16.1.en.md)
 
 [![CI](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml/badge.svg)](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/AaronChou313/tensornote?color=4f8061)](https://github.com/AaronChou313/tensornote/releases/latest) [![License](https://img.shields.io/badge/license-Apache--2.0-5d7869)](LICENSE)
 
@@ -33,7 +33,7 @@ Content, properties, links and experiments live in Markdown, assets and `tensorn
 
 **Quickest trial:** open [Online Web](https://aaronchou313.github.io/tensornote/) and select **AI Learning Notes**. To edit examples, download/clone your own copy and open its local directory.
 
-**Local Web:** download `TensorNote-local-web-1.16.0.tar.gz` from [Releases](https://github.com/AaronChou313/tensornote/releases), extract it and run in that directory:
+**Local Web:** download `TensorNote-local-web-1.16.1.tar.gz` from [Releases](https://github.com/AaronChou313/tensornote/releases), extract it and run in that directory:
 
 ```sh
 node start.mjs
@@ -45,7 +45,7 @@ Open `http://127.0.0.1:5173` in Chrome/Edge and select a Markdown folder. The ap
 
 GitHub community distribution does not require a paid developer account. Current packages lack Apple Developer ID notarization and a trusted Windows publisher signature, so your OS may show a warning. Verify the source and `SHA256SUMS`, then follow the [installation guide](docs/en/USER_GUIDE.md#2-download-and-open). Updater cryptographic signatures remain required. Release notes state actual test coverage; a clean-machine test pass on every OS is not claimed.
 
-`TensorNote-web-1.16.0.tar.gz` is the Static Web archive for deployment at `/tensornote/`. GitHub's automatic Source code archives are for development. Local browser users should choose **local-web**.
+`TensorNote-web-1.16.1.tar.gz` is the Static Web archive for deployment at `/tensornote/`. GitHub's automatic Source code archives are for development. Local browser users should choose **local-web**.
 
 ## Configure experiments and Git only when needed
 
@@ -74,7 +74,7 @@ Open a note with an Experiment Card → choose the lightest smoke preset → rev
 
 ## Current screenshots
 
-Current v1.16.0 Project Experiment entry (public Happy-LLM pilot at a pinned commit; [provenance](docs/images/v1.16.0/PROVENANCE.md)):
+v1.16.0 Project Experiment entry (public Happy-LLM pilot at a pinned commit; [provenance](docs/images/v1.16.0/PROVENANCE.md)):
 
 ![TensorNote Project Experiment](docs/images/v1.16.0/project-experiment-card.jpg)
 
@@ -84,7 +84,7 @@ Current v1.16.0 Project Experiment entry (public Happy-LLM pilot at a pinned com
 
 ## Let an agent maintain your knowledge base
 
-Download the matching `TensorNote-agent-skill-1.16.0.tar.gz`. Give the agent the extracted `SKILL.md` **and all referenced files**, and explicitly identify your knowledge folder. It can generate and update notes, maintain links/assets, check prerequisites and run the bundled validator.
+Download the matching `TensorNote-agent-skill-1.16.1.tar.gz`. Give the agent the extracted `SKILL.md` **and all referenced files**, and explicitly identify your knowledge folder. It can generate and update notes, maintain links/assets, check prerequisites and run the bundled validator.
 
 Install the skill's own dependencies in its directory, then validate:
 
