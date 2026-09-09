@@ -29,7 +29,7 @@
 
 ### 本地 Web
 
-1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.13.0.tar.gz`，解压。
+1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.14.0.tar.gz`，解压。
 2. 安装 Node.js 22 或更高版本。首次下载工具需要网络；包内已编译应用，**无需 pnpm、npm install 或前端构建**。
 3. 在解压得到的 `TensorNote-local-web` 文件夹打开终端，运行：
 
@@ -42,7 +42,7 @@ node start.mjs
 
 不要双击 `app/index.html`。端口被占用时先停止另一个本地 Web 服务。建议始终用同一个地址：`localhost` 与 `127.0.0.1` 的浏览器授权、设置和 Token 存储彼此独立。
 
-`TensorNote-web-1.13.0.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
+`TensorNote-web-1.14.0.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
 
 ### 桌面版
 
@@ -207,3 +207,7 @@ node scripts/validate-workspace.mjs "/absolute/path/to/your-vault" --strict
 ### Web 版运行项目实验
 
 在“设置 → 计算与 Jupyter”中选择 Compute Profile，并填写 **Jupyter Workspace 路径**：它必须是 Jupyter 进程看到的知识库根目录。实验页会先在 Kernel 中检查目录与脚本，再允许确认运行。`python`、`python-module` 和具备 `nbformat`/`nbclient` 的 Notebook 可运行；`torchrun` 请使用桌面版或兼容的远程运行环境。Git Bridge 无需为实验单独启动，它只处理 Git。
+
+### 从在线版进入 Binder
+
+通过固定 Revision 的 GitHub 分享链接打开公开知识库后，实验页会检查 Binder 环境入口。可用时点击“打开 Binder”，首次构建可能等待数分钟；环境与文件是临时的，请下载需要保留的产物。链接固定到完整 commit，不会携带 Token 或本机设置。未配置 Binder 时仍可完整阅读，并可改用桌面版。

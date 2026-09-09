@@ -9,6 +9,7 @@ import type { EnvironmentPlan, ExperimentJob, ExperimentRunPlan, RuntimeDiscover
 import { resolveExperimentEnvironmentFiles } from '../experiments/environment'
 import { experimentWorkingDirectory, materializeExperimentSteps } from '../experiments/runPlan'
 import { jupyterStepCode, jupyterSupported, jupyterWorkspaceProbe } from '../experiments/jupyterRunner'
+import { createBinderExperimentTarget } from '../experiments/binder'
 import { getHostAdapter } from '../host/runtime'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
@@ -173,6 +174,7 @@ export function ExperimentPage() {
   const presetId = experiment.requestedPreset ?? manifest?.defaultPreset ?? ''
   const preset = manifest?.presets[presetId]
   const capability = describeExperimentCapability({ experiment, session, host: getHostAdapter().capabilities, deploymentMode: deploymentAdapter.mode, executionEnabled: resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled })
+  const binder = createBinderExperimentTarget(session, experiment)
   const setTab = (next: ExperimentTab) => setSearchParams(next === 'environment' ? {} : { tab: next }, { replace: true })
 
   return <main className="experiment-page"><div className="experiment-page__inner">
@@ -180,6 +182,7 @@ export function ExperimentPage() {
     <header className="experiment-page__hero experiment-page__hero--detail"><div><span className="workspace-kicker">Project experiment</span><h1>{manifest?.experiment.title ?? '实验配置需要修复'}</h1><p>{manifest?.experiment.description ?? `引用：${experiment.manifestPath}`}</p></div><div className="experiment-badges"><span>{capability.platform}</span>{manifest && <span>{difficultyLabels[manifest.experiment.difficulty]}</span>}<span>{experiment.readOnly ? '只读' : 'Manifest v1'}</span></div></header>
     {manifest && <><ResourceSummary resources={manifest.resources} /><div className="experiment-context"><span><Clock size={15} />{manifest.experiment.estimatedMinutes ? `预计 ${manifest.experiment.estimatedMinutes} 分钟` : '未声明预计时长'}</span><span><FolderOpen size={15} />{experiment.manifestPath}</span><span><FileCode size={15} />预设：{preset?.title ?? presetId}</span></div></>}
     <section className={`experiment-readiness is-${capability.tone}`}><span>{capability.tone === 'danger' ? <WarningCircle size={20} /> : <ShieldCheck size={20} />}</span><div><strong>{capability.title}</strong><p>{capability.detail}</p></div></section>
+    {binder && <section className={`experiment-binder ${binder.configured ? '' : 'is-unavailable'}`}><div><small>固定 Revision · {binder.revision.slice(0, 12)}</small><strong>在 Binder 临时环境中打开</strong><p>{binder.configured ? `将从 ${binder.repository} 构建临时环境${binder.notebook ? `并打开 ${binder.notebook}` : ''}。首次构建可能需要数分钟，资源有限且文件不会持久保存。` : `${binder.reason} 可继续阅读，或下载桌面版并克隆仓库。`}</p></div>{binder.configured && <a href={binder.url} target="_blank" rel="noreferrer">打开 Binder <ArrowLeft size={14} /></a>}</section>}
     {experiment.diagnostics.length > 0 && <section className="experiment-diagnostics" aria-label="实验诊断"><strong>诊断</strong>{experiment.diagnostics.map((diagnostic, index) => <p key={`${diagnostic.code}:${index}`} className={`is-${diagnostic.severity}`}><WarningCircle size={14} />{diagnostic.message}{diagnostic.field ? <code>{diagnostic.field}</code> : null}</p>)}</section>}
     <nav className="experiment-tabs" aria-label="实验详情">{tabs.map((id) => <button key={id} className={tab === id ? 'is-active' : ''} onClick={() => setTab(id)} aria-current={tab === id ? 'page' : undefined}>{tabLabels[id]}</button>)}</nav>
     <section className="experiment-tab-panel">

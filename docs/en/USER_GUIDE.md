@@ -29,7 +29,7 @@ Open [TensorNote online](https://aaronchou313.github.io/tensornote/) and select 
 
 ### Local Web
 
-1. Download `TensorNote-local-web-1.13.0.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
+1. Download `TensorNote-local-web-1.14.0.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
 2. Install Node.js 22 or newer. Initial downloads require a network. The package contains the compiled application: **no pnpm, npm install or frontend build is needed**.
 3. Open a terminal in the extracted `TensorNote-local-web` directory and run:
 
@@ -42,7 +42,7 @@ node start.mjs
 
 Do not double-click `app/index.html`. If port 5173 is occupied, stop the other local web server first. Keep using the same address: `localhost` and `127.0.0.1` have separate browser permissions, settings and token storage.
 
-`TensorNote-web-1.13.0.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
+`TensorNote-web-1.14.0.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
 
 ### Desktop
 
@@ -207,3 +207,7 @@ Refreshing a workspace overview returns to Home; reopen it from Recent. Browser 
 ### Running project experiments on Web
 
 Choose a Compute Profile under Settings → Compute & Jupyter and set **Jupyter Workspace path** to the knowledge-base root as seen by the Jupyter process. The experiment page verifies that directory and all referenced scripts inside the kernel before confirmation. `python`, `python-module`, and notebooks with `nbformat`/`nbclient` are supported; use Desktop or a compatible remote runtime for `torchrun`. Git Bridge is unrelated to experiment execution and remains Git-only.
+
+### Opening Binder from Online Web
+
+Open a public workspace through a pinned GitHub reader link. The experiment page checks for Binder environment metadata and offers “Open Binder” when compatible. Initial builds may take several minutes; the environment and files are temporary, so download anything you need to keep. The link is pinned to the full commit and carries no token or local settings. Reading remains available when Binder is not configured.

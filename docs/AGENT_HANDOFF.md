@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.14.0 候选：固定 Revision Binder 引导（2026-09-09）
+
+GitHub Project Experiment 使用已解析的 owner/repo/完整 commit SHA 生成 Binder 链接；Notebook 可作为直接入口。UI 明示构建等待、临时资源与非持久输出，配置不足时保持阅读并提供 Desktop/克隆指引，URL 不携带 Token 或授权。
+
 ### v1.13.0 候选：Local Web / Remote Jupyter 实验子集（2026-09-09）
 
 Web 实验运行器在 Kernel 内验证 Workspace 路径映射和输入文件，再以无 Shell 的 Python 包装器运行 `python` / `python-module`；Notebook 通过 `nbclient` 生成执行副本。`torchrun` 明确降级到兼容预设或 Desktop，Git Bridge 保持 Git-only。
