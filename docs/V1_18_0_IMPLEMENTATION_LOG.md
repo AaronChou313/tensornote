@@ -9,16 +9,16 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：A2
-- 最后完成 Step：A1
-- 当前进行 Step：A2
-- 当前 HEAD：`297a1e2`（A1 提交前）
-- 工作树：A1 能力 resolver、矩阵测试与本日志待提交
-- 当前已知问题：`ComputeSettings` 仍内联在 `SettingsPage.tsx`，A2 需在保持行为的前提下拆分。
+- 当前阶段：A3
+- 最后完成 Step：A2
+- 当前进行 Step：A3
+- 当前 HEAD：`7e2b460`（A2 提交前）
+- 工作树：A2 组件拆分与本日志待提交
+- 当前已知问题：Compute 页面尚无进入即见的平台、资源与连接摘要；A3 将新增异步 Overview。
 - 下一位智能体第一步：
-  1. 阅读 `SettingsPage.tsx` 内现有 `ComputeSettings`
-  2. 拆出 compute settings 与 local/remote 子结构
-  3. 保持 v1.17.0 UI 表现与数据流不变
+  1. 设计 Compute Overview 的三端状态模型
+  2. Desktop 异步显示环境与 Kernel 统计
+  3. Local Web 与 Online 准确显示能力边界和当前连接
 
 ---
 
@@ -27,8 +27,8 @@
 | Step | 内容 | 状态 | Commit |
 |---|---|---|---|
 | A0 | 建立 v1.18 开发断点机制 | DONE | `297a1e2` |
-| A1 | 统一 ComputeCapabilities | DONE | 待提交 |
-| A2 | 拆分 ComputeSettings 组件 | TODO | |
+| A1 | 统一 ComputeCapabilities | DONE | `7e2b460` |
+| A2 | 拆分 ComputeSettings 组件 | DONE | 待提交 |
 | A3 | 新增 Compute Overview | TODO | |
 | B1 | Desktop Environment-first 列表 | TODO | |
 | B2 | Kernel 子级展示 | TODO | |
@@ -140,7 +140,7 @@ A1：新增统一 ComputeCapabilities resolver 和 Desktop / Local Web / Online 
 
 状态：DONE
 完成时间：2026-09-10 00:55 CST
-提交：待提交
+提交：`7e2b460`
 
 ### 本步目标
 
@@ -191,6 +191,66 @@ modified：A1 源码、测试与日志待提交。
 ### 下一步
 
 A2：从 `SettingsPage.tsx` 拆出 Compute Settings 组件及 local/remote 子结构，保持当前行为。
+
+
+---
+
+## A2 — 拆分 ComputeSettings 组件
+
+状态：DONE
+完成时间：2026-09-10 01:00 CST
+提交：待提交
+
+### 本步目标
+
+将 Compute Settings 从总设置页拆出，建立能力驱动的运行位置子组件，同时保持 v1.17.0 行为。
+
+### 实际修改
+
+- 将完整 Compute Settings 状态、授权、连接配置和诊断流程移至独立组件。
+- 新增运行位置 Tab 子组件，只接收统一 `ComputeCapabilities`，不自行读取 Deployment 或 Host。
+- Compute 主组件使用 `resolveComputeCapabilities` 决定三端可见入口和本地说明。
+- `SettingsPage.tsx` 从 308 行降至 141 行，只负责设置导航与其他设置板块。
+
+### 修改文件
+
+- `src/pages/SettingsPage.tsx`
+- `src/components/settings/ComputeSettings.tsx`
+- `src/components/settings/ComputeRuntimeLocationTabs.tsx`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：
+
+```bash
+pnpm check
+```
+
+结果：
+
+- 61 个测试文件、219 项测试通过。
+- Lint、TypeScript 和 Local 生产构建通过。
+- 仅保留既有上游 `eval` 与 chunk size 构建警告。
+
+### 设计决定
+
+- 本步只拆分职责和接入统一能力结果，不提前实现 A3/B/C 的视觉重构。
+- 动态加载 Desktop Runtime Assistant 的边界保留在 Compute Settings 内，不回流总设置页。
+
+### 未完成 / 风险
+
+- 连接表单仍集中在 Compute Settings；C2/C3 再按 Connection List 与 Details 拆分。
+- Local Runtime Assistant 在 B1–B6 内逐步替换第一层心智。
+
+### Git 状态
+
+modified：A2 组件拆分与日志待提交。
+
+### 下一步
+
+A3：新增 Compute Overview，提供平台、资源计数和当前计算状态，且环境探测不阻塞 Settings 打开。
+
 
 ---
 
