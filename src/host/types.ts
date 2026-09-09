@@ -114,6 +114,13 @@ export interface RuntimeOperation {
   environmentId?: string
 }
 
+export interface ExperimentRunStepInput { id: string; title: string; runner: string; file?: string; module?: string; args: string[]; outputs: string[] }
+export interface ExperimentRunPlanRequest { workspaceId: string; environmentId: string; experimentId: string; presetId: string; manifestPath: string; workingDirectory: string; steps: ExperimentRunStepInput[]; revision?: string }
+export interface ExperimentRunPlan { id: string; experimentId: string; presetId: string; environmentId: string; steps: ExperimentRunStepInput[]; inputs: Array<{ path: string; sha256: string }>; outputs: string[]; confirmation: string; expiresAt: number; revision?: string }
+export interface ExperimentLogLine { sequence: number; timestamp: number; stream: string; text: string }
+export interface ExperimentJobStep { id: string; title: string; state: 'pending' | 'running' | 'completed' | 'failed' | 'blocked' | 'cancelled' | 'interrupted'; exitCode?: number }
+export interface ExperimentJob { id: string; experimentId: string; presetId: string; state: 'running' | 'completed' | 'failed' | 'cancelled' | 'interrupted'; startedAt: number; finishedAt?: number; steps: ExperimentJobStep[]; logs: ExperimentLogLine[]; error?: string }
+
 export interface OwnedJupyterServer {
   id: string
   environmentId: string
@@ -160,6 +167,12 @@ export interface HostAdapter {
   getLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>
   cancelLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>
   removeLocalEnvironment?(environmentId: string, confirmation: string): Promise<void>
+  planExperimentRun?(request: ExperimentRunPlanRequest): Promise<ExperimentRunPlan>
+  startExperimentJob?(planId: string, environmentId: string, confirmation: string): Promise<ExperimentJob>
+  getExperimentJob?(jobId: string): Promise<ExperimentJob>
+  listExperimentJobs?(): Promise<ExperimentJob[]>
+  cancelExperimentJob?(jobId: string): Promise<ExperimentJob>
+  clearExperimentJobs?(): Promise<void>
   startOwnedJupyter?(environmentId: string, workspaceId: string | undefined, origin: string): Promise<JupyterServerLaunch>
   listOwnedJupyter?(): Promise<OwnedJupyterServer[]>
   getOwnedJupyterLogs?(serverId: string): Promise<RuntimeLogLine[]>

@@ -3,6 +3,7 @@ use tauri::{Emitter, Manager};
 #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
 use tauri_plugin_deep_link::DeepLinkExt;
 
+mod experiment_runtime;
 mod local_runtime;
 mod native_git;
 mod native_workspace;
@@ -64,6 +65,9 @@ pub fn run() {
             }
             app.manage(registry);
             app.manage(local_runtime::LocalRuntimeManager::new(app.handle())?);
+            app.manage(experiment_runtime::ExperimentRuntimeManager::new(
+                app.handle(),
+            )?);
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -108,6 +112,12 @@ pub fn run() {
             local_runtime::local_runtime_owned_servers,
             local_runtime::local_runtime_server_logs,
             local_runtime::local_runtime_stop_jupyter,
+            experiment_runtime::experiment_plan_run,
+            experiment_runtime::experiment_start_job,
+            experiment_runtime::experiment_job,
+            experiment_runtime::experiment_jobs,
+            experiment_runtime::experiment_cancel_job,
+            experiment_runtime::experiment_clear_jobs,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

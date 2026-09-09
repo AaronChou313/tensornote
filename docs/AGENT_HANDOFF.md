@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.11.0 候选：Desktop Python 多脚本 Job Runner（2026-09-09）
+
+新增原生 Experiment Runtime：运行计划绑定 Manifest 与脚本 SHA-256，使用固定环境 Python 与 argv 数组串行执行 `python` / `python-module`，提供逐步骤状态、受限日志、失败阻断、取消、全量重跑、失败续跑、历史清理和 interrupted 恢复。产物可在文件管理器中定位。
+
 ### v1.10.0 候选：Desktop Project Experiment 环境准备（2026-09-09）
 
 实验页接入桌面运行时发现、继承依赖解析、安装计划、确认、进度日志、取消和 Managed Environment 清理。原生端重新解析 Workspace 授权路径，计划绑定 Manifest 与依赖文件 SHA-256；内容变化或计划过期会拒绝应用。隔离环境位于应用数据目录，不写入知识库。

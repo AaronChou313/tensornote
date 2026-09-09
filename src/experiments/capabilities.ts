@@ -9,7 +9,7 @@ export interface ExperimentCapabilitySummary {
   availability: ExperimentAvailability
   platform: string
   canInspect: boolean
-  canRun: false
+  canRun: boolean
   tone: 'danger' | 'warning' | 'neutral' | 'success'
   title: string
   detail: string
@@ -41,9 +41,9 @@ export function describeExperimentCapability(input: {
     title: 'Workspace 执行已关闭', detail: '在设置中允许执行后，仍会逐次展示安装与运行计划并请求确认。',
   }
   const detail = host.processManagement
-    ? '桌面运行器将在下一阶段接入。当前版本可完整检查实验计划，不会创建环境或启动进程。'
+    ? '桌面版可生成绑定脚本摘要的运行计划；确认后按顺序运行受支持的步骤。'
     : deploymentMode === 'static'
       ? '在线版当前提供安全阅读；后续将支持兼容的远程 Jupyter 与固定 Revision 的 Binder。'
       : '本地 Web 后续可通过 Jupyter 运行兼容步骤；原生进程仍需要桌面版。'
-  return { availability: 'preview', platform, canInspect: true, canRun: false, tone: 'success', title: '实验计划可检查', detail }
+  return { availability: 'preview', platform, canInspect: true, canRun: host.processManagement, tone: 'success', title: host.processManagement ? '桌面运行器可用' : '实验计划可检查', detail }
 }
