@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "TensorNote",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "identifier": "io.github.aaronchou313.tensornote",
   "build": {
     "frontendDist": "../dist",
@@ -39,7 +39,10 @@
     ],
     "fileAssociations": [
       {
-        "ext": ["md", "markdown"],
+        "ext": [
+          "md",
+          "markdown"
+        ],
         "mimeType": "text/markdown",
         "name": "Markdown document",
         "description": "Markdown document opened with TensorNote",
@@ -54,7 +57,9 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["tensornote"]
+        "schemes": [
+          "tensornote"
+        ]
       }
     },
     "updater": {

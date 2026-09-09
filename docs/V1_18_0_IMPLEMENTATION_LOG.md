@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：E2
-- 最后完成 Step：E1
-- 当前进行 Step：E2
-- 当前 HEAD：`f58f008`（E1 日志提交前）
-- 工作树：仅 E1 验证记录待提交
-- 当前已知问题：版本号、双语用户文档、Release Notes 与交接文档仍为 v1.17.0。
+- 当前阶段：E3
+- 最后完成 Step：E2
+- 当前进行 Step：E3
+- 当前 HEAD：`a1ad295`（E2 提交前）
+- 工作树：v1.18.0 版本、双语文档、Skill template 与日志待提交
+- 当前已知问题：需要完成最终构建、提交、推送、Tag CI、资产核对和公开 Release。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -43,8 +43,8 @@
 | D1 | Store 与 Migration | DONE | `33374b0` |
 | D2 | 依赖职责整理 | DONE | `26c4d8e` |
 | D3 | 样式与交互精修 | DONE | `f58f008` |
-| E1 | 全量测试与回归 | DONE | 待提交 |
-| E2 | 中英文文档 | TODO | |
+| E1 | 全量测试与回归 | DONE | `a1ad295` |
+| E2 | 中英文文档 | DONE | 待提交 |
 | E3 | v1.18.0 Release | TODO | |
 
 ---
@@ -963,7 +963,7 @@ E1：执行完整测试、性能测试、原生测试、Local/Static 构建与�
 
 状态：DONE
 完成时间：2026-09-10 03:02 CST
-提交：待提交
+提交：`a1ad295`
 
 ### 本步目标
 
@@ -989,6 +989,53 @@ modified：仅 E1 日志待提交。
 ### 下一步
 
 E2：同步版本号、README、双语用户指南、Release Notes、交接与平台文档。
+
+
+## E2 — 中英文文档
+
+状态：DONE
+完成时间：2026-09-10 03:17 CST
+提交：待提交
+
+### 本步目标
+
+将版本、README、用户指南、Compute 参考、Skill 模板、Release Notes 与维护交接同步到 v1.18.0。
+
+### 实际修改
+
+- 应用、Tauri 与 Rust 版本统一为 1.18.0。
+- 中英文 README 和用户指南改为环境列表、添加 Dialog、远程连接列表与自动 Kernel 流程。
+- Compute Platform 记录 External Jupyter Support、Owned Server 复用和 KernelSpec 自动发现。
+- 新增双语 v1.18.0 Release Notes。
+- Agent Skill 包与知识库发布 Workflow template 固定到 v1.18.0。
+- 交接文档新增候选状态、验证证据与尚未发布说明。
+
+### 修改文件
+
+- `package.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock`、`src-tauri/tauri.conf.json`
+- `README.md`、`README.en.md`
+- `docs/zh-CN/USER_GUIDE.md`、`docs/en/USER_GUIDE.md`、`docs/COMPUTE_PLATFORM.md`
+- `docs/releases/v1.18.0.md`、`docs/releases/v1.18.0.en.md`、`docs/AGENT_HANDOFF.md`
+- `skills/tensornote-knowledge-workspace/package.json`、`package-lock.json`、`assets/publish-tensornote.yml`
+
+### 测试 / 验证
+
+执行：Cargo check、Skill quick_validate、strict template validator、release validator、git diff check。
+
+结果：全部通过；Release validator 报告 `PASS · v1.18.0 · updater + workflow + templates`。
+
+### 设计决定
+
+- 默认中文 README，英文独立文件；Release Notes 同样双语。
+- 文档明确阅读不需要 Python，三端计算能力继续按 Host/Deployment 边界表达。
+
+### Git 状态
+
+modified：E2 版本、文档、模板与日志待提交。
+
+### 下一步
+
+E3：完成最终发行门、构建 GitHub 资产、推送 Tag、等待 CI、核对附件并公开 v1.18.0。
 
 
 ---

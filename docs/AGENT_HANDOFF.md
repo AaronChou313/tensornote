@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.18.0 候选：以环境和连接为中心的 Compute UX（2026-09-10）
+
+Desktop 本地计算改为环境优先列表，Kernel 与 Owned Server 归入环境详情；支持受控补齐外部环境 Jupyter、复用 Server、日志和停止。Local Web 提供动态 Origin 的手动连接指引；Remote runtime 改为连接列表与详情弹窗，连接成功后自动枚举 Kernel。Compute Store v3 保持 token/Owned Profile 会话边界，并记录最后选择环境。Notebook 基础依赖与可选 ML 示例已分离。候选已通过 226 项前端测试、3 项性能测试、19 项 Rust 测试、Clippy、Local 与 Static 构建；尚未创建 Tag 或公开 Release。
+
 ### v1.17.0 已发布：环境管理与 Experiment 依赖安装（2026-09-09）
 
 “计算与 Jupyter”按本地/远程运行重新组织；Desktop 本地运行再分便捷连接与手动连接，本地 Web 只保留手动连接，在线版只展示远程连接。原生探测覆盖 Finder 启动时不可见的 Conda 常见路径，并支持用户选择 Conda/uv 可执行文件。Conda 或 uv 可创建 Python 3.11 托管环境，计划会显示完整落盘路径。Experiment 环境页可检测 `requirements*.txt`，经目标环境、文件摘要和确认短语绑定后安装，并与运行页共享所选环境。
