@@ -18,3 +18,8 @@ export function resolveExperimentEnvironmentFiles(manifest: ExperimentManifest, 
   visit(environmentId)
   return result
 }
+
+export function isExperimentRequirementsFile(path: string) {
+  const name = path.split('/').pop()?.toLocaleLowerCase() ?? ''
+  return name.startsWith('requirements') && name.endsWith('.txt')
+}

@@ -4233,7 +4233,7 @@ dependencies = [
 
 [[package]]
 name = "tensornote"
-version = "1.16.1"
+version = "1.17.0"
 dependencies = [
  "atomic-write-file",
  "getrandom 0.2.17",

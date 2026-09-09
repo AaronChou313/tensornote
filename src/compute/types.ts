@@ -34,6 +34,7 @@ export interface ComputeProfile {
   runtimeServerId?: string
   workspacePath?: string
   connector?: ComputeConnectorConfig
+  runtimeLocation?: 'local' | 'remote'
 }
 
 export interface ComputeConnectionConfig {
@@ -158,6 +159,7 @@ export const computeProfileTemplates: Array<Omit<ComputeProfile, 'id'>> = [
     kernelName: 'tensornote',
     scope: 'note',
     description: '本机 CPU 与日常学习环境',
+    runtimeLocation: 'local',
   },
   {
     name: 'Laptop GPU',
@@ -166,6 +168,7 @@ export const computeProfileTemplates: Array<Omit<ComputeProfile, 'id'>> = [
     kernelName: 'tensornote-gpu',
     scope: 'workspace',
     description: '笔记本 GPU Kernel，Workspace 内复用',
+    runtimeLocation: 'local',
   },
   {
     name: 'Lab RTX4090',
@@ -174,6 +177,7 @@ export const computeProfileTemplates: Array<Omit<ComputeProfile, 'id'>> = [
     kernelName: 'python3',
     scope: 'workspace',
     description: '局域网实验室工作站',
+    runtimeLocation: 'remote',
   },
   {
     name: 'Remote Server',
@@ -182,6 +186,7 @@ export const computeProfileTemplates: Array<Omit<ComputeProfile, 'id'>> = [
     kernelName: 'python3',
     scope: 'manual',
     description: '手动管理生命周期的远程环境',
+    runtimeLocation: 'remote',
   },
   {
     name: 'JupyterHub',
@@ -191,6 +196,7 @@ export const computeProfileTemplates: Array<Omit<ComputeProfile, 'id'>> = [
     scope: 'workspace',
     description: '使用有限权限 Token 启动或连接个人 Server',
     connector: { kind: 'jupyterhub', serverName: 'tensornote', stopOnDisconnect: true },
+    runtimeLocation: 'remote',
   },
   {
     name: 'BinderHub',
@@ -200,6 +206,7 @@ export const computeProfileTemplates: Array<Omit<ComputeProfile, 'id'>> = [
     scope: 'workspace',
     description: '从 GitHub 固定 Revision 构建临时隔离环境',
     connector: { kind: 'binderhub', shutdownOnDisconnect: true },
+    runtimeLocation: 'remote',
   },
   {
     name: 'Jetson',
@@ -208,5 +215,6 @@ export const computeProfileTemplates: Array<Omit<ComputeProfile, 'id'>> = [
     kernelName: 'python3',
     scope: 'manual',
     description: '边缘设备与部署验证',
+    runtimeLocation: 'remote',
   },
 ]

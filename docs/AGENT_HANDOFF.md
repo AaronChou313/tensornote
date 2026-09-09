@@ -4,6 +4,10 @@
 
 ## 当前交付
 
+### v1.17.0 候选：环境管理与 Experiment 依赖安装（2026-09-09）
+
+“计算与 Jupyter”按本地/远程运行重新组织；Desktop 本地运行再分便捷连接与手动连接，本地 Web 只保留手动连接，在线版只展示远程连接。原生探测覆盖 Finder 启动时不可见的 Conda 常见路径，并支持用户选择 Conda/uv 可执行文件。Conda 或 uv 可创建 Python 3.11 托管环境，计划会显示完整落盘路径。Experiment 环境页可检测 `requirements*.txt`，经目标环境、文件摘要和确认短语绑定后安装，并与运行页共享所选环境。
+
 ### v1.16.1 候选：Desktop Outline 路由冲突修复（2026-09-09）
 
 Outline 条目从 `#heading` 链接改为当前窗格内的定位操作，避免 Desktop HashRouter 把标题锚点解释为应用路由；旧阅读页与 Workbench 右侧栏共用同一滚动实现，分栏不会互相抢占目标。

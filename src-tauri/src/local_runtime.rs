@@ -18,6 +18,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tauri::{AppHandle, Manager, State};
+use tauri_plugin_dialog::DialogExt;
 use wait_timeout::ChildExt;
 
 const COMMAND_TIMEOUT: Duration = Duration::from_secs(12);
@@ -38,6 +39,8 @@ pub struct RuntimeTool {
     kind: String,
     name: String,
     version: String,
+    executable_path: String,
+    source: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -51,6 +54,8 @@ pub struct PythonEnvironment {
     ipykernel_installed: bool,
     managed: bool,
     kernel_name: Option<String>,
+    python_path: String,
+    location: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -80,6 +85,16 @@ pub struct RuntimeDiscovery {
     kernels: Vec<RuntimeKernel>,
     servers: Vec<DetectedJupyterServer>,
     warnings: Vec<String>,
+    managed_environment_root: String,
+    manager_diagnostics: Vec<RuntimeManagerDiagnostic>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RuntimeManagerDiagnostic {
+    kind: String,
+    status: String,
+    detail: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -97,6 +112,17 @@ pub struct EnvironmentPlanRequest {
     revision: Option<String>,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DependencyInstallPlanRequest {
+    environment_id: String,
+    workspace_id: String,
+    dependency_files: Vec<String>,
+    manifest_path: Option<String>,
+    manifest_digest: Option<String>,
+    revision: Option<String>,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvironmentPlanDependency {
@@ -109,10 +135,15 @@ pub struct EnvironmentPlanDependency {
 #[serde(rename_all = "camelCase")]
 pub struct EnvironmentPlan {
     id: String,
+    kind: String,
     manager: String,
     name: String,
     python_version: String,
     target_label: String,
+    target_path: String,
+    manager_executable_path: String,
+    environment_id: Option<String>,
+    external_environment: bool,
     packages: Vec<String>,
     kernel_name: String,
     steps: Vec<String>,
@@ -185,6 +216,8 @@ struct PlanRecord {
     base_python: Option<PathBuf>,
     dependency_files: Vec<PathBuf>,
     manifest_file: Option<PathBuf>,
+    install_only: bool,
+    existing_environment_id: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -285,6 +318,7 @@ pub struct LocalRuntimeManager {
     plans: Arc<Mutex<HashMap<String, PlanRecord>>>,
     operations: Arc<Mutex<HashMap<String, Arc<OperationControl>>>>,
     servers: Arc<Mutex<HashMap<String, ServerRecord>>>,
+    selected_tools: Arc<Mutex<HashMap<String, PathBuf>>>,
 }
 
 impl LocalRuntimeManager {
@@ -304,6 +338,7 @@ impl LocalRuntimeManager {
     }
 
     fn with_app_data(app_data: PathBuf) -> Self {
+        let selected_tools = read_selected_tools(&app_data);
         Self {
             app_data,
             tools: Arc::new(Mutex::new(HashMap::new())),
@@ -311,18 +346,41 @@ impl LocalRuntimeManager {
             plans: Arc::new(Mutex::new(HashMap::new())),
             operations: Arc::new(Mutex::new(HashMap::new())),
             servers: Arc::new(Mutex::new(HashMap::new())),
+            selected_tools: Arc::new(Mutex::new(selected_tools)),
         }
     }
 
     fn discover(&self, workspace_root: Option<&Path>) -> Result<RuntimeDiscovery, String> {
         let mut warnings = Vec::new();
         let mut tool_records = HashMap::new();
+        let selected_tools = self
+            .selected_tools
+            .lock()
+            .map_err(|_| "Runtime tool settings are unavailable")?
+            .clone();
         for (kind, names) in [
             ("uv", &["uv", "uv.exe"][..]),
             ("conda", &["conda", "conda.exe", "conda.bat"][..]),
             ("jupyter", &["jupyter", "jupyter.exe"][..]),
         ] {
-            if let Some(executable) = executable_candidates(names).into_iter().next() {
+            let selected = selected_tools
+                .get(kind)
+                .filter(|path| path.is_file())
+                .cloned();
+            let (candidate, source) = if let Some(path) = selected {
+                (Some(path), "user-selected")
+            } else {
+                let path_candidates = path_executable_candidates(names);
+                if let Some(path) = path_candidates.into_iter().next() {
+                    (Some(path), "path")
+                } else {
+                    (
+                        common_tool_candidates(kind).into_iter().next(),
+                        "common-location",
+                    )
+                }
+            };
+            if let Some(executable) = candidate {
                 match tool_version(kind, &executable) {
                     Ok(version) => {
                         let id = opaque_id("tool", &executable.to_string_lossy());
@@ -334,6 +392,8 @@ impl LocalRuntimeManager {
                                     kind: kind.into(),
                                     name: display_tool_name(kind),
                                     version,
+                                    executable_path: executable.to_string_lossy().into_owned(),
+                                    source: source.into(),
                                 },
                                 executable,
                             },
@@ -360,9 +420,17 @@ impl LocalRuntimeManager {
         if let Some(root) = workspace_root {
             python_candidates.extend(workspace_python_candidates(root));
         }
+        let mut conda_pythons = HashSet::new();
         if let Some(conda) = tool_records.get("conda") {
             match conda_environment_pythons(&conda.executable) {
-                Ok(paths) => python_candidates.extend(paths),
+                Ok(paths) => {
+                    for path in paths {
+                        if let Ok(canonical) = path.canonicalize() {
+                            conda_pythons.insert(canonical);
+                        }
+                        python_candidates.push(path);
+                    }
+                }
                 Err(reason) => warnings.push(format!("Conda 环境列表不可用：{reason}")),
             }
         }
@@ -381,6 +449,7 @@ impl LocalRuntimeManager {
             let marker = managed.get(&canonical);
             let manager = marker
                 .map(|item| item.manager.as_str())
+                .or_else(|| conda_pythons.contains(&canonical).then_some("conda"))
                 .or_else(|| {
                     workspace_root
                         .filter(|root| canonical.starts_with(root))
@@ -443,13 +512,70 @@ impl LocalRuntimeManager {
         servers.sort_by(|a, b| b.owned.cmp(&a.owned).then_with(|| a.url.cmp(&b.url)));
         servers.dedup_by(|a, b| a.url == b.url && a.environment_id == b.environment_id);
 
+        let manager_diagnostics = ["uv", "conda"]
+            .into_iter()
+            .map(
+                |kind| match public_tools.iter().find(|tool| tool.kind == kind) {
+                    Some(tool) => RuntimeManagerDiagnostic {
+                        kind: kind.into(),
+                        status: "available".into(),
+                        detail: format!("{} · {}", tool.version, tool.executable_path),
+                    },
+                    None => RuntimeManagerDiagnostic {
+                        kind: kind.into(),
+                        status: "missing".into(),
+                        detail: format!("未检测到 {}", display_tool_name(kind)),
+                    },
+                },
+            )
+            .chain(std::iter::once(RuntimeManagerDiagnostic {
+                kind: "venv".into(),
+                status: if public_environments.is_empty() {
+                    "missing"
+                } else {
+                    "available"
+                }
+                .into(),
+                detail: if public_environments.is_empty() {
+                    "未检测到可作为基础解释器的 Python".into()
+                } else {
+                    format!("{} 个基础 Python 可用", public_environments.len())
+                },
+            }))
+            .collect();
+
         Ok(RuntimeDiscovery {
             tools: public_tools,
             environments: public_environments,
             kernels,
             servers,
             warnings,
+            managed_environment_root: self
+                .app_data
+                .join("managed-environments")
+                .to_string_lossy()
+                .into_owned(),
+            manager_diagnostics,
         })
+    }
+
+    fn set_tool(&self, kind: &str, path: &Path) -> Result<(), String> {
+        if !matches!(kind, "uv" | "conda") {
+            return Err("只能配置 uv 或 Conda 可执行文件".into());
+        }
+        let canonical = path.canonicalize().map_err(|_| "所选工具文件不存在")?;
+        if !canonical.is_file() {
+            return Err("所选路径不是文件".into());
+        }
+        tool_version(kind, &canonical).map_err(|reason| {
+            format!("所选文件不是可用的 {}：{reason}", display_tool_name(kind))
+        })?;
+        let mut selected = self
+            .selected_tools
+            .lock()
+            .map_err(|_| "Runtime tool settings are unavailable")?;
+        selected.insert(kind.into(), canonical);
+        write_selected_tools(&self.app_data, &selected)
     }
 
     fn managed_environment_pythons(&self) -> Vec<PathBuf> {
@@ -588,10 +714,15 @@ impl LocalRuntimeManager {
         }
         let public = EnvironmentPlan {
             id: id.clone(),
+            kind: "create".into(),
             manager: request.manager,
             name: request.name.trim().to_string(),
             python_version: request.python_version,
             target_label: format!("TensorNote managed environments / {slug}"),
+            target_path: target.to_string_lossy().into_owned(),
+            manager_executable_path: executable.to_string_lossy().into_owned(),
+            environment_id: None,
+            external_environment: false,
             packages: MINIMAL_PACKAGES
                 .iter()
                 .map(|item| (*item).to_string())
@@ -617,6 +748,123 @@ impl LocalRuntimeManager {
                     base_python,
                     dependency_files,
                     manifest_file,
+                    install_only: false,
+                    existing_environment_id: None,
+                },
+            );
+        Ok(public)
+    }
+
+    fn plan_dependencies(
+        &self,
+        request: DependencyInstallPlanRequest,
+        workspace_root: &Path,
+    ) -> Result<EnvironmentPlan, String> {
+        if request.dependency_files.is_empty() || request.dependency_files.len() > 8 {
+            return Err("请选择 1–8 个 requirements 文件".into());
+        }
+        let environment = self
+            .environments
+            .lock()
+            .map_err(|_| "Runtime environment registry is unavailable")?
+            .get(&request.environment_id)
+            .cloned()
+            .ok_or("目标环境不存在，请重新检测")?;
+        let mut files = Vec::new();
+        let mut dependencies = Vec::new();
+        for relative in &request.dependency_files {
+            if !is_requirements_file(relative) {
+                return Err(format!("首期仅支持 requirements*.txt：{relative}"));
+            }
+            let path = secure_workspace_file(workspace_root, relative)?;
+            let source = fs::read(&path).map_err(error_string)?;
+            if source.len() > 2 * 1024 * 1024 {
+                return Err(format!("依赖文件过大：{relative}"));
+            }
+            dependencies.push(EnvironmentPlanDependency {
+                path: relative.clone(),
+                sha256: sha256_hex(&source),
+                size: source.len() as u64,
+            });
+            files.push(path);
+        }
+        let (manifest_file, manifest_sha256) =
+            if let Some(relative) = request.manifest_path.as_deref() {
+                let path = secure_workspace_file(workspace_root, relative)?;
+                let source = fs::read(&path).map_err(error_string)?;
+                (Some(path), Some(sha256_hex(&source)))
+            } else {
+                (None, None)
+            };
+        let (executable, manager_path) = if environment.public.manager == "uv" {
+            let tools = self
+                .tools
+                .lock()
+                .map_err(|_| "Runtime tool registry is unavailable")?;
+            let tool = tools
+                .get("uv")
+                .ok_or("该环境由 uv 管理，但当前未检测到 uv")?;
+            (
+                tool.executable.clone(),
+                tool.executable.to_string_lossy().into_owned(),
+            )
+        } else {
+            (
+                environment.python.clone(),
+                environment.python.to_string_lossy().into_owned(),
+            )
+        };
+        let id = opaque_id(
+            "dependency-plan",
+            &format!("{}:{}", request.environment_id, now_millis()),
+        );
+        let confirmation = format!("INSTALL {}", environment.public.name);
+        let target =
+            environment_root_from_python(&environment.python).ok_or("无法确定目标环境目录")?;
+        let steps = dependencies
+            .iter()
+            .map(|item| format!("安装 {}（SHA-256 {}…）", item.path, &item.sha256[..12]))
+            .chain(std::iter::once("保留现有环境；失败或取消不会删除它".into()))
+            .collect();
+        let public = EnvironmentPlan {
+            id: id.clone(),
+            kind: "install".into(),
+            manager: environment.public.manager.clone(),
+            name: environment.public.name.clone(),
+            python_version: environment.public.python_version.clone(),
+            target_label: environment.public.location.clone(),
+            target_path: target.to_string_lossy().into_owned(),
+            manager_executable_path: manager_path,
+            environment_id: Some(request.environment_id.clone()),
+            external_environment: !environment.public.managed,
+            packages: Vec::new(),
+            kernel_name: environment
+                .public
+                .kernel_name
+                .clone()
+                .unwrap_or_else(|| "python3".into()),
+            steps,
+            confirmation,
+            expires_at: now_millis() + 15 * 60 * 1000,
+            dependencies,
+            manifest_digest: request.manifest_digest,
+            manifest_sha256,
+            revision: request.revision,
+        };
+        self.plans
+            .lock()
+            .map_err(|_| "Runtime plan registry is unavailable")?
+            .insert(
+                id,
+                PlanRecord {
+                    public: public.clone(),
+                    target,
+                    executable,
+                    base_python: Some(environment.python),
+                    dependency_files: files,
+                    manifest_file,
+                    install_only: true,
+                    existing_environment_id: Some(request.environment_id),
                 },
             );
         Ok(public)
@@ -660,8 +908,76 @@ impl LocalRuntimeManager {
             .map_err(|_| "Runtime operation registry is unavailable")?
             .insert(operation_id.clone(), control.clone());
         let manager = self.clone();
-        thread::spawn(move || manager.run_environment_plan(plan, control));
+        thread::spawn(move || {
+            if plan.install_only {
+                manager.run_dependency_plan(plan, control)
+            } else {
+                manager.run_environment_plan(plan, control)
+            }
+        });
         self.operation(operation_id)
+    }
+
+    fn run_dependency_plan(&self, plan: PlanRecord, control: Arc<OperationControl>) {
+        control.append("system", "已确认依赖安装计划。现有环境会保留。".to_string());
+        let result: Result<String, String> = (|| {
+            let python = plan.base_python.as_ref().ok_or("目标 Python 不存在")?;
+            let sensitive = vec![self.app_data.clone(), plan.target.clone()];
+            for (index, dependency) in plan.dependency_files.iter().enumerate() {
+                control.progress(10 + ((index as u8) * 80 / plan.dependency_files.len() as u8));
+                if plan.public.manager == "uv" {
+                    run_operation_command(
+                        &plan.executable,
+                        &[
+                            "pip".into(),
+                            "install".into(),
+                            "--python".into(),
+                            python.as_os_str().into(),
+                            "--requirement".into(),
+                            dependency.as_os_str().into(),
+                        ],
+                        &control,
+                        &sensitive,
+                    )?;
+                } else {
+                    run_operation_command(
+                        python,
+                        &[
+                            "-m".into(),
+                            "pip".into(),
+                            "install".into(),
+                            "--disable-pip-version-check".into(),
+                            "--requirement".into(),
+                            dependency.as_os_str().into(),
+                        ],
+                        &control,
+                        &sensitive,
+                    )?;
+                }
+            }
+            Ok(plan
+                .existing_environment_id
+                .clone()
+                .ok_or("目标环境标识不存在")?)
+        })();
+        match result {
+            Ok(environment_id) => {
+                control.append("system", "依赖已安装到所选环境。".to_string());
+                control.finish(environment_id);
+            }
+            Err(reason) => {
+                let message = if control.cancelled.load(Ordering::Relaxed) {
+                    "安装已取消；现有环境未删除，部分包可能已经安装。".to_string()
+                } else {
+                    format!(
+                        "安装失败；现有环境未删除，部分包可能已经安装：{}",
+                        redact(&reason, std::slice::from_ref(&self.app_data))
+                    )
+                };
+                control.append("system", message.clone());
+                control.fail(message);
+            }
+        }
     }
 
     fn run_environment_plan(&self, plan: PlanRecord, control: Arc<OperationControl>) {
@@ -1113,6 +1429,31 @@ pub async fn local_runtime_discover(
 }
 
 #[tauri::command]
+pub async fn local_runtime_select_tool(
+    app: AppHandle,
+    manager: State<'_, LocalRuntimeManager>,
+    kind: String,
+) -> Result<bool, String> {
+    if !matches!(kind.as_str(), "uv" | "conda") {
+        return Err("只能配置 uv 或 Conda 可执行文件".into());
+    }
+    let selected = app
+        .dialog()
+        .file()
+        .set_title(if kind == "conda" {
+            "选择 Conda 可执行文件"
+        } else {
+            "选择 uv 可执行文件"
+        })
+        .blocking_pick_file();
+    let Some(path) = selected else {
+        return Ok(false);
+    };
+    manager.set_tool(&kind, &path.into_path().map_err(error_string)?)?;
+    Ok(true)
+}
+
+#[tauri::command]
 pub fn local_runtime_plan_environment(
     manager: State<'_, LocalRuntimeManager>,
     registry: State<'_, NativeWorkspaceRegistry>,
@@ -1124,6 +1465,16 @@ pub fn local_runtime_plan_environment(
         .map(|id| registry.root(id))
         .transpose()?;
     manager.plan(request, root.as_deref())
+}
+
+#[tauri::command]
+pub fn local_runtime_plan_dependencies(
+    manager: State<'_, LocalRuntimeManager>,
+    registry: State<'_, NativeWorkspaceRegistry>,
+    request: DependencyInstallPlanRequest,
+) -> Result<EnvironmentPlan, String> {
+    let root = registry.root(&request.workspace_id)?;
+    manager.plan_dependencies(request, &root)
 }
 
 #[tauri::command]
@@ -1249,6 +1600,11 @@ fn inspect_python(
             ipykernel_installed: value["ipykernel"].as_bool().unwrap_or(false),
             managed,
             kernel_name: marker.map(|item| item.kernel_name.clone()),
+            python_path: python.to_string_lossy().into_owned(),
+            location: environment_root_from_python(python)
+                .unwrap_or_else(|| python.to_path_buf())
+                .to_string_lossy()
+                .into_owned(),
         },
         python: python.to_path_buf(),
     })
@@ -1329,25 +1685,58 @@ fn conda_environment_pythons(conda: &Path) -> Result<Vec<PathBuf>, String> {
         .collect())
 }
 
+fn is_requirements_file(path: &str) -> bool {
+    Path::new(path)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| {
+            let lower = name.to_ascii_lowercase();
+            lower.starts_with("requirements") && lower.ends_with(".txt")
+        })
+}
+
+fn read_selected_tools(app_data: &Path) -> HashMap<String, PathBuf> {
+    let Ok(source) = fs::read(app_data.join("runtime-tools.json")) else {
+        return HashMap::new();
+    };
+    serde_json::from_slice::<HashMap<String, String>>(&source)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|(kind, _)| matches!(kind.as_str(), "uv" | "conda"))
+        .map(|(kind, path)| (kind, PathBuf::from(path)))
+        .collect()
+}
+
+fn write_selected_tools(app_data: &Path, tools: &HashMap<String, PathBuf>) -> Result<(), String> {
+    let public = tools
+        .iter()
+        .map(|(kind, path)| (kind.clone(), path.to_string_lossy().into_owned()))
+        .collect::<HashMap<_, _>>();
+    let source = serde_json::to_vec_pretty(&public).map_err(error_string)?;
+    fs::write(app_data.join("runtime-tools.json"), source).map_err(error_string)
+}
+
 fn executable_candidates(names: &[&str]) -> Vec<PathBuf> {
-    let mut directories = env::var_os("PATH")
+    let mut result = path_executable_candidates(names);
+    let mut seen = result.iter().cloned().collect::<HashSet<_>>();
+    for kind in ["uv", "conda", "jupyter"] {
+        for candidate in common_tool_candidates(kind) {
+            if names
+                .iter()
+                .any(|name| candidate.file_name().is_some_and(|file| file == *name))
+                && seen.insert(candidate.clone())
+            {
+                result.push(candidate);
+            }
+        }
+    }
+    result
+}
+
+fn path_executable_candidates(names: &[&str]) -> Vec<PathBuf> {
+    let directories = env::var_os("PATH")
         .map(|value| env::split_paths(&value).collect::<Vec<_>>())
         .unwrap_or_default();
-    if let Some(home) = home_directory() {
-        directories.extend([
-            home.join(".local/bin"),
-            home.join(".cargo/bin"),
-            home.join("miniconda3/bin"),
-            home.join("miniconda3/Scripts"),
-            home.join("anaconda3/bin"),
-            home.join("anaconda3/Scripts"),
-        ]);
-    }
-    directories.extend([
-        PathBuf::from("/opt/homebrew/bin"),
-        PathBuf::from("/usr/local/bin"),
-        PathBuf::from("/usr/bin"),
-    ]);
     let mut seen = HashSet::new();
     let mut result = Vec::new();
     for directory in directories {
@@ -1365,6 +1754,56 @@ fn executable_candidates(names: &[&str]) -> Vec<PathBuf> {
     result
 }
 
+fn common_tool_candidates(kind: &str) -> Vec<PathBuf> {
+    let names: &[&str] = match kind {
+        "conda" => &["conda", "conda.exe", "conda.bat"],
+        "uv" => &["uv", "uv.exe"],
+        "jupyter" => &["jupyter", "jupyter.exe"],
+        _ => &[],
+    };
+    let mut directories = vec![
+        PathBuf::from("/opt/homebrew/bin"),
+        PathBuf::from("/usr/local/bin"),
+        PathBuf::from("/usr/bin"),
+        PathBuf::from("/opt/anaconda3/bin"),
+        PathBuf::from("/opt/miniconda3/bin"),
+        PathBuf::from("/opt/miniforge3/bin"),
+        PathBuf::from("/opt/mambaforge/bin"),
+    ];
+    if let Some(home) = home_directory() {
+        directories.extend([
+            home.join(".local/bin"),
+            home.join(".cargo/bin"),
+            home.join("miniconda3/bin"),
+            home.join("miniconda3/Scripts"),
+            home.join("miniconda3/condabin"),
+            home.join("anaconda3/bin"),
+            home.join("anaconda3/Scripts"),
+            home.join("anaconda3/condabin"),
+            home.join("miniforge3/bin"),
+            home.join("mambaforge/bin"),
+            home.join("micromamba/bin"),
+        ]);
+    }
+    if let Some(local_app_data) = env::var_os("LOCALAPPDATA") {
+        let root = PathBuf::from(local_app_data);
+        directories.extend([
+            root.join("miniconda3/Scripts"),
+            root.join("miniconda3/condabin"),
+            root.join("anaconda3/Scripts"),
+            root.join("anaconda3/condabin"),
+        ]);
+    }
+    let mut seen = HashSet::new();
+    directories
+        .into_iter()
+        .flat_map(|directory| names.iter().map(move |name| directory.join(name)))
+        .filter(|path| path.is_file())
+        .filter_map(|path| path.canonicalize().ok())
+        .filter(|path| seen.insert(path.clone()))
+        .collect()
+}
+
 fn common_python_candidates() -> Vec<PathBuf> {
     let mut candidates = Vec::new();
     if let Some(home) = home_directory() {
@@ -1373,8 +1812,18 @@ fn common_python_candidates() -> Vec<PathBuf> {
                 .join(environment_python(Path::new(""))),
             home.join("anaconda3")
                 .join(environment_python(Path::new(""))),
+            home.join("miniforge3")
+                .join(environment_python(Path::new(""))),
+            home.join("mambaforge")
+                .join(environment_python(Path::new(""))),
         ]);
     }
+    candidates.extend([
+        PathBuf::from("/opt/anaconda3").join(environment_python(Path::new(""))),
+        PathBuf::from("/opt/miniconda3").join(environment_python(Path::new(""))),
+        PathBuf::from("/opt/miniforge3").join(environment_python(Path::new(""))),
+        PathBuf::from("/opt/mambaforge").join(environment_python(Path::new(""))),
+    ]);
     if let Some(local_app_data) = env::var_os("LOCALAPPDATA") {
         let programs = PathBuf::from(local_app_data).join("Programs/Python");
         if let Ok(entries) = fs::read_dir(programs) {
@@ -1837,5 +2286,25 @@ mod tests {
         );
         assert!(secure_workspace_file(temp.path(), "../requirements.txt").is_err());
         assert_eq!(sha256_hex(b"numpy==2.0\n").len(), 64);
+    }
+
+    #[test]
+    fn accepts_only_requirements_text_files_for_direct_install() {
+        assert!(is_requirements_file("chapter/requirements.txt"));
+        assert!(is_requirements_file("chapter/requirements-gpu.TXT"));
+        assert!(!is_requirements_file("chapter/environment.yml"));
+        assert!(!is_requirements_file("chapter/pyproject.toml"));
+    }
+
+    #[test]
+    fn persists_only_supported_runtime_tool_paths() {
+        let temp = tempdir().expect("tempdir");
+        let mut tools = HashMap::new();
+        tools.insert("conda".into(), PathBuf::from("/example/conda"));
+        tools.insert("shell".into(), PathBuf::from("/example/shell"));
+        write_selected_tools(temp.path(), &tools).expect("write tools");
+        let loaded = read_selected_tools(temp.path());
+        assert_eq!(loaded.get("conda"), Some(&PathBuf::from("/example/conda")));
+        assert!(!loaded.contains_key("shell"));
     }
 }

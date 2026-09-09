@@ -14,7 +14,7 @@ describe('publication links', () => {
     expect(targets.downloadUrl).toBe(`https://github.com/demo/course/archive/${revision}.zip`)
     expect(targets.badgeMarkdown).toContain(targets.webUrl)
     expect(targets.compatibilityBadgeMarkdown).toContain('TensorNote%20Workspace-v1')
-    expect(targets.compatibilityBadgeMarkdown).toContain('/v1.16.1/docs/PLATFORM_CONTRACTS.md')
+    expect(targets.compatibilityBadgeMarkdown).toContain('/v1.17.0/docs/PLATFORM_CONTRACTS.md')
   })
 
   it('requires a complete immutable commit revision', () => {

@@ -58,6 +58,10 @@ ComputeProvider 接受不含知识内容的连接配置与执行上下文，建�
 
 Jupyter 是首个 Provider，但不是 UI 的固定依赖。新增 Provider 必须保持输出事件、错误、取消和关闭语义，不得静默安装环境或绕过 Workspace 执行授权。
 
+Desktop 的本地运行时发现和环境准备属于 Host 能力，不属于 ComputeProvider。Runtime Discovery 可通过可选字段报告工具可执行路径、环境 Python 路径、管理器诊断和托管环境根目录；旧 Host 忽略这些字段仍保持兼容。用户选择的 Conda/uv 路径是设备设置，不写入 Workspace。依赖安装必须绑定 Workspace 授权根、明确目标环境、Manifest 与依赖文件摘要，并在执行前确认；现有外部环境失败时不得被删除。
+
+Compute Profile 可用可选的 `runtimeLocation` 标记本地或远程入口；旧 Profile 缺少该字段时根据 Connector 与 URL 兼容归类。该字段只组织设置界面，不改变 Connector、Provider 或执行授权。
+
 ### 4.1 ComputeConnector API v1（v1.5.0）
 
 ComputeConnector 位于 Profile 与 ComputeProvider 之间，只负责把 Generic Jupyter、JupyterHub 或 BinderHub 解析为临时的标准 `ComputeConnectionConfig`。它不读取 Markdown，不直接执行代码，也不改变 ComputeProvider v1。

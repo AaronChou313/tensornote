@@ -1,8 +1,10 @@
 import { GettingStarted } from '../components/GettingStarted'
-import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react'
-import { ArrowClockwise, CheckCircle, Cpu, DownloadSimple, Gear, Info, Moon, NotePencil, PaintBrush, Plus, Pulse, PuzzlePiece, Sun, Trash } from '@phosphor-icons/react'
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ArrowClockwise, CheckCircle, Cpu, DownloadSimple, Gear, Info, Moon, NotePencil, PaintBrush, Plus, Pulse, PuzzlePiece, Sun, TerminalWindow, Trash } from '@phosphor-icons/react'
 import { useSearchParams } from 'react-router-dom'
 import { computeRuntime } from '../compute/ComputeRuntime'
+import { deploymentAdapter } from '../deployment/config'
+import { profileRuntimeLocation, runtimeLocationsFor, type RuntimeLocation } from '../compute/runtimeSettings'
 import { formatComputeDiagnosticReport } from '../compute/compatibility'
 import { computeConnectorKind } from '../compute/connectors'
 import { computeProfileTemplates, type ComputeConnectorConfig, type ComputeContext, type ComputeSessionScope, type DiagnosticCheck } from '../compute/types'
@@ -20,7 +22,7 @@ import {
   WORKSPACE_PROVIDER_API_VERSION,
 } from '../platform'
 import { useAppStore, type EditorMode, type SettingsSection } from '../store/useAppStore'
-import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
+import { useComputeStore } from '../store/useComputeStore'
 import { useExtensionStore } from '../store/useExtensionStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { resolveWorkspaceExecutionPolicy } from '../workspace/executionPolicy'
@@ -102,13 +104,26 @@ function ComputeSettings() {
   const removeProfile = useComputeStore((state) => state.removeProfile)
   const setToken = useComputeStore((state) => state.setToken)
   const kernelStatus = useAppStore((state) => state.kernelStatus)
-  const profile = activeComputeProfile({ profiles, activeProfileId })
+  const runtimeLocations = runtimeLocationsFor(deploymentAdapter.mode)
+  const onlineOnly = runtimeLocations.length === 1
+  const [runtimeLocation, setRuntimeLocation] = useState<RuntimeLocation>(runtimeLocations[0])
+  const visibleProfiles = useMemo(() => profiles.filter((item) => !item.runtimeServerId && profileRuntimeLocation(item) === runtimeLocation), [profiles, runtimeLocation])
+  const fallbackTemplate = useMemo(() => runtimeLocation === 'local' ? computeProfileTemplates[0] : computeProfileTemplates.find((item) => item.name === 'Remote Server')!, [runtimeLocation])
+  const profile = visibleProfiles.find((item) => item.id === activeProfileId) ?? visibleProfiles[0] ?? { id: `new-${runtimeLocation}-profile`, ...fallbackTemplate }
   const [diagnostics, setDiagnostics] = useState<DiagnosticCheck[]>([])
   const [diagnosing, setDiagnosing] = useState(false)
   const [preparing, setPreparing] = useState(false)
   const [reportCopied, setReportCopied] = useState(false)
+  const [localCommandCopied, setLocalCommandCopied] = useState(false)
   const token = tokens[profile.id] ?? ''
   const connectorKind = computeConnectorKind(profile.connector) as keyof typeof connectorLabels
+  useEffect(() => {
+    if (visibleProfiles.length === 0) {
+      addProfile(fallbackTemplate)
+    } else if (!visibleProfiles.some((item) => item.id === activeProfileId)) {
+      setActiveProfile(visibleProfiles[0].id)
+    }
+  }, [activeProfileId, addProfile, fallbackTemplate, setActiveProfile, visibleProfiles])
   const computeContext = useMemo(() => computeContextFromSession(session), [session])
   const executionPolicy = session ? resolveWorkspaceExecutionPolicy(session, executionOverrides) : null
   const executionDescription = !session
@@ -149,12 +164,19 @@ function ComputeSettings() {
         </SettingRow>
         {session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前设备，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前 Workspace 没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.type === 'github' && !session.trusted ? ' GitHub Workspace 还需要信任当前 Revision。' : ''}</p>}
       </div>
-      {LocalRuntimeAssistant && <Suspense fallback={<p className="settings-message">正在加载本地运行时助手…</p>}><LocalRuntimeAssistant /></Suspense>}
+      <div className="settings-runtime-location" role="tablist" aria-label="运行位置">
+        {!onlineOnly && <button role="tab" aria-selected={runtimeLocation === 'local'} className={runtimeLocation === 'local' ? 'is-active' : ''} onClick={() => { setRuntimeLocation('local'); setDiagnostics([]) }}><TerminalWindow size={18} /><span><strong>本地运行</strong><small>{deploymentAdapter.mode === 'desktop' ? '在这台电脑上创建、启动或连接环境' : '连接这台电脑上已启动的 Jupyter'}</small></span></button>}
+        <button role="tab" aria-selected={runtimeLocation === 'remote'} className={runtimeLocation === 'remote' ? 'is-active' : ''} onClick={() => { setRuntimeLocation('remote'); setDiagnostics([]) }}><Cpu size={18} /><span><strong>远程运行</strong><small>连接远程机器、JupyterHub 或 Binder</small></span></button>
+      </div>
+      <div className="settings-runtime-heading"><span>{runtimeLocation === 'local' ? 'Local runtime' : 'Remote runtime'}</span><h3>{runtimeLocation === 'local' ? '在这台电脑上运行' : '连接远程计算环境'}</h3><p>{runtimeLocation === 'local' ? (deploymentAdapter.mode === 'desktop' ? '便捷连接由 TensorNote 管理环境和 Server；手动连接适合你已经启动的 Jupyter。' : '浏览器不能启动本机进程。请先自行启动 Jupyter Server，再填写连接信息。') : '计算资源位于其他设备或云平台。在线版要求 HTTPS，并需要服务端允许当前网页来源和 WebSocket。'}</p></div>
+      {runtimeLocation === 'local' && !LocalRuntimeAssistant && <div className="settings-local-web-help"><div><strong>先在 Workspace 根目录启动 Jupyter</strong><code>jupyter server --no-browser --ServerApp.allow_origin=http://127.0.0.1:5173</code><small>终端输出会包含 Server URL 和临时 Token；把它们填入下方。Token 只保存在当前浏览器会话。</small></div><Button variant="secondary" size="sm" onClick={() => void navigator.clipboard.writeText('jupyter server --no-browser --ServerApp.allow_origin=http://127.0.0.1:5173').then(() => { setLocalCommandCopied(true); window.setTimeout(() => setLocalCommandCopied(false), 1600) })}>{localCommandCopied ? '已复制' : '复制命令'}</Button></div>}
+      {runtimeLocation === 'local' && LocalRuntimeAssistant && <><div className="settings-connection-label"><span>01</span><div><strong>便捷连接</strong><small>选择或新建环境，然后由 TensorNote 启动并连接</small></div></div><Suspense fallback={<p className="settings-message">正在加载本地环境…</p>}><LocalRuntimeAssistant /></Suspense></>}
+      {runtimeLocation === 'local' && <div className="settings-connection-label"><span>{LocalRuntimeAssistant ? '02' : '01'}</span><div><strong>手动连接</strong><small>自行启动 Server，再填写地址、Kernel 与 Token</small></div></div>}
       <div className="settings-compute-layout">
         <aside className="settings-profile-list">
-          <span>Profiles</span>
-          {profiles.map((item) => <button key={item.id} className={item.id === profile.id ? 'is-active' : ''} onClick={() => { setActiveProfile(item.id); setDiagnostics([]) }}><Cpu size={16} /><span><strong>{item.name}</strong><small>{connectorLabels[computeConnectorKind(item.connector) as keyof typeof connectorLabels] ?? item.kind} · {item.scope}</small></span></button>)}
-          <details><summary><Plus size={14} />添加 Profile</summary><div>{computeProfileTemplates.map((template) => <button key={template.name} onClick={() => addProfile(template)}><strong>{template.name}</strong><small>{template.description}</small></button>)}</div></details>
+          <span>{runtimeLocation === 'local' ? '手动连接' : '远程 Profiles'}</span>
+          {visibleProfiles.map((item) => <button key={item.id} className={item.id === profile.id ? 'is-active' : ''} onClick={() => { setActiveProfile(item.id); setDiagnostics([]) }}><Cpu size={16} /><span><strong>{item.name}</strong><small>{connectorLabels[computeConnectorKind(item.connector) as keyof typeof connectorLabels] ?? item.kind} · {item.scope}</small></span></button>)}
+          <details><summary><Plus size={14} />添加连接</summary><div>{computeProfileTemplates.filter((template) => profileRuntimeLocation(template) === runtimeLocation).map((template) => <button key={template.name} onClick={() => addProfile(template)}><strong>{template.name}</strong><small>{template.description}</small></button>)}</div></details>
         </aside>
         <div className="settings-compute-form">
           <div className="settings-runtime-status">
@@ -164,12 +186,12 @@ function ComputeSettings() {
           </div>
           <div className="settings-connector-intro" data-connector={connectorKind}>
             <strong>{connectorLabels[connectorKind]}</strong>
-            <p>{connectorKind === 'direct' ? '连接已经运行的标准 Jupyter Server；Server 与文件生命周期由你管理。' : connectorKind === 'jupyterhub' ? '验证当前用户身份，按需启动个人 Server；Token 模式还需要用户 Server 接受 WebSocket URL Token。' : '从公开 GitHub 的固定 commit 构建临时隔离环境；首次启动可能需要数分钟。'}</p>
+            <p>{connectorKind === 'direct' ? `${runtimeLocation === 'local' ? '连接这台电脑上' : '连接远程'}已经运行的标准 Jupyter Server；Server 与文件生命周期由你管理。` : connectorKind === 'jupyterhub' ? '验证当前用户身份，按需启动个人 Server；Token 模式还需要用户 Server 接受 WebSocket URL Token。' : '从公开 GitHub 的固定 commit 构建临时隔离环境；首次启动可能需要数分钟。'}</p>
           </div>
           <div className="settings-form-grid">
             <label><span>Profile 名称</span><input value={profile.name} onChange={(event) => updateProfile(profile.id, { name: event.target.value })} /></label>
-            <label><span>连接方式</span><select value={connectorKind} onChange={(event) => updateProfile(profile.id, { connector: connectorDefaults(event.target.value as keyof typeof connectorLabels) })}><option value="direct">Generic Jupyter</option><option value="jupyterhub">JupyterHub</option><option value="binderhub">BinderHub</option></select></label>
-            <label className="is-wide"><span>{connectorKind === 'direct' ? 'Server URL' : connectorKind === 'jupyterhub' ? 'Hub URL' : 'BinderHub URL'}</span><input value={profile.serverUrl} onChange={(event) => updateProfile(profile.id, { serverUrl: event.target.value })} placeholder={connectorKind === 'direct' ? (profile.id === 'remote-jupyter' ? 'https://jupyter.example.com/' : 'http://127.0.0.1:8888') : connectorKind === 'jupyterhub' ? 'https://jupyter.example.com' : 'https://mybinder.org'} /></label>
+            <label><span>连接方式</span><select value={connectorKind} onChange={(event) => updateProfile(profile.id, { connector: connectorDefaults(event.target.value as keyof typeof connectorLabels), runtimeLocation })}><option value="direct">Generic Jupyter</option>{runtimeLocation === 'remote' && <><option value="jupyterhub">JupyterHub</option><option value="binderhub">BinderHub</option></>}</select></label>
+            <label className="is-wide"><span>{connectorKind === 'direct' ? 'Server URL' : connectorKind === 'jupyterhub' ? 'Hub URL' : 'BinderHub URL'}</span><input value={profile.serverUrl} onChange={(event) => updateProfile(profile.id, { serverUrl: event.target.value, runtimeLocation })} placeholder={connectorKind === 'direct' ? (runtimeLocation === 'local' ? 'http://127.0.0.1:8888' : 'https://jupyter.example.com/') : connectorKind === 'jupyterhub' ? 'https://jupyter.example.com' : 'https://mybinder.org'} /></label>
             <label><span>Kernel</span><input value={profile.kernelName} onChange={(event) => updateProfile(profile.id, { kernelName: event.target.value })} /></label>
             <label className="is-wide"><span>Jupyter Workspace 路径</span><input value={profile.workspacePath ?? '.'} onChange={(event) => updateProfile(profile.id, { workspacePath: event.target.value })} placeholder="/srv/notebooks/my-workspace" /><small>Jupyter 进程中指向当前知识库根目录的路径；运行项目实验前会验证。</small></label>
             {connectorKind !== 'binderhub' && <label><span>{connectorKind === 'jupyterhub' ? 'Hub API Token' : 'Token'}</span><input type="password" value={token} onChange={(event) => setToken(profile.id, event.target.value)} placeholder={connectorKind === 'jupyterhub' ? '有限权限 Token' : 'Jupyter Token'} /></label>}

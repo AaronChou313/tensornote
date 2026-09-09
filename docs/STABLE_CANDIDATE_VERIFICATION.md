@@ -110,3 +110,13 @@
 - 当前源码在 Local Web 打开 `AaronChou313/happy-llm-tensornote` 的完整 commit `6bacf82c34d3d4e4e735f09eb2ac1e3956c91248`，视觉确认物理文件系统目录、Experiments 数量、笔记内 Project Experiment Card 与无 Focus 遮挡；截图及来源见 `docs/images/v1.16.0/`。
 - 实际打开实验详情页，确认 Local Web 平台标签、CPU/内存/磁盘提示、Manifest v1、环境继承、固定 Revision、未信任禁止执行及 Binder 配置不足的准确降级说明。没有将可访问性元素存在当成像素可见的唯一证据。
 - Happy-LLM 第 5、6 章 Manifest、分组依赖、CPU 检查、结构化脚本入口与 Skill 严格 Validator 已在 v1.15.0 候选中通过。公共 Binder 完整 Notebook 执行、跨版本自动升级、干净 Windows/Linux/Intel macOS 安装仍保留为外部验证债务。
+
+## v1.17.0 环境管理与依赖安装候选
+
+- `pnpm check` 通过：61 个测试文件、214 项测试，以及 Lint、TypeScript 和 Local 生产构建均成功。
+- Rust fmt、clippy 和 18 项原生测试通过；Apple Silicon `.app` 与 `TensorNote_1.17.0_aarch64.dmg` 本机构建成功。
+- Static Web 生产构建通过，并确认没有打包 Tauri IPC；3 项性能测试通过，生产依赖无已知高危漏洞，v1.17.0 Release Contract 通过。
+- Skill quick validation、三套 strict Workspace 模板、仓库 Validator、出版检查和同版本 Skill 打包通过。
+- 本机 Conda 为 `/opt/anaconda3/bin/conda`，即使 Finder 启动不读取 Shell 初始化，也属于原生探测的常见位置。
+- 实际界面走查覆盖 Desktop 设置弹窗和在线 Web。Desktop 显示本地/远程切换、本地便捷连接及手动连接；在线 Web 只显示远程入口，并在旧存储仅有本地 Profile 时自动创建远程 Profile，没有暴露本地环境管理。
+- 本机没有中断用户当前运行中的正式 TensorNote，因此未用同 bundle id 的候选覆盖启动。Conda 实际创建 Python 3.11、Windows/Linux 安装和 Tag 产物安装由正式发行工作流及对应平台验收继续覆盖；不得把本机源码构建表述为这些外部平台已实测。

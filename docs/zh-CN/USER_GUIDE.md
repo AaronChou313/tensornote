@@ -2,7 +2,7 @@
 
 中文（默认） · [English](https://github.com/AaronChou313/tensornote/blob/main/docs/en/USER_GUIDE.md)
 
-适用版本：1.16.1。按“下载 → 打开 → 按需配置 → 日常使用”组织。只阅读、编辑 Markdown 不需要 Jupyter；执行 Python 才需要计算环境。TensorNote 不托管你的知识库或公共算力。
+适用版本：1.17.0。按“下载 → 打开 → 按需配置 → 日常使用”组织。只阅读、编辑 Markdown 不需要 Jupyter；执行 Python 才需要计算环境。TensorNote 不托管你的知识库或公共算力。
 
 <a id="choose"></a>
 ## 1. 先选版本
@@ -29,7 +29,7 @@
 
 ### 本地 Web
 
-1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.16.1.tar.gz`，解压。
+1. 从 [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.17.0.tar.gz`，解压。
 2. 安装 Node.js 22 或更高版本。首次下载工具需要网络；包内已编译应用，**无需 pnpm、npm install 或前端构建**。
 3. 在解压得到的 `TensorNote-local-web` 文件夹打开终端，运行：
 
@@ -42,7 +42,7 @@ node start.mjs
 
 不要双击 `app/index.html`。端口被占用时先停止另一个本地 Web 服务。建议始终用同一个地址：`localhost` 与 `127.0.0.1` 的浏览器授权、设置和 Token 存储彼此独立。
 
-`TensorNote-web-1.16.1.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
+`TensorNote-web-1.17.0.tar.gz` 是用于 `/tensornote/` 路径部署的 Static Web 包；它不是本地 Web 启动包。GitHub 自动提供的 “Source code” 则是开发者源码。
 
 ### 桌面版
 
@@ -135,11 +135,14 @@ Windows 如无 `python3`，使用已安装的 `python`。在应用 Local Python 
 
 ### 桌面版：运行时助手
 
-1. 在“设置 → 计算与 Jupyter”点击重新检测，选择已安装 Jupyter 的环境。
-2. 点击“启动并使用”，应用在本机启动 Jupyter 并自动连接，无需复制随机 Token。
-3. 没有合适环境时，查看“创建 TensorNote Managed Environment”的安装计划并按界面确认。仍需可用的 Python/环境管理工具；下载基础包需要网络。
-4. 基础环境不包含整个 PyTorch/CUDA 栈。笔记要求的额外依赖需你审核后自行安装。
-5. 使用完成可停止；退出应用会清理本次由 TensorNote 启动的 Jupyter，不会停止你另外启动的服务。
+1. 在“设置 → 计算与 Jupyter”选择 **本地运行 → 便捷连接**。
+2. 选择标记为“可启动”的环境，再点击“启动并连接”。应用会启动本机 Jupyter 并自动切换计算环境，无需复制随机 Token。
+3. 没有合适环境时展开“新建独立环境”。Conda 或 uv 可以创建指定的 Python 3.10–3.14；venv 只能使用电脑中已经安装的同版本 Python。
+4. 创建前会显示管理器、Python 版本、基础包和完整目标路径。默认环境位于 TensorNote 应用数据目录，不写入知识库。
+5. macOS 从 Finder 启动应用时可能看不到终端的 PATH。TensorNote 会检查 Miniconda、Anaconda、Miniforge、Mambaforge 等常见位置；仍未找到时可点击 Conda 卡片中的“选择文件”。
+6. 基础环境不包含整个 PyTorch/CUDA 栈。使用完成可停止；退出应用会停止本次由 TensorNote 启动的 Jupyter。只有 TensorNote 创建的环境可以在这里删除。
+
+如果你已经自行启动 Server，选择 **本地运行 → 手动连接**。远程机器、学校 JupyterHub 或 Binder 则进入 **远程运行**。在线 Web 只提供远程运行；本地 Web 只提供本地手动连接与远程运行。
 
 ### 连接失败时
 
@@ -176,7 +179,7 @@ git config user.email "you@example.com"
 
 ## 6. 让智能体维护知识库
 
-从同版本 Release 下载 `TensorNote-agent-skill-1.16.1.tar.gz`，解压后把 `tensornote-knowledge-workspace/SKILL.md` 连同所在目录交给支持 Skill 的智能体；不能只复制标题或丢弃引用文件。明确指定你的知识库目录，不要让它误改 TensorNote 应用源码目录。
+从同版本 Release 下载 `TensorNote-agent-skill-1.17.0.tar.gz`，解压后把 `tensornote-knowledge-workspace/SKILL.md` 连同所在目录交给支持 Skill 的智能体；不能只复制标题或丢弃引用文件。明确指定你的知识库目录，不要让它误改 TensorNote 应用源码目录。
 
 建议任务：“按照这个 Skill 审核并更新指定知识库，保持 Schema v1、稳定笔记 ID、WikiLinks、可执行代码元数据和附件相对路径；先读取现有内容，更新后运行自带验证器并说明变化，不把任何 Token 写入文件。”
 
@@ -190,6 +193,8 @@ node scripts/validate-workspace.mjs "/absolute/path/to/your-vault" --strict
 智能体仍通过文件读写维护可移植 Markdown；这不是给任意智能体开放桌面 Shell 的远程接口。更多格式与维护规则随 Skill 的 references 和 templates 分发。
 
 课程代码中的短小单笔记练习使用 Inline Lab；多脚本、分组依赖、Notebook、训练任务或产物使用 Project Experiment。Skill 提供最小与完整 Manifest 模板，严格校验会检查引用文件、环境继承、Preset、步骤依赖图、参数、产物和下载声明。Manifest 只描述内容，不会授权智能体或 TensorNote 自动安装依赖、下载模型或执行训练。
+
+Desktop 的 Experiment 环境页会列出 Manifest 声明以及实验工作目录中检测到的 `requirements*.txt`。先选择明确的目标 Python 环境，再对单个文件点击“安装到当前环境”，或多选后批量安装。安装前必须审阅目标路径和文件摘要并输入确认短语。外部环境会被直接修改且无法自动回滚；TensorNote 托管环境与运行页共享同一个环境选择。
 
 ## 7. 更新、备份与问题反馈
 

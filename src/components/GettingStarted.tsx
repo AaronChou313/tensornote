@@ -9,7 +9,7 @@ export function GettingStarted({ context = 'home' }: { context?: 'home' | 'compu
   const local = deploymentAdapter.capabilities.gitBridge
   const mode = native ? '桌面版' : local ? '本地 Web 版' : '在线 Web 版'
   const compute = native
-    ? '需要运行实验时，在下方检测 Python 环境，选择已安装 Jupyter 的环境并点击“启动并使用”。没有合适环境时，可先查看创建环境的安装计划。'
+    ? '需要运行实验时，在下方检测 Python 环境，选择已安装 Jupyter 的环境并点击“启动并连接”。没有合适环境时，可先查看创建环境的安装计划。'
     : local
       ? '需要运行实验时，先在自己的 Python 环境启动 Jupyter，再填写服务地址、Token 和 Kernel。Jupyter 的允许来源必须与当前页面地址的协议、主机和端口一致。'
       : '使用自己的 HTTPS Jupyter 服务，或选择 JupyterHub / BinderHub 连接。服务必须允许当前网站的来源和 Kernel WebSocket；普通 Notebook 分享链接不能作为服务地址。'

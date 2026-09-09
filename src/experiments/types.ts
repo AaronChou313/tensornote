@@ -80,4 +80,5 @@ export interface IndexedExperiment {
   manifest?: ExperimentManifest
   diagnostics: ExperimentDiagnostic[]
   readOnly: boolean
+  detectedRequirementFiles?: Array<{ path: string; size?: number }>
 }

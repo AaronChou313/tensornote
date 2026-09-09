@@ -37,7 +37,7 @@ TensorNote 日常阅读由前端进程组成；运行 Python Lab 时增加 Jupyt
 
 1. 安装并启动 TensorNote Desktop；打开本地 Workspace。
 2. 打开“设置 → 计算与 Jupyter”，点击“重新检测”。
-3. 若列表中已有安装 Jupyter 的 Python，直接选择并点击“启动并使用”。
+3. 若列表中已有安装 Jupyter 的 Python，直接选择并点击“启动并连接”。
 4. 若没有，展开“创建 TensorNote Managed Environment”，选择检测到的 uv、Conda 或标准 venv，审核计划并输入界面要求的确认短语。
 5. 等待状态变为“环境已就绪”，选择该环境并启动。TensorNote 会自动创建会话 Compute Profile；再显式允许当前 Workspace 执行代码。
 
@@ -496,7 +496,7 @@ Git Bridge 不需要激活 Conda、venv 或 uv 环境，也不依赖 Jupyter。�
 
 ## 10. 以后每天启动什么
 
-Desktop 用户通常只需启动 TensorNote，然后在运行时助手中点击“启动并使用”。以下多终端顺序用于 Local Web 或手动管理 Jupyter 的 Desktop 高级用法。
+Desktop 用户通常只需启动 TensorNote，然后在“本地运行 → 便捷连接”中点击“启动并连接”。以下多终端顺序用于 Local Web 或手动管理 Jupyter 的 Desktop 高级用法。
 
 首次配置完成后，按使用场景启动：
 

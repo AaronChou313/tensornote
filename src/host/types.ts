@@ -27,6 +27,8 @@ export interface RuntimeTool {
   kind: 'uv' | 'conda' | 'jupyter' | (string & {})
   name: string
   version: string
+  executablePath?: string
+  source?: 'path' | 'common-location' | 'user-selected'
 }
 
 export interface PythonEnvironment {
@@ -38,6 +40,14 @@ export interface PythonEnvironment {
   ipykernelInstalled: boolean
   managed: boolean
   kernelName?: string
+  pythonPath?: string
+  location?: string
+}
+
+export interface RuntimeManagerDiagnostic {
+  kind: 'uv' | 'conda' | 'venv'
+  status: 'available' | 'missing' | 'error'
+  detail: string
 }
 
 export interface RuntimeKernel {
@@ -61,6 +71,8 @@ export interface RuntimeDiscovery {
   kernels: RuntimeKernel[]
   servers: DetectedJupyterServer[]
   warnings: string[]
+  managedEnvironmentRoot?: string
+  managerDiagnostics?: RuntimeManagerDiagnostic[]
 }
 
 export interface EnvironmentPlanRequest {
@@ -75,6 +87,15 @@ export interface EnvironmentPlanRequest {
   revision?: string
 }
 
+export interface DependencyInstallPlanRequest {
+  environmentId: string
+  workspaceId: string
+  dependencyFiles: string[]
+  manifestPath?: string
+  manifestDigest?: string
+  revision?: string
+}
+
 export interface EnvironmentPlanDependency {
   path: string
   sha256: string
@@ -83,10 +104,15 @@ export interface EnvironmentPlanDependency {
 
 export interface EnvironmentPlan {
   id: string
+  kind?: 'create' | 'install'
   manager: string
   name: string
   pythonVersion: string
   targetLabel: string
+  targetPath?: string
+  managerExecutablePath?: string
+  environmentId?: string
+  externalEnvironment?: boolean
   packages: string[]
   kernelName: string
   steps: string[]
@@ -164,7 +190,9 @@ export interface HostAdapter {
   takePendingWorkspaceOpen?(): Promise<HostDirectorySelection | null>
   onWorkspaceOpen?(listener: (selection: HostDirectorySelection) => void): Promise<() => void>
   discoverLocalRuntime?(workspaceId?: string): Promise<RuntimeDiscovery>
+  selectLocalRuntimeTool?(kind: 'uv' | 'conda'): Promise<boolean>
   planLocalEnvironment?(request: EnvironmentPlanRequest): Promise<EnvironmentPlan>
+  planEnvironmentDependencies?(request: DependencyInstallPlanRequest): Promise<EnvironmentPlan>
   applyLocalEnvironment?(planId: string, confirmation: string): Promise<RuntimeOperation>
   getLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>
   cancelLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>

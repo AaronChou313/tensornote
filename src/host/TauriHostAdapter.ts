@@ -1,4 +1,5 @@
 import type {
+  DependencyInstallPlanRequest,
   EnvironmentPlan,
   EnvironmentPlanRequest,
   ExperimentJob,
@@ -68,9 +69,19 @@ export class TauriHostAdapter implements HostAdapter {
     return invoke<RuntimeDiscovery>('local_runtime_discover', { workspaceId })
   }
 
+  async selectLocalRuntimeTool(kind: 'uv' | 'conda'): Promise<boolean> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<boolean>('local_runtime_select_tool', { kind })
+  }
+
   async planLocalEnvironment(request: EnvironmentPlanRequest): Promise<EnvironmentPlan> {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<EnvironmentPlan>('local_runtime_plan_environment', { request })
+  }
+
+  async planEnvironmentDependencies(request: DependencyInstallPlanRequest): Promise<EnvironmentPlan> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<EnvironmentPlan>('local_runtime_plan_dependencies', { request })
   }
 
   async applyLocalEnvironment(planId: string, confirmation: string): Promise<RuntimeOperation> {

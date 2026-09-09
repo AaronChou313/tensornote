@@ -1,5 +1,5 @@
 import { ArrowLeft, CheckCircle, Clock, Cpu, FileCode, Flask, FolderOpen, Gauge, HardDrives, Play, ShieldCheck, WarningCircle } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { deploymentAdapter } from '../deployment/config'
 import { computeRuntime } from '../compute/ComputeRuntime'
@@ -20,7 +20,7 @@ type ExperimentTab = typeof tabs[number]
 const tabLabels: Record<ExperimentTab, string> = { environment: '环境', steps: '步骤', files: '文件', run: '运行', artifacts: '产物' }
 const difficultyLabels = { basic: '基础', medium: '进阶', heavy: '重型' } as const
 
-function DesktopEnvironmentPreparation({ experiment, environmentId, enabled }: { experiment: IndexedExperiment; environmentId: string; enabled: boolean }) {
+function DesktopEnvironmentPreparation({ experiment, environmentId, enabled, onEnvironmentReady }: { experiment: IndexedExperiment; environmentId: string; enabled: boolean; onEnvironmentReady: (environmentId: string) => void }) {
   const session = useWorkspaceStore((state) => state.session)!
   const adapter = getHostAdapter()
   const [discovery, setDiscovery] = useState<RuntimeDiscovery | null>(null)
@@ -33,9 +33,9 @@ function DesktopEnvironmentPreparation({ experiment, environmentId, enabled }: {
   const workspaceId = session.descriptor.config?.provider === 'native-local' ? session.descriptor.config.workspaceId : undefined
   useEffect(() => {
     if (!operation || operation.state !== 'running' || !adapter.getLocalRuntimeOperation) return
-    const timer = window.setInterval(() => void adapter.getLocalRuntimeOperation!(operation.id).then(setOperation).catch((reason) => setMessage(String(reason))), 800)
+    const timer = window.setInterval(() => void adapter.getLocalRuntimeOperation!(operation.id).then((next) => { setOperation(next); if (next.state === 'completed' && next.environmentId) onEnvironmentReady(next.environmentId) }).catch((reason) => setMessage(String(reason))), 800)
     return () => window.clearInterval(timer)
-  }, [adapter, operation])
+  }, [adapter, onEnvironmentReady, operation])
   if (!adapter.capabilities.environmentDiscovery || !workspaceId) return <aside className="experiment-platform-note"><strong>环境准备需要桌面版的本地 Workspace</strong><p>Web 入口仍可检查依赖文件；后续阶段会提供 Jupyter 兼容子集。</p></aside>
   const inspect = async () => {
     setMessage(null)
@@ -43,7 +43,7 @@ function DesktopEnvironmentPreparation({ experiment, environmentId, enabled }: {
   }
   const createPlan = async () => {
     if (!discovery || !adapter.planLocalEnvironment) return
-    const manager = discovery.tools.some((tool) => tool.kind === 'uv') ? 'uv' : 'venv'
+    const manager = discovery.tools.some((tool) => tool.kind === 'uv') ? 'uv' : discovery.tools.some((tool) => tool.kind === 'conda') ? 'conda' : 'venv'
     const base = discovery.environments.find((item) => item.pythonVersion.startsWith(`${environment.python}.`)) ?? discovery.environments[0]
     try {
       setPlan(await adapter.planLocalEnvironment({ manager, name: `${manifest.experiment.id}-${environmentId}`, pythonVersion: environment.python, ...(manager === 'venv' ? { baseEnvironmentId: base?.id } : {}), workspaceId, dependencyFiles: resolveExperimentEnvironmentFiles(manifest, experiment.manifestPath, environmentId), manifestPath: experiment.manifestPath, manifestDigest: `${manifest.schemaVersion}:${manifest.experiment.id}:${environmentId}`, ...(session.descriptor.revision ? { revision: session.descriptor.revision } : {}) }))
@@ -57,17 +57,70 @@ function DesktopEnvironmentPreparation({ experiment, environmentId, enabled }: {
   return <aside className="experiment-environment-prep"><header><div><small>Desktop environment</small><strong>隔离环境检查与准备</strong></div><button onClick={() => void inspect()}>检查本机环境</button></header>
     <p>依赖会安装到 TensorNote 应用数据目录，不写入 Workspace。依赖文件内容变化、计划过期或 Revision 变化后必须重新确认。</p>
     {discovery && <div className="experiment-discovery"><span>{discovery.tools.length} 个工具</span><span>{discovery.environments.length} 个 Python</span><button disabled={!enabled || (!discovery.tools.some((tool) => tool.kind === 'uv') && discovery.environments.length === 0)} onClick={() => void createPlan()}>生成安装计划</button></div>}
-    {plan && <div className="experiment-install-plan"><strong>{plan.name} · Python {plan.pythonVersion}</strong><ol>{plan.steps.map((step) => <li key={step}>{step}</li>)}</ol>{plan.dependencies?.map((dependency) => <code key={dependency.path}>{dependency.path} · {dependency.sha256.slice(0, 12)}… · {dependency.size} B</code>)}<label>输入 <b>{plan.confirmation}</b><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label><button disabled={confirmation !== plan.confirmation} onClick={() => void apply()}>确认并准备环境</button></div>}
+    {plan && <div className="experiment-install-plan"><strong>{plan.name} · Python {plan.pythonVersion}</strong><p>创建位置：<code>{plan.targetPath || plan.targetLabel}</code></p><ol>{plan.steps.map((step) => <li key={step}>{step}</li>)}</ol>{plan.dependencies?.map((dependency) => <code key={dependency.path}>{dependency.path} · {dependency.sha256.slice(0, 12)}… · {dependency.size} B</code>)}<label>输入 <b>{plan.confirmation}</b><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label><button disabled={confirmation !== plan.confirmation} onClick={() => void apply()}>确认并准备环境</button></div>}
     {operation && <div className="experiment-install-operation"><strong>{operation.state} · {operation.progress}%</strong><progress max="100" value={operation.progress} /><pre>{operation.logs.map((line) => line.text).join('\n') || '等待输出…'}</pre>{operation.state === 'running' && <button onClick={() => void adapter.cancelLocalRuntimeOperation?.(operation.id).then(setOperation)}>取消并清理</button>}</div>}
     {message && <p role="alert" className="experiment-prep-error">{message}</p>}
   </aside>
 }
 
-function DesktopExperimentRunner({ experiment, presetId, enabled }: { experiment: IndexedExperiment; presetId: string; enabled: boolean }) {
+function DesktopDependencyInstaller({ experiment, manifestEnvironmentId, enabled, environmentId, onEnvironmentChange }: { experiment: IndexedExperiment; manifestEnvironmentId: string; enabled: boolean; environmentId: string; onEnvironmentChange: (environmentId: string) => void }) {
+  const session = useWorkspaceStore((state) => state.session)!
+  const adapter = getHostAdapter()
+  const workspaceId = session.descriptor.config?.provider === 'native-local' ? session.descriptor.config.workspaceId : undefined
+  const [discovery, setDiscovery] = useState<RuntimeDiscovery | null>(null)
+  const [plan, setPlan] = useState<EnvironmentPlan | null>(null)
+  const [confirmation, setConfirmation] = useState('')
+  const [operation, setOperation] = useState<RuntimeOperation | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const manifest = experiment.manifest!
+  const declared = resolveExperimentEnvironmentFiles(manifest, experiment.manifestPath, manifestEnvironmentId).filter((path) => /^requirements[^/]*\.txt$/i.test(path.split('/').pop() ?? ''))
+  const [selectedFiles, setSelectedFiles] = useState<string[]>(declared)
+  const files = [...new Set([...declared, ...(experiment.detectedRequirementFiles ?? []).map((item) => item.path)])].map((path) => ({ path, declared: declared.includes(path), size: experiment.detectedRequirementFiles?.find((item) => item.path === path)?.size }))
+  const environment = discovery?.environments.find((item) => item.id === environmentId)
+
+  useEffect(() => {
+    if (!workspaceId || !adapter.discoverLocalRuntime) return
+    void adapter.discoverLocalRuntime(workspaceId).then((next) => {
+      setDiscovery(next)
+      if (!environmentId) onEnvironmentChange(next.environments.find((item) => item.managed)?.id || next.environments[0]?.id || '')
+    }).catch((reason) => setMessage(reason instanceof Error ? reason.message : String(reason)))
+  }, [adapter, environmentId, onEnvironmentChange, workspaceId])
+  useEffect(() => {
+    if (!operation || operation.state !== 'running' || !adapter.getLocalRuntimeOperation) return
+    const timer = window.setInterval(() => void adapter.getLocalRuntimeOperation!(operation.id).then(setOperation).catch((reason) => setMessage(String(reason))), 700)
+    return () => window.clearInterval(timer)
+  }, [adapter, operation])
+
+  if (!adapter.planEnvironmentDependencies || !workspaceId) return null
+  const planDependencies = adapter.planEnvironmentDependencies
+  const preview = async (paths: string[]) => {
+    if (!environmentId || paths.length === 0) return
+    try {
+      setPlan(await planDependencies({ environmentId, workspaceId, dependencyFiles: paths, manifestPath: experiment.manifestPath, manifestDigest: `${manifest.schemaVersion}:${manifest.experiment.id}:${manifestEnvironmentId}`, ...(session.descriptor.revision ? { revision: session.descriptor.revision } : {}) }))
+      setConfirmation(''); setMessage(null)
+    } catch (reason) { setMessage(reason instanceof Error ? reason.message : String(reason)) }
+  }
+  const apply = async () => {
+    if (!plan || !adapter.applyLocalEnvironment) return
+    try { setOperation(await adapter.applyLocalEnvironment(plan.id, confirmation)); setPlan(null); setConfirmation('') } catch (reason) { setMessage(reason instanceof Error ? reason.message : String(reason)) }
+  }
+  const toggle = (path: string) => setSelectedFiles((current) => current.includes(path) ? current.filter((item) => item !== path) : [...current, path])
+
+  return <aside className="experiment-dependency-installer"><header><div><small>Requirements</small><strong>安装依赖到当前环境</strong></div><select value={environmentId} onChange={(event) => { onEnvironmentChange(event.target.value); setPlan(null) }}><option value="">选择 Python 环境</option>{discovery?.environments.map((item) => <option key={item.id} value={item.id}>{item.name} · Python {item.pythonVersion}{item.managed ? ' · TensorNote' : ' · 外部'}</option>)}</select></header>
+    <p>每次安装都会绑定目标环境与文件摘要。未在 Manifest 声明的文件仅作为建议，不会自动加入。</p>
+    {environment && !environment.managed && <div className="experiment-external-warning"><WarningCircle size={15} /><span><strong>这是外部环境</strong><small>安装会修改现有环境，TensorNote 无法自动回滚。</small></span></div>}
+    <div className="experiment-requirement-list">{files.map((file) => <article key={file.path}><label><input type="checkbox" checked={selectedFiles.includes(file.path)} onChange={() => toggle(file.path)} /><span><strong>{file.path}</strong><small>{file.declared ? 'Manifest 已声明' : '在实验目录中检测到，未声明'}{file.size !== undefined ? ` · ${file.size} B` : ''}</small></span></label><button disabled={!enabled || !environmentId} onClick={() => void preview([file.path])}>安装到 {environment?.name ?? '所选环境'}</button></article>)}{files.length === 0 && <div className="experiment-empty experiment-empty--compact"><FileCode size={19} /><strong>没有 requirements 文件</strong><p>可在 Experiment Manifest 的 environment.files 中声明。</p></div>}</div>
+    {files.length > 1 && <button className="experiment-install-selected" disabled={!enabled || !environmentId || selectedFiles.length === 0} onClick={() => void preview(selectedFiles)}>将所选 {selectedFiles.length} 个文件安装到 {environment?.name ?? '所选环境'}</button>}
+    {plan && <div className="experiment-install-plan"><strong>{plan.name} · Python {plan.pythonVersion}</strong><p>目标：<code>{plan.targetPath || plan.targetLabel}</code></p>{plan.externalEnvironment && <p className="experiment-prep-error">外部环境会被直接修改，无法自动回滚。</p>}<ol>{plan.steps.map((step) => <li key={step}>{step}</li>)}</ol>{plan.dependencies?.map((dependency) => <code key={dependency.path}>{dependency.path} · {dependency.sha256.slice(0, 12)}…</code>)}<label>输入 <b>{plan.confirmation}</b><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label><button disabled={confirmation !== plan.confirmation} onClick={() => void apply()}>确认安装到 {plan.name}</button></div>}
+    {operation && <div className="experiment-install-operation"><strong>{operation.state} · {operation.progress}%</strong><progress max="100" value={operation.progress} /><pre>{operation.logs.map((line) => line.text).join('\n') || '等待输出…'}</pre>{operation.state === 'running' && <button onClick={() => void adapter.cancelLocalRuntimeOperation?.(operation.id).then(setOperation)}>取消安装</button>}</div>}
+    {message && <p role="alert" className="experiment-prep-error">{message}</p>}
+  </aside>
+}
+
+function DesktopExperimentRunner({ experiment, presetId, enabled, environmentId, onEnvironmentChange }: { experiment: IndexedExperiment; presetId: string; enabled: boolean; environmentId: string; onEnvironmentChange: (environmentId: string) => void }) {
   const session = useWorkspaceStore((state) => state.session)!
   const adapter = getHostAdapter()
   const [discovery, setDiscovery] = useState<RuntimeDiscovery | null>(null)
-  const [environmentId, setEnvironmentId] = useState('')
   const [plan, setPlan] = useState<ExperimentRunPlan | null>(null)
   const [confirmation, setConfirmation] = useState('')
   const [job, setJob] = useState<ExperimentJob | null>(null)
@@ -78,7 +131,7 @@ function DesktopExperimentRunner({ experiment, presetId, enabled }: { experiment
   const [clock, setClock] = useState(Date.now)
   const workspaceId = session.descriptor.config?.provider === 'native-local' ? session.descriptor.config.workspaceId : undefined
   const manifest = experiment.manifest!
-  useEffect(() => { if (workspaceId && adapter.discoverLocalRuntime) void adapter.discoverLocalRuntime(workspaceId).then((next) => { setDiscovery(next); setEnvironmentId((current) => current || next.environments.find((item) => item.managed)?.id || '') }); if (adapter.inspectSystemResources) void adapter.inspectSystemResources(workspaceId).then(setResources); if (adapter.listExperimentJobs) void adapter.listExperimentJobs().then((items) => setHistory(items.filter((item) => item.experimentId === manifest.experiment.id))) }, [adapter, manifest.experiment.id, workspaceId])
+  useEffect(() => { if (workspaceId && adapter.discoverLocalRuntime) void adapter.discoverLocalRuntime(workspaceId).then((next) => { setDiscovery(next); if (!environmentId) onEnvironmentChange(next.environments.find((item) => item.managed)?.id || '') }); if (adapter.inspectSystemResources) void adapter.inspectSystemResources(workspaceId).then(setResources); if (adapter.listExperimentJobs) void adapter.listExperimentJobs().then((items) => setHistory(items.filter((item) => item.experimentId === manifest.experiment.id))) }, [adapter, environmentId, manifest.experiment.id, onEnvironmentChange, workspaceId])
   useEffect(() => {
     if (!job || job.state !== 'running' || !adapter.getExperimentJob) return
     const timer = window.setInterval(() => void adapter.getExperimentJob!(job.id).then(setJob).catch((reason) => setMessage(String(reason))), 600)
@@ -95,7 +148,7 @@ function DesktopExperimentRunner({ experiment, presetId, enabled }: { experiment
   const requestedGpu = Number((manifest.resources.gpu as Record<string, unknown> | undefined)?.count ?? 0)
   const shortages = resources ? [Number(manifest.resources.cpu ?? 0) > resources.cpuLogical ? `CPU 需要 ${String(manifest.resources.cpu)}，检测到 ${resources.cpuLogical}` : '', Number(manifest.resources.memoryGB ?? 0) > (resources.memoryTotalGB ?? Infinity) ? `内存需要 ${String(manifest.resources.memoryGB)} GB，检测到 ${resources.memoryTotalGB?.toFixed(1)} GB` : '', Number(manifest.resources.diskGB ?? 0) > (resources.diskAvailableGB ?? Infinity) ? `磁盘需要 ${String(manifest.resources.diskGB)} GB，可用 ${resources.diskAvailableGB?.toFixed(1)} GB` : '', requestedGpu > resources.gpuCount ? `GPU 需要 ${requestedGpu}，检测到 ${resources.gpuCount}` : ''].filter(Boolean) : []
   const elapsed = job ? Math.max(0, (job.finishedAt ?? clock) - job.startedAt) : 0
-  return <div className="experiment-runner"><header><div><small>Desktop runner</small><strong>运行 {manifest.presets[presetId]?.title ?? presetId}</strong></div><select value={environmentId} onChange={(event) => setEnvironmentId(event.target.value)}><option value="">选择 Managed Environment</option>{discovery?.environments.filter((item) => item.managed).map((item) => <option key={item.id} value={item.id}>{item.name} · Python {item.pythonVersion}</option>)}</select></header>
+  return <div className="experiment-runner"><header><div><small>Desktop runner</small><strong>运行 {manifest.presets[presetId]?.title ?? presetId}</strong></div><select value={environmentId} onChange={(event) => onEnvironmentChange(event.target.value)}><option value="">选择 Python 环境</option>{discovery?.environments.map((item) => <option key={item.id} value={item.id}>{item.name} · Python {item.pythonVersion}{item.managed ? ' · TensorNote' : ''}</option>)}</select></header>
     {resources && <section className="experiment-resource-check"><strong>本机资源</strong><span>{resources.cpuLogical} CPU · {resources.memoryTotalGB?.toFixed(1) ?? '未知'} GB 内存 · {resources.diskAvailableGB?.toFixed(1) ?? '未知'} GB 可用磁盘 · {resources.gpuCount} GPU{resources.cudaVersion ? ` · CUDA ${resources.cudaVersion}` : ''}</span>{shortages.length > 0 && <label><input type="checkbox" checked={resourceOverride} onChange={(event) => setResourceOverride(event.target.checked)} />{shortages.join('；')}。仍要继续生成计划</label>}</section>}
     {!job && !plan && <button disabled={!enabled || !environmentId || (shortages.length > 0 && !resourceOverride)} onClick={() => void prepare()}><ShieldCheck size={15} />预览运行计划</button>}
     {plan && <section className="experiment-run-plan"><strong>{plan.steps.length} 个步骤 · {plan.outputs.length} 个输出范围</strong>{plan.steps.map((step) => <p key={step.id}><code>{step.runner}</code>{step.title}<span>{[step.file ?? step.module, ...step.args].filter(Boolean).join(' ')}</span></p>)}<small>输入摘要：{plan.inputs.map((input) => `${input.path} ${input.sha256.slice(0, 8)}…`).join(' · ')}</small><label>输入 <b>{plan.confirmation}</b><input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></label><button disabled={confirmation !== plan.confirmation} onClick={() => void start()}><Play size={15} />确认并运行</button></section>}
@@ -164,6 +217,9 @@ export function ExperimentPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const session = useWorkspaceStore((state) => state.session)
   const executionOverrides = useWorkspaceStore((state) => state.executionOverrides)
+  const [desktopEnvironmentSelection, setDesktopEnvironmentSelection] = useState({ experimentKey, environmentId: '' })
+  const desktopEnvironmentId = desktopEnvironmentSelection.experimentKey === experimentKey ? desktopEnvironmentSelection.environmentId : ''
+  const setDesktopEnvironmentId = useCallback((environmentId: string) => setDesktopEnvironmentSelection({ experimentKey, environmentId }), [experimentKey])
   if (!session) return <Navigate to="/" replace />
   if (!experimentKey) return <ExperimentList experiments={session.experiments} />
   const experiment = session.experiments.find((item) => item.key === experimentKey)
@@ -186,10 +242,10 @@ export function ExperimentPage() {
     {experiment.diagnostics.length > 0 && <section className="experiment-diagnostics" aria-label="实验诊断"><strong>诊断</strong>{experiment.diagnostics.map((diagnostic, index) => <p key={`${diagnostic.code}:${index}`} className={`is-${diagnostic.severity}`}><WarningCircle size={14} />{diagnostic.message}{diagnostic.field ? <code>{diagnostic.field}</code> : null}</p>)}</section>}
     <nav className="experiment-tabs" aria-label="实验详情">{tabs.map((id) => <button key={id} className={tab === id ? 'is-active' : ''} onClick={() => setTab(id)} aria-current={tab === id ? 'page' : undefined}>{tabLabels[id]}</button>)}</nav>
     <section className="experiment-tab-panel">
-      {!manifest ? <div className="experiment-empty experiment-empty--compact"><WarningCircle size={22} /><strong>无法解析 Manifest</strong><p>修复诊断后刷新 Workspace，TensorNote 会重新索引。</p></div> : tab === 'environment' ? <><div className="experiment-environments">{Object.entries(manifest.environments).map(([id, environment]) => <article key={id} className={id === preset?.environment ? 'is-selected' : ''}><header><div><small>{id === preset?.environment ? '当前预设' : '可用环境'}</small><strong>{id}</strong></div><span>Python {environment.python || '未指定'}</span></header>{environment.extends && <p>继承 <code>{environment.extends}</code></p>}<ul>{environment.files.map((file) => <li key={file}><FileCode size={14} />{file}</li>)}</ul></article>)}</div>{Object.keys(manifest.downloads ?? {}).length > 0 && <div className="experiment-downloads"><strong>模型与数据下载</strong>{Object.entries(manifest.downloads ?? {}).map(([id, item]) => <article key={id}><a href={item.url} target="_blank" rel="noreferrer">{item.title}</a><span>{item.sizeMB ? `${item.sizeMB} MB` : '大小未声明'} · 缓存 {item.cache}{item.license ? ` · ${item.license}` : ''}</span><code>{item.sha256 ? `SHA-256 ${item.sha256}` : '未声明校验和'}</code></article>)}</div>}{preset && <DesktopEnvironmentPreparation experiment={experiment} environmentId={preset.environment} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} />}</>
+      {!manifest ? <div className="experiment-empty experiment-empty--compact"><WarningCircle size={22} /><strong>无法解析 Manifest</strong><p>修复诊断后刷新 Workspace，TensorNote 会重新索引。</p></div> : tab === 'environment' ? <><div className="experiment-environments">{Object.entries(manifest.environments).map(([id, environment]) => <article key={id} className={id === preset?.environment ? 'is-selected' : ''}><header><div><small>{id === preset?.environment ? '当前预设' : '可用环境'}</small><strong>{id}</strong></div><span>Python {environment.python || '未指定'}</span></header>{environment.extends && <p>继承 <code>{environment.extends}</code></p>}<ul>{environment.files.map((file) => <li key={file}><FileCode size={14} />{file}</li>)}</ul></article>)}</div>{Object.keys(manifest.downloads ?? {}).length > 0 && <div className="experiment-downloads"><strong>模型与数据下载</strong>{Object.entries(manifest.downloads ?? {}).map(([id, item]) => <article key={id}><a href={item.url} target="_blank" rel="noreferrer">{item.title}</a><span>{item.sizeMB ? `${item.sizeMB} MB` : '大小未声明'} · 缓存 {item.cache}{item.license ? ` · ${item.license}` : ''}</span><code>{item.sha256 ? `SHA-256 ${item.sha256}` : '未声明校验和'}</code></article>)}</div>}{preset && <><DesktopEnvironmentPreparation experiment={experiment} environmentId={preset.environment} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} onEnvironmentReady={setDesktopEnvironmentId} /><DesktopDependencyInstaller key={experiment.key} experiment={experiment} manifestEnvironmentId={preset.environment} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} environmentId={desktopEnvironmentId} onEnvironmentChange={setDesktopEnvironmentId} /></>}</>
       : tab === 'steps' ? <ol className="experiment-steps">{(preset?.steps ?? []).map((id, index) => { const step = manifest.steps[id]; return <li key={id}><span>{index + 1}</span><div><small>{step.runner}</small><strong>{step.title}</strong><code>{step.file ?? step.module}</code>{step.dependsOn.length > 0 && <p>依赖：{step.dependsOn.join('、')}</p>}</div></li> })}</ol>
       : tab === 'files' ? <div className="experiment-files"><article><small>Manifest</small><strong>{experiment.manifestPath}</strong></article>{Object.entries(manifest.steps).map(([id, step]) => <article key={id}><small>{step.runner}</small><strong>{step.file ?? step.module}</strong><span>{step.title}</span></article>)}</div>
-      : tab === 'run' ? getHostAdapter().capabilities.processManagement ? <DesktopExperimentRunner experiment={experiment} presetId={presetId} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} /> : <JupyterExperimentRunner experiment={experiment} presetId={presetId} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} />
+      : tab === 'run' ? getHostAdapter().capabilities.processManagement ? <DesktopExperimentRunner experiment={experiment} presetId={presetId} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} environmentId={desktopEnvironmentId} onEnvironmentChange={setDesktopEnvironmentId} /> : <JupyterExperimentRunner experiment={experiment} presetId={presetId} enabled={!experiment.readOnly && session.trusted && resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled} />
       : <div className="experiment-artifacts">{Object.keys(manifest.artifacts).length ? Object.entries(manifest.artifacts).map(([id, artifact]) => { const workspaceId = session.descriptor.config?.provider === 'native-local' ? session.descriptor.config.workspaceId : undefined; const artifactPath = `${experimentWorkingDirectory(manifest, experiment.manifestPath)}/${artifact.path}`.replace(/^\.\//, ''); return <article key={id}><span><FolderOpen size={18} /></span><div><strong>{artifact.title}</strong><small>{artifact.kind} · {artifact.path}</small></div>{workspaceId && getHostAdapter().revealWorkspaceItem && <button onClick={() => void getHostAdapter().revealWorkspaceItem!(workspaceId, artifactPath)}>在文件管理器中显示</button>}</article> }) : <div className="experiment-empty experiment-empty--compact"><CheckCircle size={22} /><strong>未声明产物</strong><p>此实验不会在完成后收集特定文件。</p></div>}</div>}
     </section>
     <footer className="experiment-source"><span>来源笔记</span><Link to={`/notes/${encodeURIComponent(experiment.noteId)}`}>{session.documentById.get(experiment.noteId)?.frontmatter.title ?? experiment.notePath}</Link></footer>

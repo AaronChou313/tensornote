@@ -151,7 +151,7 @@ Desktop 的“设置 → 计算与 Jupyter”提供独立运行时助手：
 1. “重新检测”只读扫描 Python、Conda、uv、Jupyter、Kernel 与 Loopback Server；前端看不到可执行文件绝对路径。
 2. “创建 TensorNote Managed Environment”先生成计划。最小包固定为 `jupyter-server`、`ipykernel`、`numpy`、`matplotlib` 与 `pillow`，不包含 PyTorch、Transformers、CUDA 或 Workspace 依赖。
 3. 输入界面给出的精确确认短语后才创建；失败或取消会清理不完整目录，只有完成全部步骤的环境会显示为 Managed。
-4. 选择已安装 Jupyter 的环境并点击“启动并使用”。TensorNote 只在 `127.0.0.1` 启动带随机 Token 的 Owned Server，端口就绪后自动创建当前会话 Compute Profile。
+4. 选择已安装 Jupyter 的环境并点击“启动并连接”。TensorNote 只在 `127.0.0.1` 启动带随机 Token 的 Owned Server，端口就绪后自动创建当前会话 Compute Profile。
 5. 可查看有长度上限且已脱敏的日志；“停止”只会终止 TensorNote 当前仍拥有的 Server，并移除临时 Profile。关闭应用也会停止 Owned Server。
 
 运行时助手不会修改 Workspace、读取其中的安装命令、停止外部 Jupyter，或把 Jupyter 合并进 TensorNote 进程。Conda、uv、Python、Jupyter 和 Kernel 仍是独立工具。
@@ -203,4 +203,4 @@ BinderHub `/build` 的事件和临时 URL/Token 语义见 [BinderHub API](https:
 
 ## 12. 每日启动清单
 
-Desktop：启动 TensorNote → 打开 Workspace → 在设置中“启动并使用” → 开始运行 Lab。Local Web：终端 A 启动 Jupyter，终端 B 启动 TensorNote，再配置 Profile。两种模式仅阅读 Markdown 时都不需要 Jupyter。
+Desktop：启动 TensorNote → 打开 Workspace → 在设置中选择“本地运行 → 便捷连接” → 选择环境并“启动并连接” → 开始运行 Lab。Local Web：终端 A 启动 Jupyter，终端 B 启动 TensorNote，再在“本地运行 → 手动连接”中配置。两种模式仅阅读 Markdown 时都不需要 Jupyter。

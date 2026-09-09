@@ -3896,6 +3896,22 @@ button.trust-status {
 
 .settings-execution-group .settings-row { min-height: 74px; }
 .settings-execution-note { margin: 9px 2px 0; color: var(--faint); font-size: .6rem; line-height: 1.55; }
+.settings-runtime-location { display: grid; gap: 8px; margin-top: 22px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.settings-runtime-location > button { display: grid; min-height: 68px; align-items: center; gap: 10px; grid-template-columns: auto minmax(0, 1fr); border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); padding: 11px 13px; color: var(--muted); cursor: pointer; text-align: left; }
+.settings-runtime-location > button:hover, .settings-runtime-location > button.is-active { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); background: var(--accent-pale); color: var(--accent); }
+.settings-runtime-location > button > span { display: grid; gap: 2px; }
+.settings-runtime-location strong { color: var(--ink); font-size: .7rem; }
+.settings-runtime-location small { color: var(--faint); font-size: .57rem; line-height: 1.4; }
+.settings-runtime-heading { margin-top: 22px; }
+.settings-runtime-heading > span { color: var(--accent); font: 700 .53rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; }
+.settings-runtime-heading h3 { margin: 5px 0; color: var(--ink); font-size: 1.02rem; }
+.settings-runtime-heading p { max-width: 70ch; margin: 0; color: var(--muted); font-size: .63rem; line-height: 1.55; }
+.settings-local-web-help { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-muted); padding: 12px; }.settings-local-web-help > div { display: grid; min-width: 0; gap: 4px; }.settings-local-web-help strong { font-size: .63rem; }.settings-local-web-help code { overflow: auto; color: var(--accent); font-size: .53rem; white-space: nowrap; }.settings-local-web-help small { color: var(--faint); font-size: .53rem; line-height: 1.45; }
+.settings-connection-label { display: flex; align-items: center; gap: 9px; margin-top: 22px; }
+.settings-connection-label > span { display: grid; width: 27px; height: 27px; flex: none; place-items: center; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font: 700 .54rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+.settings-connection-label > div { display: grid; gap: 2px; }
+.settings-connection-label strong { color: var(--ink); font-size: .69rem; }
+.settings-connection-label small { color: var(--faint); font-size: .56rem; }
 
 .local-runtime-assistant { margin-top: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-raised); padding: 16px; }
 .local-runtime-assistant > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -3913,12 +3929,35 @@ button.trust-status {
 .local-runtime-summary small { color: var(--faint); font-size: .56rem; text-transform: uppercase; }
 .local-runtime-summary strong { color: var(--ink); font-size: 1rem; }
 .local-runtime-summary span { overflow: hidden; color: var(--muted); font-size: .56rem; text-overflow: ellipsis; white-space: nowrap; }
+.local-runtime-environment-list { display: grid; gap: 6px; margin-top: 14px; }
+.local-runtime-environment-list > button { display: grid; min-width: 0; align-items: center; gap: 9px; grid-template-columns: auto minmax(0, 1fr) auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px; color: var(--muted); cursor: pointer; text-align: left; }
+.local-runtime-environment-list > button:hover, .local-runtime-environment-list > button.is-selected { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-pale); }
+.local-runtime-environment-list__icon { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--accent); }
+.local-runtime-environment-list > button > span:nth-child(2) { display: grid; min-width: 0; gap: 2px; }
+.local-runtime-environment-list strong { color: var(--ink); font-size: .66rem; }
+.local-runtime-environment-list small { color: var(--muted); font-size: .56rem; }
+.local-runtime-environment-list code { overflow: hidden; color: var(--faint); font-size: .51rem; text-overflow: ellipsis; white-space: nowrap; }
+.local-runtime-environment-list em { border-radius: 999px; padding: 4px 7px; color: var(--faint); font-size: .52rem; font-style: normal; white-space: nowrap; }
+.local-runtime-environment-list em[data-status='ready'], .local-runtime-environment-list em[data-status='running'] { background: var(--accent-soft); color: var(--accent); }
+.local-runtime-empty { display: flex; align-items: center; gap: 9px; border: 1px dashed var(--line); border-radius: 10px; padding: 14px; color: var(--faint); }
+.local-runtime-empty > span { display: grid; gap: 2px; }.local-runtime-empty strong { color: var(--ink); font-size: .64rem; }.local-runtime-empty small { font-size: .56rem; }
 .local-runtime-create { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
 .local-runtime-create > summary { color: var(--accent); cursor: pointer; font-size: .65rem; font-weight: 650; }
 .local-runtime-create > p { max-width: 68ch; margin: 8px 0 12px; color: var(--faint); font-size: .59rem; line-height: 1.55; }
+.local-runtime-managers { display: grid; gap: 7px; margin-bottom: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.local-runtime-managers > div { display: grid; align-content: start; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.local-runtime-managers > div.is-selected { border-color: var(--accent); background: var(--accent-pale); }
+.local-runtime-managers > div > button:first-child { display: grid; min-width: 0; align-items: start; gap: 7px; grid-template-columns: auto minmax(0, 1fr); border: 0; background: transparent; padding: 10px; color: var(--muted); cursor: pointer; text-align: left; }
+.local-runtime-managers > div > button:disabled { cursor: default; opacity: .72; }
+.local-runtime-managers > div > button > span:last-child { display: grid; min-width: 0; gap: 2px; }
+.local-runtime-managers strong { color: var(--ink); font-size: .62rem; }.local-runtime-managers small { overflow: hidden; color: var(--faint); font-size: .51rem; line-height: 1.4; text-overflow: ellipsis; }
+.local-runtime-tool-picker { border: 0; border-top: 1px solid var(--line); background: transparent; padding: 7px; color: var(--accent); font-size: .54rem; cursor: pointer; }
+.local-runtime-location { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-radius: 9px; background: var(--surface-muted); padding: 9px 10px; color: var(--accent); }
+.local-runtime-location > span { display: grid; min-width: 0; gap: 2px; }.local-runtime-location strong { color: var(--ink); font-size: .56rem; }.local-runtime-location code { overflow: hidden; color: var(--muted); font-size: .5rem; text-overflow: ellipsis; white-space: nowrap; }
 .local-runtime-form { display: grid; gap: 8px; margin-bottom: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .local-runtime-form label,
 .local-runtime-plan label { display: grid; gap: 5px; color: var(--muted); font-size: .58rem; }
+.local-runtime-form label.is-wide { grid-column: 1 / -1; }.local-runtime-form label > small { color: var(--faint); font-size: .52rem; }
 .local-runtime-form input,
 .local-runtime-form select,
 .local-runtime-plan input,
@@ -3938,16 +3977,17 @@ button.trust-status {
 .local-runtime-plan > header > span,
 .local-runtime-operation > header > span { border-radius: 999px; background: var(--accent-soft); padding: 4px 7px; color: var(--accent); font-size: .55rem; }
 .local-runtime-plan ol { margin: 10px 0; padding-left: 19px; color: var(--muted); font-size: .59rem; line-height: 1.7; }
+.local-runtime-plan__target { display: flex; align-items: center; gap: 6px; margin: 9px 0 0; color: var(--muted); font-size: .56rem; }.local-runtime-plan__target code { overflow: hidden; color: var(--accent); font-size: .51rem; text-overflow: ellipsis; white-space: nowrap; }
 .local-runtime-plan code { color: var(--accent); }
 .local-runtime-plan > div:last-child { display: flex; gap: 6px; margin-top: 9px; }
 .local-runtime-operation progress { width: 100%; height: 5px; margin: 10px 0; accent-color: var(--accent); }
 .local-runtime-operation pre,
 .local-runtime-servers pre { max-height: 150px; overflow: auto; margin: 0 0 9px; border-radius: 8px; background: var(--code-surface); padding: 9px; color: var(--code-ink); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .55rem; line-height: 1.55; white-space: pre-wrap; }
-.local-runtime-launch { display: grid; gap: 10px; margin-top: 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+.local-runtime-launch { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
 .local-runtime-launch > header > div { display: grid; gap: 3px; }
 .local-runtime-launch strong { font-size: .68rem; }
 .local-runtime-launch small { color: var(--faint); font-size: .58rem; line-height: 1.45; }
-.local-runtime-launch > div { display: grid; align-items: center; gap: 8px; grid-template-columns: minmax(0, 1fr) auto; }
+.local-runtime-launch > div { display: grid; min-width: 0; gap: 3px; }
 .local-runtime-servers { display: grid; gap: 8px; margin-top: 10px; }
 .local-runtime-servers article { border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
 .local-runtime-servers article > header { display: grid; align-items: center; gap: 8px; grid-template-columns: auto 1fr auto; }
@@ -3958,8 +3998,9 @@ button.trust-status {
 .local-runtime-servers article > header > svg { color: var(--accent); }
 .local-runtime-servers article > div { display: flex; justify-content: flex-end; gap: 5px; margin-top: 7px; }
 .local-runtime-servers pre { margin-top: 8px; margin-bottom: 0; }
+.local-runtime-cleanup { margin-top: 13px; border-top: 1px solid var(--line); padding-top: 11px; }.local-runtime-cleanup > summary { color: var(--muted); font-size: .6rem; cursor: pointer; }.local-runtime-cleanup > div { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; }.local-runtime-cleanup > div > span { display: grid; min-width: 0; gap: 2px; }.local-runtime-cleanup strong { font-size: .61rem; }.local-runtime-cleanup small { overflow: hidden; color: var(--faint); font-size: .51rem; text-overflow: ellipsis; white-space: nowrap; }
 
-.settings-compute-layout { display: grid; gap: 24px; margin-top: 28px; grid-template-columns: 210px minmax(0, 1fr); }
+.settings-compute-layout { display: grid; gap: 24px; margin-top: 16px; grid-template-columns: 210px minmax(0, 1fr); }
 .settings-profile-list { display: grid; align-content: start; gap: 4px; }
 .settings-profile-list > span { padding: 0 7px 6px; color: var(--faint); font-size: .58rem; font-weight: 680; letter-spacing: .08em; text-transform: uppercase; }
 .settings-profile-list > button,
@@ -4071,6 +4112,8 @@ button.trust-status {
   .settings-row { grid-template-columns: 1fr; gap: 10px; }
   .settings-choice-grid { grid-template-columns: 1fr; }
   .settings-choice-grid > button { width: 100%; }
+  .settings-runtime-location, .local-runtime-managers { grid-template-columns: 1fr; }
+  .settings-local-web-help { align-items: stretch; flex-direction: column; }
   .settings-form-grid,
   .settings-scope-grid,
   .settings-about-grid { grid-template-columns: 1fr; }
@@ -4080,7 +4123,7 @@ button.trust-status {
   .local-runtime-assistant > header { align-items: flex-start; }
   .local-runtime-summary,
   .local-runtime-form { grid-template-columns: 1fr; }
-  .local-runtime-launch > div { grid-template-columns: 1fr; }
+  .local-runtime-launch { align-items: stretch; flex-direction: column; }
 }
 
 /* v0.8 Local Git */
@@ -5013,6 +5056,11 @@ button.trust-status {
 .experiment-discovery { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }.experiment-discovery span { border: 1px solid var(--line); border-radius: 999px; padding: 4px 7px; color: var(--muted); font-size: .55rem; }.experiment-discovery button { margin-left: auto; }
 .experiment-install-plan { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }.experiment-install-plan ol { display: grid; gap: 4px; margin: 0; padding-left: 20px; color: var(--muted); font-size: .58rem; }.experiment-install-plan > code { display: block; color: var(--accent); font-size: .54rem; }.experiment-install-plan label { display: grid; gap: 5px; color: var(--muted); font-size: .58rem; }.experiment-install-plan input { width: min(360px, 100%); border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 8px; color: var(--ink); }
 .experiment-install-operation { display: grid; gap: 7px; }.experiment-install-operation progress { width: 100%; accent-color: var(--accent); }.experiment-install-operation pre { max-height: 180px; overflow: auto; border-radius: 8px; background: var(--surface-muted); padding: 10px; color: var(--muted); font-size: .54rem; white-space: pre-wrap; }.experiment-prep-error { color: var(--danger) !important; }
+.experiment-dependency-installer { display: grid; gap: 11px; margin-top: 14px; border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line)); border-radius: 12px; background: color-mix(in srgb, var(--accent-pale) 25%, var(--surface)); padding: 14px; }
+.experiment-dependency-installer > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }.experiment-dependency-installer > header > div { display: grid; gap: 2px; }.experiment-dependency-installer > header small { color: var(--accent); font: 700 .52rem ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }.experiment-dependency-installer > header strong { font-size: .7rem; }.experiment-dependency-installer > header select { min-height: 34px; max-width: 320px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 0 9px; color: var(--ink); font-size: .59rem; }
+.experiment-dependency-installer > p { margin: 0; color: var(--muted); font-size: .59rem; line-height: 1.55; }
+.experiment-external-warning { display: flex; align-items: center; gap: 8px; border-radius: 9px; background: color-mix(in srgb, var(--warning) 10%, var(--surface)); padding: 9px 10px; color: var(--warning); }.experiment-external-warning > span { display: grid; gap: 2px; }.experiment-external-warning strong { color: var(--ink); font-size: .59rem; }.experiment-external-warning small { color: var(--muted); font-size: .53rem; }
+.experiment-requirement-list { display: grid; gap: 6px; }.experiment-requirement-list article { display: grid; align-items: center; gap: 10px; grid-template-columns: minmax(0, 1fr) auto; border-top: 1px solid var(--line); padding-top: 9px; }.experiment-requirement-list label { display: flex; min-width: 0; align-items: center; gap: 8px; }.experiment-requirement-list input { accent-color: var(--accent); }.experiment-requirement-list label > span { display: grid; min-width: 0; gap: 2px; }.experiment-requirement-list strong { overflow: hidden; color: var(--ink); font-size: .59rem; text-overflow: ellipsis; white-space: nowrap; }.experiment-requirement-list small { color: var(--faint); font-size: .52rem; }.experiment-requirement-list button, .experiment-install-selected, .experiment-dependency-installer .experiment-install-plan button, .experiment-dependency-installer .experiment-install-operation button { border: 0; border-radius: 8px; background: var(--accent-soft); padding: 7px 9px; color: var(--accent); font-size: .55rem; font-weight: 700; cursor: pointer; }.experiment-requirement-list button:disabled, .experiment-install-selected:disabled { opacity: .42; cursor: default; }.experiment-install-selected { justify-self: start; }
 .experiment-runner { display: grid; justify-items: start; gap: 12px; border: 1px solid var(--line); border-radius: 13px; padding: 16px; }.experiment-runner > header { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; }.experiment-runner > header div { display: grid; gap: 2px; }.experiment-runner small { color: var(--faint); font-size: .55rem; }.experiment-runner > header small { color: var(--accent); font-weight: 700; text-transform: uppercase; }.experiment-runner strong { font-size: .72rem; }.experiment-runner select, .experiment-run-plan input { min-height: 34px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 0 9px; color: var(--ink); font-size: .59rem; }.experiment-runner button { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 8px; background: var(--accent-soft); padding: 8px 11px; color: var(--accent); font-size: .59rem; font-weight: 700; cursor: pointer; }.experiment-runner button:disabled { opacity: .4; cursor: default; }
 .experiment-resource-check { display: grid; width: 100%; gap: 5px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-muted); padding: 11px; }.experiment-resource-check span { color: var(--muted); font-size: .58rem; }.experiment-resource-check label { display: flex; align-items: center; gap: 7px; color: var(--danger); font-size: .57rem; }.experiment-resource-check input { accent-color: var(--accent); }
 .experiment-downloads { display: grid; gap: 8px; margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }.experiment-downloads > strong { font-size: .7rem; }.experiment-downloads article { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 12px; border-top: 1px solid var(--line); padding-top: 8px; }.experiment-downloads a { color: var(--accent); font-size: .63rem; font-weight: 700; }.experiment-downloads span, .experiment-downloads code { color: var(--muted); font-size: .54rem; }.experiment-downloads code { grid-column: 1 / -1; }
