@@ -1,8 +1,41 @@
 import type { DeploymentMode } from '../deployment/config'
+import type { HostCapabilities } from '../host/types'
 import { computeConnectorKind } from './connectors'
 import type { ComputeProfile } from './types'
 
 export type RuntimeLocation = 'local' | 'remote'
+
+export interface ComputeCapabilities {
+  localRuntime: boolean
+  remoteRuntime: boolean
+  environmentDiscovery: boolean
+  environmentManagement: boolean
+  ownedJupyterServer: boolean
+  manualLocalJupyter: boolean
+  remoteJupyter: boolean
+  jupyterHub: boolean
+  binderHub: boolean
+}
+
+export function resolveComputeCapabilities(mode: DeploymentMode, host: Pick<HostCapabilities, 'environmentDiscovery' | 'processManagement'>): ComputeCapabilities {
+  const desktop = mode === 'desktop'
+  const localWeb = mode === 'local'
+  return {
+    localRuntime: desktop || localWeb,
+    remoteRuntime: true,
+    environmentDiscovery: desktop && host.environmentDiscovery,
+    environmentManagement: desktop && host.environmentDiscovery && host.processManagement,
+    ownedJupyterServer: desktop && host.processManagement,
+    manualLocalJupyter: desktop || localWeb,
+    remoteJupyter: true,
+    jupyterHub: true,
+    binderHub: true,
+  }
+}
+
+export function runtimeLocationsForCapabilities(capabilities: ComputeCapabilities): RuntimeLocation[] {
+  return capabilities.localRuntime ? ['local', 'remote'] : ['remote']
+}
 
 export function runtimeLocationsFor(mode: DeploymentMode): RuntimeLocation[] {
   return mode === 'static' || mode === 'self-hosted' ? ['remote'] : ['local', 'remote']

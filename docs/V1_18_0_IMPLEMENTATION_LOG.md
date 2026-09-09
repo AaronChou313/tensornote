@@ -9,16 +9,16 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：A1
-- 最后完成 Step：A0
-- 当前进行 Step：A1
-- 当前 HEAD：`03ffad3c9945f82818be5a1587fc011b985dcf90`
-- 工作树：仅有本计划与实施日志待提交
-- 当前已知问题：Compute UI 仍同时依赖 deployment mode、Host capabilities 和 Desktop 动态组件判断；需由 A1 统一。
+- 当前阶段：A2
+- 最后完成 Step：A1
+- 当前进行 Step：A2
+- 当前 HEAD：`297a1e2`（A1 提交前）
+- 工作树：A1 能力 resolver、矩阵测试与本日志待提交
+- 当前已知问题：`ComputeSettings` 仍内联在 `SettingsPage.tsx`，A2 需在保持行为的前提下拆分。
 - 下一位智能体第一步：
-  1. 阅读 A1 能力矩阵与 `src/compute/runtimeSettings.ts`
-  2. 实现统一 `ComputeCapabilities` resolver 及矩阵测试
-  3. 保持 v1.17.0 UI 表现不变
+  1. 阅读 `SettingsPage.tsx` 内现有 `ComputeSettings`
+  2. 拆出 compute settings 与 local/remote 子结构
+  3. 保持 v1.17.0 UI 表现与数据流不变
 
 ---
 
@@ -26,8 +26,8 @@
 
 | Step | 内容 | 状态 | Commit |
 |---|---|---|---|
-| A0 | 建立 v1.18 开发断点机制 | DONE | 待提交 |
-| A1 | 统一 ComputeCapabilities | TODO | |
+| A0 | 建立 v1.18 开发断点机制 | DONE | `297a1e2` |
+| A1 | 统一 ComputeCapabilities | DONE | 待提交 |
 | A2 | 拆分 ComputeSettings 组件 | TODO | |
 | A3 | 新增 Compute Overview | TODO | |
 | B1 | Desktop Environment-first 列表 | TODO | |
@@ -89,7 +89,7 @@
 
 状态：DONE
 完成时间：2026-09-10 00:52 CST
-提交：待提交
+提交：`297a1e2`
 
 ### 目标
 
@@ -133,6 +133,64 @@ modified：仅本计划与日志，提交后应为 clean。
 ### 下一步
 
 A1：新增统一 ComputeCapabilities resolver 和 Desktop / Local Web / Online 能力矩阵测试，保持当前 UI 行为。
+
+---
+
+## A1 — 统一 ComputeCapabilities
+
+状态：DONE
+完成时间：2026-09-10 00:55 CST
+提交：待提交
+
+### 本步目标
+
+为 Desktop、Local Web、Online Web 建立统一计算能力结果，作为后续 UI 的唯一能力输入，本步不改变视觉。
+
+### 实际修改
+
+- 新增 `ComputeCapabilities`，统一表达本地/远程运行、环境探测/管理、Owned Jupyter、本地手动连接及三种远程 Connector。
+- 新增 `resolveComputeCapabilities(mode, host)`，同时校验 Deployment Mode 与 Host 真实能力，避免不一致组合暴露原生操作。
+- 新增从统一能力导出本地/远程 Tab 的 helper。
+- 保留 v1.17.0 helper，便于 A2 增量迁移。
+
+### 修改文件
+
+- `src/compute/runtimeSettings.ts`
+- `src/compute/runtimeSettings.test.ts`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：
+
+```bash
+pnpm vitest run src/compute/runtimeSettings.test.ts
+pnpm lint
+pnpm exec tsc -b
+```
+
+结果：
+
+- 1 个测试文件、9 项测试通过。
+- Lint 通过。
+- TypeScript 构建通过。
+
+### 设计决定
+
+- 本地运行是 Deployment 层能力；环境探测、环境管理和 Owned Server 还必须获得 Host 能力，不仅凭 `desktop` 字符决定。
+- Self-hosted 按当前产品真实能力与 Static 一样保持 remote-only。
+
+### 未完成 / 风险
+
+- A2 开始才将 Settings UI 迁移到这个能力对象；当前视觉行为未改变。
+
+### Git 状态
+
+modified：A1 源码、测试与日志待提交。
+
+### 下一步
+
+A2：从 `SettingsPage.tsx` 拆出 Compute Settings 组件及 local/remote 子结构，保持当前行为。
 
 ---
 
