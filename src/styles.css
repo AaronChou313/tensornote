@@ -5159,3 +5159,8 @@ button.trust-status {
 .remote-connection-dialog > header strong { font-size: .82rem; }
 .remote-connection-dialog > header p { margin: 0; color: var(--muted); font-size: .56rem; }
 .remote-connection-dialog .settings-compute-form { border: 0; background: transparent; padding: 0; }
+.settings-compute-advanced { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--surface-muted) 58%, transparent); padding: 0 11px; }
+.settings-compute-advanced > summary { padding: 10px 0; color: var(--muted); font-size: .58rem; font-weight: 680; cursor: pointer; }
+.settings-compute-advanced[open] > summary { border-bottom: 1px solid var(--line); }
+.settings-compute-advanced > .settings-form-grid { margin-top: 11px; }
+.settings-compute-advanced > .settings-scope-grid { margin-bottom: 11px; }

@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：C3
-- 最后完成 Step：C2
-- 当前进行 Step：C3
-- 当前 HEAD：`fc0de92`（C2 提交前）
-- 工作树：C2 Remote Connection List、样式与日志待提交
-- 当前已知问题：远程详情 Dialog 已建立，但高级字段仍需分组折叠并完善详情动作。
+- 当前阶段：C4
+- 最后完成 Step：C3
+- 当前进行 Step：C4
+- 当前 HEAD：`06ea301`（C3 提交前）
+- 工作树：C3 Remote Details 高级分组、样式与日志待提交
+- 当前已知问题：Kernel 仍依赖手填名称，连接验证后尚未自动枚举 KernelSpec。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -37,8 +37,8 @@
 | B5 | External Jupyter Support | DONE | `4d40654` |
 | B6 | Owned Server 高级管理 | DONE | `a18dcf5` |
 | C1 | Local Web 专用体验 | DONE | `fc0de92` |
-| C2 | Remote Connection List | DONE | 待提交 |
-| C3 | Remote Connection Details | TODO | |
+| C2 | Remote Connection List | DONE | `06ea301` |
+| C3 | Remote Connection Details | DONE | 待提交 |
 | C4 | Kernel 自动发现 | TODO | |
 | D1 | Store 与 Migration | TODO | |
 | D2 | 依赖职责整理 | TODO | |
@@ -703,7 +703,7 @@ C2：将 Remote Profile 主视图改为连接列表。
 
 状态：DONE
 完成时间：2026-09-10 02:04 CST
-提交：待提交
+提交：`06ea301`
 
 ### 本步目标
 
@@ -739,6 +739,47 @@ modified：C2 源码、样式与日志待提交。
 ### 下一步
 
 C3：整理远程详情 Dialog 的基础字段、高级设置、诊断、生命周期和删除动作。
+
+
+## C3 — Remote Connection Details
+
+状态：DONE
+完成时间：2026-09-10 02:11 CST
+提交：待提交
+
+### 本步目标
+
+在 Dialog 中完整保留远程能力，同时让默认配置界面保持简洁。
+
+### 实际修改
+
+- 远程详情使用共享 ModalSurface，具备焦点返回、遮罩和关闭行为。
+- 默认只显示名称、Connector、地址、Kernel 与凭证。
+- Workspace 路径、Connector 专属字段、生命周期与 Session Scope 收入高级设置。
+- 诊断、启动验证、复制脱敏报告、断开和删除仍在详情内可用。
+
+### 修改文件
+
+- `src/components/settings/ComputeSettings.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：`pnpm lint`、`pnpm exec tsc -b`。结果：全部通过。
+
+### 设计决定
+
+- 配置实时保存到设备 store，Dialog 不制造独立草稿状态。
+- 凭证继续使用现有会话 token store，不进入持久化 Profile。
+
+### Git 状态
+
+modified：C3 源码、样式与日志待提交。
+
+### 下一步
+
+C4：连接验证后自动获取 KernelSpec，并保留高级手动覆盖。
 
 
 ---
