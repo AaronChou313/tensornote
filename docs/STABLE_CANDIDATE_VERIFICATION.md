@@ -111,7 +111,7 @@
 - 实际打开实验详情页，确认 Local Web 平台标签、CPU/内存/磁盘提示、Manifest v1、环境继承、固定 Revision、未信任禁止执行及 Binder 配置不足的准确降级说明。没有将可访问性元素存在当成像素可见的唯一证据。
 - Happy-LLM 第 5、6 章 Manifest、分组依赖、CPU 检查、结构化脚本入口与 Skill 严格 Validator 已在 v1.15.0 候选中通过。公共 Binder 完整 Notebook 执行、跨版本自动升级、干净 Windows/Linux/Intel macOS 安装仍保留为外部验证债务。
 
-## v1.17.0 环境管理与依赖安装候选
+## v1.17.0 环境管理与依赖安装正式发行
 
 - `pnpm check` 通过：61 个测试文件、214 项测试，以及 Lint、TypeScript 和 Local 生产构建均成功。
 - Rust fmt、clippy 和 18 项原生测试通过；Apple Silicon `.app` 与 `TensorNote_1.17.0_aarch64.dmg` 本机构建成功。
@@ -119,4 +119,8 @@
 - Skill quick validation、三套 strict Workspace 模板、仓库 Validator、出版检查和同版本 Skill 打包通过。
 - 本机 Conda 为 `/opt/anaconda3/bin/conda`，即使 Finder 启动不读取 Shell 初始化，也属于原生探测的常见位置。
 - 实际界面走查覆盖 Desktop 设置弹窗和在线 Web。Desktop 显示本地/远程切换、本地便捷连接及手动连接；在线 Web 只显示远程入口，并在旧存储仅有本地 Profile 时自动创建远程 Profile，没有暴露本地环境管理。
-- 本机没有中断用户当前运行中的正式 TensorNote，因此未用同 bundle id 的候选覆盖启动。Conda 实际创建 Python 3.11、Windows/Linux 安装和 Tag 产物安装由正式发行工作流及对应平台验收继续覆盖；不得把本机源码构建表述为这些外部平台已实测。
+- 本机没有中断用户当前运行中的正式 TensorNote，因此未用同 bundle id 的候选覆盖启动。Conda 实际创建 Python 3.11 与干净 Windows/Linux 安装仍是外部实机验收项；不得把源码构建或 CI 构建表述为这些流程已实测。
+- 不可变 Tag `v1.17.0` 指向 `35e2eafc425c211f17f2264ab19670e744f8e590`。[Release dry run 34338683125](https://github.com/AaronChou313/tensornote/actions/runs/34338683125) 和 [正式 Tag Release 34357042729](https://github.com/AaronChou313/tensornote/actions/runs/34357042729) 全部通过。
+- 草稿全部 22 个附件在公开前下载到隔离目录；`SHA256SUMS` 覆盖的 20 项全部复核通过。Manifest 的版本、Tag 和 commit 一致，`latest.json` 包含 11 个平台映射和 11 份签名。
+- 正式 Apple Silicon 归档中 `Info.plist` 的短版本、构建版本均为 `1.17.0`，bundle id 为 `io.github.aaronchou313.tensornote`。未覆盖启动正在使用的同 bundle id 应用。
+- [公开 Release](https://github.com/AaronChou313/tensornote/releases/tag/v1.17.0) 于 2026-09-09 14:00 UTC 发布，非 Draft、非预发布并设为 Latest。Pages 部署入口脚本为 `index-Bk-Sz3Ce.js`，线上资源包含 `1.17.0`。
