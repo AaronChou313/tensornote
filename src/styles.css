@@ -5135,3 +5135,27 @@ button.trust-status {
 .settings-local-web-runtime details[open] summary svg { transform: rotate(180deg); }
 .settings-local-web-runtime details > div { display: flex; align-items: center; gap: 8px; margin: 8px 0 5px; }
 .settings-local-web-runtime code { flex: 1; overflow: auto; border-radius: 8px; background: var(--code-surface); padding: 9px; color: var(--code-ink); font-size: .53rem; white-space: nowrap; }
+
+.remote-connection-list { display: grid; gap: 11px; margin-top: 16px; }
+.remote-connection-list > header { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.remote-connection-list > header > div { display: grid; gap: 3px; }
+.remote-connection-list > header strong { font-size: .7rem; }
+.remote-connection-list > header small { color: var(--muted); font-size: .57rem; }
+.remote-connection-list > div { display: grid; gap: 7px; }
+.remote-connection-list article { display: grid; align-items: center; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); grid-template-columns: minmax(0, 1fr) auto; }
+.remote-connection-list article.is-active { border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); background: color-mix(in srgb, var(--accent-pale) 28%, var(--surface)); }
+.remote-connection-list article > button:first-child { display: grid; align-items: center; min-width: 0; border: 0; background: transparent; padding: 11px; color: inherit; text-align: left; cursor: pointer; grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; }
+.remote-connection-list article > button:first-child > span:first-child { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--accent); }
+.remote-connection-list article > button:first-child > span:nth-child(2) { display: grid; min-width: 0; gap: 3px; }
+.remote-connection-list article strong { font-size: .65rem; }
+.remote-connection-list article small { overflow: hidden; color: var(--muted); font-size: .54rem; text-overflow: ellipsis; white-space: nowrap; }
+.remote-connection-list article em { display: flex; align-items: center; gap: 4px; color: var(--faint); font-size: .53rem; font-style: normal; }
+.remote-connection-list article.is-active em { color: var(--accent); }
+.remote-connection-list article > .button { margin-right: 7px; }
+.remote-connection-dialog { width: min(680px, calc(100vw - 28px)); max-height: min(820px, calc(100vh - 32px)); overflow: auto; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); box-shadow: var(--shadow-lg); padding: 16px; }
+.remote-connection-dialog > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+.remote-connection-dialog > header > div { display: grid; gap: 3px; }
+.remote-connection-dialog > header small { color: var(--accent); font-size: .52rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.remote-connection-dialog > header strong { font-size: .82rem; }
+.remote-connection-dialog > header p { margin: 0; color: var(--muted); font-size: .56rem; }
+.remote-connection-dialog .settings-compute-form { border: 0; background: transparent; padding: 0; }

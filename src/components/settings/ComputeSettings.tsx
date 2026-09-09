@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Cpu, Plus, Pulse, Trash } from '@phosphor-icons/react'
+import { Cpu, Plus, Pulse, Trash, X } from '@phosphor-icons/react'
 import { GettingStarted } from '../GettingStarted'
 import { Button } from '../ui/Button'
 import { computeRuntime } from '../../compute/ComputeRuntime'
@@ -17,6 +17,8 @@ import { resolveWorkspaceExecutionPolicy } from '../../workspace/executionPolicy
 import { ComputeRuntimeLocationTabs } from './ComputeRuntimeLocationTabs'
 import { ComputeOverview } from './ComputeOverview'
 import { LocalWebRuntimeGuide } from './LocalWebRuntimeGuide'
+import { RemoteConnectionList } from './RemoteConnectionList'
+import { ModalSurface } from '../ui/ModalSurface'
 
 function SettingRow({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return <div className="settings-row"><span><strong>{title}</strong><small>{description}</small></span><div>{children}</div></div>
@@ -75,6 +77,7 @@ export function ComputeSettings() {
   const runtimeLocations = runtimeLocationsForCapabilities(computeCapabilities)
   const [runtimeLocation, setRuntimeLocation] = useState<RuntimeLocation>(runtimeLocations[0])
   const [localManualVisible, setLocalManualVisible] = useState(false)
+  const [remoteDetailsOpen, setRemoteDetailsOpen] = useState(false)
   const visibleProfiles = useMemo(() => profiles.filter((item) => !item.runtimeServerId && profileRuntimeLocation(item) === runtimeLocation), [profiles, runtimeLocation])
   const fallbackTemplate = useMemo(() => runtimeLocation === 'local' ? computeProfileTemplates[0] : computeProfileTemplates.find((item) => item.name === 'Remote Server')!, [runtimeLocation])
   const profile = visibleProfiles.find((item) => item.id === activeProfileId) ?? visibleProfiles[0] ?? { id: `new-${runtimeLocation}-profile`, ...fallbackTemplate }
@@ -133,30 +136,8 @@ export function ComputeSettings() {
     setReportCopied(true)
     window.setTimeout(() => setReportCopied(false), 1800)
   }
-  return (
-    <section className="settings-panel">
-      <header><span>Runtime</span><h2>计算与 Jupyter</h2><p>Workspace 与计算环境彼此独立；所有 Token 只保存在当前应用会话。</p></header>
-      <ComputeOverview capabilities={computeCapabilities} platformLabel={deploymentAdapter.label} discovery={runtimeDiscovery} discovering={discoveringRuntime} activeComputeName={profile.name} kernelStatus={kernelStatus} onRediscover={computeCapabilities.environmentDiscovery ? () => void discoverRuntime() : undefined} />
-      <GettingStarted context="compute" />
-      <div className="settings-group settings-execution-group">
-        <SettingRow title="允许当前 Workspace 执行代码" description={executionDescription}>
-          <label className="settings-switch"><input type="checkbox" checked={executionPolicy?.enabled ?? false} disabled={!executionPolicy?.canChange} onChange={(event) => setActiveWorkspaceExecution(event.target.checked)} aria-label="允许当前 Workspace 执行代码" /><i /></label>
-        </SettingRow>
-        {session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前设备，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前 Workspace 没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.type === 'github' && !session.trusted ? ' GitHub Workspace 还需要信任当前 Revision。' : ''}</p>}
-      </div>
-      <ComputeRuntimeLocationTabs capabilities={computeCapabilities} value={runtimeLocation} onChange={(location) => { setRuntimeLocation(location); setDiagnostics([]) }} />
-      <div className="settings-runtime-heading"><span>{runtimeLocation === 'local' ? 'Local runtime' : 'Remote runtime'}</span><h3>{runtimeLocation === 'local' ? '在这台电脑上运行' : '连接远程计算环境'}</h3><p>{runtimeLocation === 'local' ? (computeCapabilities.environmentManagement ? '便捷连接由 TensorNote 管理环境和 Server；手动连接适合你已经启动的 Jupyter。' : '浏览器不能启动本机进程。请先自行启动 Jupyter Server，再填写连接信息。') : '计算资源位于其他设备或云平台。在线版要求 HTTPS，并需要服务端允许当前网页来源和 WebSocket。'}</p></div>
-      {runtimeLocation === 'local' && !LocalRuntimeAssistant && <LocalWebRuntimeGuide />}
-      {runtimeLocation === 'local' && LocalRuntimeAssistant && <Suspense fallback={<p className="settings-message">正在加载本地环境…</p>}><LocalRuntimeAssistant onRequestExistingJupyter={() => setLocalManualVisible(true)} /></Suspense>}
-      {(runtimeLocation === 'remote' || !computeCapabilities.environmentManagement || localManualVisible) && <>
-      {runtimeLocation === 'local' && <div className="settings-connection-label"><div><strong>已有 Jupyter Server</strong><small>自行启动 Server，再填写地址、Kernel 与 Token</small></div></div>}
-      <div className="settings-compute-layout">
-        <aside className="settings-profile-list">
-          <span>{runtimeLocation === 'local' ? '手动连接' : '远程 Profiles'}</span>
-          {visibleProfiles.map((item) => <button key={item.id} className={item.id === profile.id ? 'is-active' : ''} onClick={() => { setActiveProfile(item.id); setDiagnostics([]) }}><Cpu size={16} /><span><strong>{item.name}</strong><small>{connectorLabels[computeConnectorKind(item.connector) as keyof typeof connectorLabels] ?? item.kind} · {item.scope}</small></span></button>)}
-          <details><summary><Plus size={14} />添加连接</summary><div>{computeProfileTemplates.filter((template) => profileRuntimeLocation(template) === runtimeLocation).map((template) => <button key={template.name} onClick={() => addProfile(template)}><strong>{template.name}</strong><small>{template.description}</small></button>)}</div></details>
-        </aside>
-        <div className="settings-compute-form">
+  const profileForm = (
+    <div className="settings-compute-form">
           <div className="settings-runtime-status">
             <span className={`kernel-dot kernel-dot--${kernelStatus}`} />
             <span><strong>{connectionEvent && connectionEvent.phase !== 'idle' ? connectionEvent.phase : kernelStatus}</strong><small>{connectionEvent && connectionEvent.phase !== 'idle' ? connectionEvent.message : profile.name}</small></span>
@@ -189,7 +170,35 @@ export function ComputeSettings() {
           </div>
           {diagnostics.length > 0 && <div className="settings-diagnostics">{diagnostics.map((item, index) => <div key={`${item.id}-${index}`} data-status={item.status}><span>{item.status}</span><strong>{item.label}</strong><small>{item.detail}</small></div>)}</div>}
         </div>
+  )
+  return (
+    <section className="settings-panel">
+      <header><span>Runtime</span><h2>计算与 Jupyter</h2><p>Workspace 与计算环境彼此独立；所有 Token 只保存在当前应用会话。</p></header>
+      <ComputeOverview capabilities={computeCapabilities} platformLabel={deploymentAdapter.label} discovery={runtimeDiscovery} discovering={discoveringRuntime} activeComputeName={profile.name} kernelStatus={kernelStatus} onRediscover={computeCapabilities.environmentDiscovery ? () => void discoverRuntime() : undefined} />
+      <GettingStarted context="compute" />
+      <div className="settings-group settings-execution-group">
+        <SettingRow title="允许当前 Workspace 执行代码" description={executionDescription}>
+          <label className="settings-switch"><input type="checkbox" checked={executionPolicy?.enabled ?? false} disabled={!executionPolicy?.canChange} onChange={(event) => setActiveWorkspaceExecution(event.target.checked)} aria-label="允许当前 Workspace 执行代码" /><i /></label>
+        </SettingRow>
+        {session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前设备，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前 Workspace 没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.type === 'github' && !session.trusted ? ' GitHub Workspace 还需要信任当前 Revision。' : ''}</p>}
       </div>
+      <ComputeRuntimeLocationTabs capabilities={computeCapabilities} value={runtimeLocation} onChange={(location) => { setRuntimeLocation(location); setDiagnostics([]) }} />
+      <div className="settings-runtime-heading"><span>{runtimeLocation === 'local' ? 'Local runtime' : 'Remote runtime'}</span><h3>{runtimeLocation === 'local' ? '在这台电脑上运行' : '连接远程计算环境'}</h3><p>{runtimeLocation === 'local' ? (computeCapabilities.environmentManagement ? '便捷连接由 TensorNote 管理环境和 Server；手动连接适合你已经启动的 Jupyter。' : '浏览器不能启动本机进程。请先自行启动 Jupyter Server，再填写连接信息。') : '计算资源位于其他设备或云平台。在线版要求 HTTPS，并需要服务端允许当前网页来源和 WebSocket。'}</p></div>
+      {runtimeLocation === 'local' && !LocalRuntimeAssistant && <LocalWebRuntimeGuide />}
+      {runtimeLocation === 'local' && LocalRuntimeAssistant && <Suspense fallback={<p className="settings-message">正在加载本地环境…</p>}><LocalRuntimeAssistant onRequestExistingJupyter={() => setLocalManualVisible(true)} /></Suspense>}
+      {(runtimeLocation === 'remote' || !computeCapabilities.environmentManagement || localManualVisible) && <>
+      {runtimeLocation === 'local' && <div className="settings-connection-label"><div><strong>已有 Jupyter Server</strong><small>自行启动 Server，再填写地址、Kernel 与 Token</small></div></div>}
+      {runtimeLocation === 'remote' ? <>
+        <RemoteConnectionList profiles={visibleProfiles} activeProfileId={profile.id} kernelStatus={kernelStatus} onSelect={(id) => { setActiveProfile(id); setDiagnostics([]) }} onAdd={() => { const id = addProfile(computeProfileTemplates.find((item) => item.name === 'Remote Server')!); setActiveProfile(id); setDiagnostics([]); setRemoteDetailsOpen(true) }} onEdit={(id) => { setActiveProfile(id); setDiagnostics([]); setRemoteDetailsOpen(true) }} />
+        <ModalSurface open={remoteDetailsOpen} onOpenChange={setRemoteDetailsOpen} title="远程连接详情" layerClassName="extension-dialog-overlay" className="remote-connection-dialog"><header><div><small>Remote compute</small><strong>{profile.name}</strong><p>配置连接、验证环境和会话范围。</p></div><button className="icon-button" onClick={() => setRemoteDetailsOpen(false)} aria-label="关闭"><X size={17} /></button></header>{profileForm}</ModalSurface>
+      </> : <div className="settings-compute-layout">
+        <aside className="settings-profile-list">
+          <span>{runtimeLocation === 'local' ? '手动连接' : '远程 Profiles'}</span>
+          {visibleProfiles.map((item) => <button key={item.id} className={item.id === profile.id ? 'is-active' : ''} onClick={() => { setActiveProfile(item.id); setDiagnostics([]) }}><Cpu size={16} /><span><strong>{item.name}</strong><small>{connectorLabels[computeConnectorKind(item.connector) as keyof typeof connectorLabels] ?? item.kind} · {item.scope}</small></span></button>)}
+          <details><summary><Plus size={14} />添加连接</summary><div>{computeProfileTemplates.filter((template) => profileRuntimeLocation(template) === runtimeLocation).map((template) => <button key={template.name} onClick={() => addProfile(template)}><strong>{template.name}</strong><small>{template.description}</small></button>)}</div></details>
+        </aside>
+        {profileForm}
+      </div>}
       </>}
     </section>
   )

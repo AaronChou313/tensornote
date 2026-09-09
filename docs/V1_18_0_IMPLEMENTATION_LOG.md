@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：C2
-- 最后完成 Step：C1
-- 当前进行 Step：C2
-- 当前 HEAD：`a18dcf5`（C1 提交前）
-- 工作树：C1 Local Web 指引组件、样式与日志待提交
-- 当前已知问题：远程连接仍使用 Profile 双栏大表单，主页面信息密度过高。
+- 当前阶段：C3
+- 最后完成 Step：C2
+- 当前进行 Step：C3
+- 当前 HEAD：`fc0de92`（C2 提交前）
+- 工作树：C2 Remote Connection List、样式与日志待提交
+- 当前已知问题：远程详情 Dialog 已建立，但高级字段仍需分组折叠并完善详情动作。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -36,8 +36,8 @@
 | B4 | Managed Environment 创建 UX | DONE | `2abaa2f` |
 | B5 | External Jupyter Support | DONE | `4d40654` |
 | B6 | Owned Server 高级管理 | DONE | `a18dcf5` |
-| C1 | Local Web 专用体验 | DONE | 待提交 |
-| C2 | Remote Connection List | TODO | |
+| C1 | Local Web 专用体验 | DONE | `fc0de92` |
+| C2 | Remote Connection List | DONE | 待提交 |
 | C3 | Remote Connection Details | TODO | |
 | C4 | Kernel 自动发现 | TODO | |
 | D1 | Store 与 Migration | TODO | |
@@ -661,7 +661,7 @@ C1：整理 Local Web 专用手动连接体验与动态 origin 命令。
 
 状态：DONE
 完成时间：2026-09-10 01:56 CST
-提交：待提交
+提交：`fc0de92`
 
 ### 本步目标
 
@@ -697,6 +697,48 @@ modified：C1 源码、样式与日志待提交。
 ### 下一步
 
 C2：将 Remote Profile 主视图改为连接列表。
+
+
+## C2 — Remote Connection List
+
+状态：DONE
+完成时间：2026-09-10 02:04 CST
+提交：待提交
+
+### 本步目标
+
+将远程计算主页从双栏配置表单改为可扫描的连接列表。
+
+### 实际修改
+
+- 新增 Remote Connection List，集中显示名称、Connector、地址、当前使用与 Kernel 状态。
+- 主页面新增单一“添加远程连接”入口；创建后直接打开对应详情。
+- 每个连接提供明确的选择与编辑动作。
+- 远程大表单移出主页面，进入共享 ModalSurface。
+
+### 修改文件
+
+- `src/components/settings/RemoteConnectionList.tsx`
+- `src/components/settings/ComputeSettings.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：Lint、TypeScript、Compute 能力矩阵 9 项测试。结果：全部通过。
+
+### 设计决定
+
+- 选择连接与编辑配置为两个独立动作，避免点击列表项立即暴露复杂表单。
+- 当前连接状态使用既有 activeProfile 与 kernelStatus，不建立第二套状态。
+
+### Git 状态
+
+modified：C2 源码、样式与日志待提交。
+
+### 下一步
+
+C3：整理远程详情 Dialog 的基础字段、高级设置、诊断、生命周期和删除动作。
 
 
 ---
