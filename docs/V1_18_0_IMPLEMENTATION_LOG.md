@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：C1
-- 最后完成 Step：B6
-- 当前进行 Step：C1
-- 当前 HEAD：`4d40654`（B6 提交前）
-- 工作树：B6 Owned Server 管理源码、样式与日志待提交
-- 当前已知问题：Local Web 仍与通用 Compute 表单混排，启动命令与帮助需要收敛成专用体验。
+- 当前阶段：C2
+- 最后完成 Step：C1
+- 当前进行 Step：C2
+- 当前 HEAD：`a18dcf5`（C1 提交前）
+- 工作树：C1 Local Web 指引组件、样式与日志待提交
+- 当前已知问题：远程连接仍使用 Profile 双栏大表单，主页面信息密度过高。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -35,8 +35,8 @@
 | B3 | 添加环境或连接 Dialog | DONE | `862a8f5` |
 | B4 | Managed Environment 创建 UX | DONE | `2abaa2f` |
 | B5 | External Jupyter Support | DONE | `4d40654` |
-| B6 | Owned Server 高级管理 | DONE | 待提交 |
-| C1 | Local Web 专用体验 | TODO | |
+| B6 | Owned Server 高级管理 | DONE | `a18dcf5` |
+| C1 | Local Web 专用体验 | DONE | 待提交 |
 | C2 | Remote Connection List | TODO | |
 | C3 | Remote Connection Details | TODO | |
 | C4 | Kernel 自动发现 | TODO | |
@@ -613,7 +613,7 @@ B6：将 Owned Server 状态、复用、日志与停止动作归入环境详情�
 
 状态：DONE
 完成时间：2026-09-10 01:49 CST
-提交：待提交
+提交：`a18dcf5`
 
 ### 本步目标
 
@@ -655,6 +655,48 @@ modified：B6 源码、样式与日志待提交。
 ### 下一步
 
 C1：整理 Local Web 专用手动连接体验与动态 origin 命令。
+
+
+## C1 — Local Web 专用体验
+
+状态：DONE
+完成时间：2026-09-10 01:56 CST
+提交：待提交
+
+### 本步目标
+
+让 Local Web 只呈现浏览器实际可用的手动 Jupyter 连接流程。
+
+### 实际修改
+
+- 新增 Local Web 专用说明组件，明确浏览器不能检测 Python 或启动本机进程。
+- 启动命令帮助默认折叠，减少设置页噪音。
+- 命令的 `allow_origin` 由当前网页 origin 动态生成，不再写死 5173。
+- 保留 URL、Token 和 Kernel 的手动连接主流程。
+
+### 修改文件
+
+- `src/components/settings/LocalWebRuntimeGuide.tsx`
+- `src/components/settings/ComputeSettings.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：`pnpm lint`、`pnpm exec tsc -b`。结果：全部通过。
+
+### 设计决定
+
+- Local Web 不显示环境计数，也不加载 Desktop 原生模块。
+- 自动 Kernel 枚举统一在 C4 完成。
+
+### Git 状态
+
+modified：C1 源码、样式与日志待提交。
+
+### 下一步
+
+C2：将 Remote Profile 主视图改为连接列表。
 
 
 ---

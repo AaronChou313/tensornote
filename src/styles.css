@@ -5121,3 +5121,17 @@ button.trust-status {
 @media (max-width: 700px) {
   .experiment-page { padding-top: 40px; }.experiment-page__inner { width: min(100% - 28px, 1040px); }.experiment-page__hero--detail { grid-template-columns: 1fr; }.experiment-badges { justify-content: flex-start; }.experiment-metrics { grid-template-columns: repeat(2, 1fr); }.experiment-environments, .experiment-files { grid-template-columns: 1fr; }.experiment-card { grid-template-columns: 38px minmax(0, 1fr); }.experiment-card__icon { width: 38px; height: 38px; }.experiment-card__status { display: none; }.experiment-card__action { grid-column: 2; }
 }
+
+.settings-local-web-runtime { margin-top: 14px; border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); border-radius: 12px; background: color-mix(in srgb, var(--accent-pale) 22%, var(--surface)); padding: 12px; }
+.settings-local-web-runtime__summary { display: grid; align-items: start; gap: 9px; grid-template-columns: auto 1fr; }
+.settings-local-web-runtime__summary > span { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--accent); }
+.settings-local-web-runtime__summary > div { display: grid; gap: 3px; }
+.settings-local-web-runtime strong { font-size: .66rem; }
+.settings-local-web-runtime small,
+.settings-local-web-runtime p { margin: 0; color: var(--muted); font-size: .56rem; line-height: 1.55; }
+.settings-local-web-runtime details { margin: 10px 0 0 39px; border-top: 1px solid var(--line); padding-top: 8px; }
+.settings-local-web-runtime summary { display: flex; align-items: center; justify-content: space-between; color: var(--accent); font-size: .58rem; font-weight: 680; cursor: pointer; list-style: none; }
+.settings-local-web-runtime summary::-webkit-details-marker { display: none; }
+.settings-local-web-runtime details[open] summary svg { transform: rotate(180deg); }
+.settings-local-web-runtime details > div { display: flex; align-items: center; gap: 8px; margin: 8px 0 5px; }
+.settings-local-web-runtime code { flex: 1; overflow: auto; border-radius: 8px; background: var(--code-surface); padding: 9px; color: var(--code-ink); font-size: .53rem; white-space: nowrap; }
