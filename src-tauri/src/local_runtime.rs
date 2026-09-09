@@ -217,6 +217,7 @@ struct PlanRecord {
     dependency_files: Vec<PathBuf>,
     manifest_file: Option<PathBuf>,
     install_only: bool,
+    jupyter_support_only: bool,
     existing_environment_id: Option<String>,
 }
 
@@ -749,6 +750,7 @@ impl LocalRuntimeManager {
                     dependency_files,
                     manifest_file,
                     install_only: false,
+                    jupyter_support_only: false,
                     existing_environment_id: None,
                 },
             );
@@ -864,7 +866,101 @@ impl LocalRuntimeManager {
                     dependency_files: files,
                     manifest_file,
                     install_only: true,
+                    jupyter_support_only: false,
                     existing_environment_id: Some(request.environment_id),
+                },
+            );
+        Ok(public)
+    }
+
+    fn plan_jupyter_support(&self, environment_id: &str) -> Result<EnvironmentPlan, String> {
+        let environment = self
+            .environments
+            .lock()
+            .map_err(|_| "Runtime environment registry is unavailable")?
+            .get(environment_id)
+            .cloned()
+            .ok_or("目标环境不存在，请重新检测")?;
+        if environment.public.managed {
+            return Err(
+                "TensorNote Managed Environment 应已包含 Jupyter 支持，请重新检测或重建环境".into(),
+            );
+        }
+        let (executable, manager_path) = if environment.public.manager == "uv" {
+            let tools = self
+                .tools
+                .lock()
+                .map_err(|_| "Runtime tool registry is unavailable")?;
+            let tool = tools
+                .get("uv")
+                .ok_or("该环境由 uv 管理，但当前未检测到 uv")?;
+            (
+                tool.executable.clone(),
+                tool.executable.to_string_lossy().into_owned(),
+            )
+        } else {
+            (
+                environment.python.clone(),
+                environment.python.to_string_lossy().into_owned(),
+            )
+        };
+        let target =
+            environment_root_from_python(&environment.python).ok_or("无法确定目标环境目录")?;
+        let id = opaque_id(
+            "jupyter-support-plan",
+            &format!("{}:{}", environment_id, now_millis()),
+        );
+        let kernel_name = format!(
+            "tensornote-external-{}",
+            &sha256_hex(environment_id.as_bytes())[..12]
+        );
+        let confirmation = format!("INSTALL JUPYTER {}", environment.public.name);
+        let public = EnvironmentPlan {
+            id: id.clone(),
+            kind: "jupyter-support".into(),
+            manager: environment.public.manager.clone(),
+            name: environment.public.name.clone(),
+            python_version: environment.public.python_version.clone(),
+            target_label: environment.public.location.clone(),
+            target_path: target.to_string_lossy().into_owned(),
+            manager_executable_path: manager_path,
+            environment_id: Some(environment_id.to_string()),
+            external_environment: true,
+            packages: MINIMAL_PACKAGES
+                .iter()
+                .map(|item| (*item).to_string())
+                .collect(),
+            kernel_name,
+            steps: vec![
+                format!(
+                    "安装 TensorNote Notebook 基础支持：{}",
+                    MINIMAL_PACKAGES.join(", ")
+                ),
+                "在该 Python 环境的 sys-prefix 中注册 Jupyter Kernel".into(),
+                "保留现有外部环境；失败或取消不会删除它，但部分包可能已安装".into(),
+            ],
+            confirmation,
+            expires_at: now_millis() + 15 * 60 * 1000,
+            dependencies: Vec::new(),
+            manifest_digest: None,
+            manifest_sha256: None,
+            revision: None,
+        };
+        self.plans
+            .lock()
+            .map_err(|_| "Runtime plan registry is unavailable")?
+            .insert(
+                id,
+                PlanRecord {
+                    public: public.clone(),
+                    target,
+                    executable,
+                    base_python: Some(environment.python),
+                    dependency_files: Vec::new(),
+                    manifest_file: None,
+                    install_only: true,
+                    jupyter_support_only: true,
+                    existing_environment_id: Some(environment_id.to_string()),
                 },
             );
         Ok(public)
@@ -923,6 +1019,44 @@ impl LocalRuntimeManager {
         let result: Result<String, String> = (|| {
             let python = plan.base_python.as_ref().ok_or("目标 Python 不存在")?;
             let sensitive = vec![self.app_data.clone(), plan.target.clone()];
+            if plan.jupyter_support_only {
+                control.progress(15);
+                if plan.public.manager == "uv" {
+                    let mut args = vec![
+                        "pip".into(),
+                        "install".into(),
+                        "--python".into(),
+                        python.as_os_str().into(),
+                    ];
+                    args.extend(MINIMAL_PACKAGES.iter().map(|item| (*item).into()));
+                    run_operation_command(&plan.executable, &args, &control, &sensitive)?;
+                } else {
+                    let mut args = vec![
+                        "-m".into(),
+                        "pip".into(),
+                        "install".into(),
+                        "--disable-pip-version-check".into(),
+                    ];
+                    args.extend(MINIMAL_PACKAGES.iter().map(|item| (*item).into()));
+                    run_operation_command(python, &args, &control, &sensitive)?;
+                }
+                control.progress(75);
+                run_operation_command(
+                    python,
+                    &[
+                        "-m".into(),
+                        "ipykernel".into(),
+                        "install".into(),
+                        "--sys-prefix".into(),
+                        "--name".into(),
+                        plan.public.kernel_name.clone().into(),
+                        "--display-name".into(),
+                        format!("TensorNote · {}", plan.public.name).into(),
+                    ],
+                    &control,
+                    &sensitive,
+                )?;
+            }
             for (index, dependency) in plan.dependency_files.iter().enumerate() {
                 control.progress(10 + ((index as u8) * 80 / plan.dependency_files.len() as u8));
                 if plan.public.manager == "uv" {
@@ -962,7 +1096,15 @@ impl LocalRuntimeManager {
         })();
         match result {
             Ok(environment_id) => {
-                control.append("system", "依赖已安装到所选环境。".to_string());
+                control.append(
+                    "system",
+                    if plan.jupyter_support_only {
+                        "Jupyter 支持已安装到所选外部环境。"
+                    } else {
+                        "依赖已安装到所选环境。"
+                    }
+                    .to_string(),
+                );
                 control.finish(environment_id);
             }
             Err(reason) => {
@@ -1475,6 +1617,14 @@ pub fn local_runtime_plan_dependencies(
 ) -> Result<EnvironmentPlan, String> {
     let root = registry.root(&request.workspace_id)?;
     manager.plan_dependencies(request, &root)
+}
+
+#[tauri::command]
+pub fn local_runtime_plan_jupyter_support(
+    manager: State<'_, LocalRuntimeManager>,
+    environment_id: String,
+) -> Result<EnvironmentPlan, String> {
+    manager.plan_jupyter_support(&environment_id)
 }
 
 #[tauri::command]
@@ -2262,6 +2412,61 @@ mod tests {
         assert!(MINIMAL_PACKAGES.contains(&"ipykernel"));
         assert!(!MINIMAL_PACKAGES.contains(&"torch"));
         assert!(!MINIMAL_PACKAGES.contains(&"transformers"));
+    }
+
+    #[test]
+    fn plans_jupyter_support_without_taking_ownership_of_external_environment() {
+        let temp = tempdir().expect("tempdir");
+        let manager = LocalRuntimeManager::with_app_data(temp.path().join("app-data"));
+        let python = temp.path().join("external/bin/python");
+        fs::create_dir_all(python.parent().expect("python parent")).expect("environment");
+        fs::write(&python, "").expect("python placeholder");
+        let environment_id = "python:external";
+        manager
+            .environments
+            .lock()
+            .expect("environment registry")
+            .insert(
+                environment_id.into(),
+                EnvironmentRecord {
+                    public: PythonEnvironment {
+                        id: environment_id.into(),
+                        name: "External Python".into(),
+                        manager: "venv".into(),
+                        python_version: "3.11".into(),
+                        jupyter_installed: false,
+                        ipykernel_installed: false,
+                        managed: false,
+                        kernel_name: None,
+                        python_path: python.to_string_lossy().into_owned(),
+                        location: temp.path().join("external").to_string_lossy().into_owned(),
+                    },
+                    python,
+                },
+            );
+
+        let plan = manager
+            .plan_jupyter_support(environment_id)
+            .expect("support plan");
+        assert_eq!(plan.kind, "jupyter-support");
+        assert!(plan.external_environment);
+        assert!(plan
+            .packages
+            .iter()
+            .any(|package| package == "jupyter-server"));
+        let stored = manager
+            .plans
+            .lock()
+            .expect("plan registry")
+            .get(&plan.id)
+            .cloned()
+            .expect("stored plan");
+        assert!(stored.install_only);
+        assert!(stored.jupyter_support_only);
+        assert_eq!(
+            stored.existing_environment_id.as_deref(),
+            Some(environment_id)
+        );
     }
 
     #[test]

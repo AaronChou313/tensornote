@@ -106,6 +106,7 @@ pub fn run() {
             local_runtime::local_runtime_select_tool,
             local_runtime::local_runtime_plan_environment,
             local_runtime::local_runtime_plan_dependencies,
+            local_runtime::local_runtime_plan_jupyter_support,
             local_runtime::local_runtime_apply_environment,
             local_runtime::local_runtime_operation,
             local_runtime::local_runtime_cancel_operation,

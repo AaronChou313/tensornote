@@ -9,16 +9,16 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：B5
-- 最后完成 Step：B4
-- 当前进行 Step：B5
-- 当前 HEAD：`862a8f5`（B4 提交前）
-- 工作树：B4 Managed Environment UX、样式与日志待提交
-- 当前已知问题：External Environment 缺少 Jupyter 时仍无法在 TensorNote 内补齐；B5 需新增受控 Host plan。
+- 当前阶段：B6
+- 最后完成 Step：B5
+- 当前进行 Step：B6
+- 当前 HEAD：`2abaa2f`（B5 提交前）
+- 工作树：B5 External Jupyter Support 源码、测试与日志待提交
+- 当前已知问题：Owned Server 仍在环境列表外单独展示，运行中 Server 的连接复用与环境详情没有形成闭环。
 - 下一位智能体第一步：
-  1. 为 External Environment 设计受控 Jupyter Support plan
-  2. 明确修改外部环境的强警告与确认
-  3. 保持外部环境不可删除，失败不删除环境
+  1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
+  2. 支持复用已启动的 Server 与现有临时 Profile
+  3. 保持 token 仅在内存中流转
 
 ---
 
@@ -33,8 +33,8 @@
 | B1 | Desktop Environment-first 列表 | DONE | `8f3062b` |
 | B2 | Kernel 子级展示 | DONE | `6246b50` |
 | B3 | 添加环境或连接 Dialog | DONE | `862a8f5` |
-| B4 | Managed Environment 创建 UX | DONE | 待提交 |
-| B5 | External Jupyter Support | TODO | |
+| B4 | Managed Environment 创建 UX | DONE | `2abaa2f` |
+| B5 | External Jupyter Support | DONE | 待提交 |
 | B6 | Owned Server 高级管理 | TODO | |
 | C1 | Local Web 专用体验 | TODO | |
 | C2 | Remote Connection List | TODO | |
@@ -505,7 +505,7 @@ B4：完善并验证 Managed Environment 创建 UX 与 Ready 合同。
 
 状态：DONE
 完成时间：2026-09-10 01:27 CST
-提交：待提交
+提交：`2abaa2f`
 
 ### 本步目标
 
@@ -554,6 +554,59 @@ modified：B4 UI、样式与日志待提交。
 ### 下一步
 
 B5：新增 External Environment 安装 Jupyter Support 的受控 Host plan 与明确确认。
+
+
+## B5 — External Jupyter Support
+
+状态：DONE
+完成时间：2026-09-10 01:43 CST
+提交：待提交
+
+### 本步目标
+
+允许用户为缺少 Notebook 能力的外部 Conda/venv/Python 环境受控安装 Jupyter 支持，同时保持环境所有权边界。
+
+### 实际修改
+
+- Host 合同新增独立 `jupyter-support` 计划与 Tauri command/permission。
+- 缺少 Jupyter 的外部环境显示“安装 Jupyter 支持”，计划明确目标环境、最小包、Kernel 与外部环境警告。
+- 安装复用受控 argv、确认短语、进度与取消机制；完成后在环境 `sys-prefix` 注册 Kernel。
+- 外部环境不会变成 Managed Environment，失败或取消不会删除环境，并明确提示部分包可能已安装。
+
+### 修改文件
+
+- `src/host/types.ts`
+- `src/host/TauriHostAdapter.ts`
+- `src-tauri/permissions/local-runtime.toml`
+- `src-tauri/src/lib.rs`
+- `src-tauri/src/local_runtime.rs`
+- `src/components/settings/LocalRuntimeAssistant.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：`cargo test --manifest-path src-tauri/Cargo.toml`、`pnpm lint`、`pnpm exec tsc -b`。
+
+结果：原生 19 项测试（含外部环境所有权合同）全部通过；Lint 与 TypeScript 通过。
+
+### 设计决定
+
+- 外部环境补齐能力使用独立 plan kind，不能复用创建环境或删除 Managed Environment 的语义。
+- 最小包沿用统一 Notebook Runtime 合同；不安装 torch、transformers 等项目依赖。
+- token、命令行参数和环境路径不写入 Workspace。
+
+### 未完成 / 风险
+
+- 没有在用户真实 Conda 环境执行安装；该操作只在用户查看计划并输入确认短语后发生。
+
+### Git 状态
+
+modified：B5 源码、测试与日志待提交。
+
+### 下一步
+
+B6：将 Owned Server 状态、复用、日志与停止动作归入环境详情。
 
 
 ---

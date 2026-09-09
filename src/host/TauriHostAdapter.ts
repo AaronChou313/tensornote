@@ -84,6 +84,11 @@ export class TauriHostAdapter implements HostAdapter {
     return invoke<EnvironmentPlan>('local_runtime_plan_dependencies', { request })
   }
 
+  async planEnvironmentJupyterSupport(environmentId: string): Promise<EnvironmentPlan> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<EnvironmentPlan>('local_runtime_plan_jupyter_support', { environmentId })
+  }
+
   async applyLocalEnvironment(planId: string, confirmation: string): Promise<RuntimeOperation> {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<RuntimeOperation>('local_runtime_apply_environment', { planId, confirmation })

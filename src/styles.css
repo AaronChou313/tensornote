@@ -4021,6 +4021,8 @@ button.trust-status {
 .local-runtime-operation > header > span { border-radius: 999px; background: var(--accent-soft); padding: 4px 7px; color: var(--accent); font-size: .55rem; }
 .local-runtime-plan ol { margin: 10px 0; padding-left: 19px; color: var(--muted); font-size: .59rem; line-height: 1.7; }
 .local-runtime-plan__target { display: flex; align-items: center; gap: 6px; margin: 9px 0 0; color: var(--muted); font-size: .56rem; }.local-runtime-plan__target code { overflow: hidden; color: var(--accent); font-size: .51rem; text-overflow: ellipsis; white-space: nowrap; }
+.local-runtime-plan__warning { display: flex; align-items: flex-start; gap: 7px; border-radius: 9px; background: color-mix(in srgb, var(--warning) 9%, var(--surface)); padding: 9px 10px; color: var(--warning); font-size: .56rem; line-height: 1.5; }
+.local-runtime-plan__warning svg { flex: none; margin-top: 1px; }
 .local-runtime-plan code { color: var(--accent); }
 .local-runtime-plan > div:last-child { display: flex; gap: 6px; margin-top: 9px; }
 .local-runtime-operation progress { width: 100%; height: 5px; margin: 10px 0; accent-color: var(--accent); }

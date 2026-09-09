@@ -104,7 +104,7 @@ export interface EnvironmentPlanDependency {
 
 export interface EnvironmentPlan {
   id: string
-  kind?: 'create' | 'install'
+  kind?: 'create' | 'install' | 'jupyter-support'
   manager: string
   name: string
   pythonVersion: string
@@ -193,6 +193,7 @@ export interface HostAdapter {
   selectLocalRuntimeTool?(kind: 'uv' | 'conda'): Promise<boolean>
   planLocalEnvironment?(request: EnvironmentPlanRequest): Promise<EnvironmentPlan>
   planEnvironmentDependencies?(request: DependencyInstallPlanRequest): Promise<EnvironmentPlan>
+  planEnvironmentJupyterSupport?(environmentId: string): Promise<EnvironmentPlan>
   applyLocalEnvironment?(planId: string, confirmation: string): Promise<RuntimeOperation>
   getLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>
   cancelLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>
