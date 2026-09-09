@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：B6
-- 最后完成 Step：B5
-- 当前进行 Step：B6
-- 当前 HEAD：`2abaa2f`（B5 提交前）
-- 工作树：B5 External Jupyter Support 源码、测试与日志待提交
-- 当前已知问题：Owned Server 仍在环境列表外单独展示，运行中 Server 的连接复用与环境详情没有形成闭环。
+- 当前阶段：C1
+- 最后完成 Step：B6
+- 当前进行 Step：C1
+- 当前 HEAD：`4d40654`（B6 提交前）
+- 工作树：B6 Owned Server 管理源码、样式与日志待提交
+- 当前已知问题：Local Web 仍与通用 Compute 表单混排，启动命令与帮助需要收敛成专用体验。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -34,8 +34,8 @@
 | B2 | Kernel 子级展示 | DONE | `6246b50` |
 | B3 | 添加环境或连接 Dialog | DONE | `862a8f5` |
 | B4 | Managed Environment 创建 UX | DONE | `2abaa2f` |
-| B5 | External Jupyter Support | DONE | 待提交 |
-| B6 | Owned Server 高级管理 | TODO | |
+| B5 | External Jupyter Support | DONE | `4d40654` |
+| B6 | Owned Server 高级管理 | DONE | 待提交 |
 | C1 | Local Web 专用体验 | TODO | |
 | C2 | Remote Connection List | TODO | |
 | C3 | Remote Connection Details | TODO | |
@@ -560,7 +560,7 @@ B5：新增 External Environment 安装 Jupyter Support 的受控 Host plan 与�
 
 状态：DONE
 完成时间：2026-09-10 01:43 CST
-提交：待提交
+提交：`4d40654`
 
 ### 本步目标
 
@@ -607,6 +607,54 @@ modified：B5 源码、测试与日志待提交。
 ### 下一步
 
 B6：将 Owned Server 状态、复用、日志与停止动作归入环境详情。
+
+
+## B6 — Owned Server 高级管理
+
+状态：DONE
+完成时间：2026-09-10 01:49 CST
+提交：待提交
+
+### 本步目标
+
+让 TensorNote 启动的 Jupyter Server 成为所属环境的详情，并可复用、查看日志和停止。
+
+### 实际修改
+
+- 原生启动接口会先检查同一环境中仍可达的 Owned Server，直接返回其内存 token，不重复启动进程。
+- 环境详情内显示 Server URL、状态、日志刷新和停止操作。
+- 已运行环境的主操作改为“连接此 Server”，会恢复或切换当前临时 Compute Profile。
+- 删除独立的 Server 卡片列表，Server 生命周期与环境关系保持在同一信息层级。
+
+### 修改文件
+
+- `src-tauri/src/local_runtime.rs`
+- `src/components/settings/LocalRuntimeAssistant.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：原生全量测试、Lint、TypeScript、环境 ViewModel 定向测试。
+
+结果：原生 19 项、前端定向 2 项通过；Lint 与 TypeScript 通过。
+
+### 设计决定
+
+- 只复用当前应用会话内拥有 token 且 loopback 端口可达的 Server。
+- token 仍只保存在原生内存和前端临时 profile，不持久化。
+
+### 未完成 / 风险
+
+- 应用完全退出后不会接管遗留的外部 Jupyter 进程；此时用户应作为 Existing Jupyter 重新连接。
+
+### Git 状态
+
+modified：B6 源码、样式与日志待提交。
+
+### 下一步
+
+C1：整理 Local Web 专用手动连接体验与动态 origin 命令。
 
 
 ---

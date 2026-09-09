@@ -1367,6 +1367,29 @@ impl LocalRuntimeManager {
         origin: &str,
     ) -> Result<JupyterServerLaunch, String> {
         validate_origin(origin)?;
+        if let Some(existing) = self
+            .servers
+            .lock()
+            .map_err(|_| "Owned Server registry is unavailable")?
+            .values()
+            .find(|server| {
+                server.public.environment_id == environment_id
+                    && server.public.status != "exited"
+                    && TcpStream::connect_timeout(
+                        &format!("127.0.0.1:{}", server.public.port)
+                            .parse()
+                            .expect("loopback socket"),
+                        Duration::from_millis(120),
+                    )
+                    .is_ok()
+            })
+            .map(|server| JupyterServerLaunch {
+                server: server.public.clone(),
+                token: server.token.clone(),
+            })
+        {
+            return Ok(existing);
+        }
         let environment = self
             .environments
             .lock()
