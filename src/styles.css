@@ -5164,3 +5164,19 @@ button.trust-status {
 .settings-compute-advanced[open] > summary { border-bottom: 1px solid var(--line); }
 .settings-compute-advanced > .settings-form-grid { margin-top: 11px; }
 .settings-compute-advanced > .settings-scope-grid { margin-bottom: 11px; }
+.remote-connection-list article > button:first-child:focus-visible,
+.settings-local-web-runtime summary:focus-visible,
+.local-runtime-server-details summary:focus-visible,
+.settings-compute-advanced summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 700px) {
+  .remote-connection-list > header { align-items: stretch; flex-direction: column; }
+  .remote-connection-list > header .button { align-self: flex-start; }
+  .remote-connection-list article > button:first-child { grid-template-columns: auto minmax(0, 1fr); }
+  .remote-connection-list article em { grid-column: 2; }
+  .remote-connection-dialog { width: calc(100vw - 16px); max-height: calc(100vh - 16px); border-radius: 12px; padding: 13px; }
+  .remote-connection-dialog .settings-form-grid { grid-template-columns: 1fr; }
+  .settings-local-web-runtime details { margin-left: 0; }
+  .settings-local-web-runtime details > div { align-items: stretch; flex-direction: column; }
+  .local-runtime-server-details > div { align-items: stretch; flex-direction: column; }
+  .local-runtime-server-details > div > span { justify-content: flex-end; }
+}

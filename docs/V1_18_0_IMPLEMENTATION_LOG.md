@@ -9,12 +9,12 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：D3
-- 最后完成 Step：D2
-- 当前进行 Step：D3
-- 当前 HEAD：`33374b0`（D2 提交前）
-- 工作树：D2 依赖文件、文档、Skill reference 与日志待提交
-- 当前已知问题：三端响应式、暗色主题、键盘焦点和弹窗细节需要最终视觉精修。
+- 当前阶段：E1
+- 最后完成 Step：D3
+- 当前进行 Step：E1
+- 当前 HEAD：`26c4d8e`（D3 提交前）
+- 工作树：D3 响应式、焦点样式与日志待提交
+- 当前已知问题：需要运行完整 Release Candidate 验证并处理真实失败。
 - 下一位智能体第一步：
   1. 将 Owned Server 状态、日志与停止操作归入所属环境详情
   2. 支持复用已启动的 Server 与现有临时 Profile
@@ -41,8 +41,8 @@
 | C3 | Remote Connection Details | DONE | `477a197` |
 | C4 | Kernel 自动发现 | DONE | `2c7d716` |
 | D1 | Store 与 Migration | DONE | `33374b0` |
-| D2 | 依赖职责整理 | DONE | 待提交 |
-| D3 | 样式与交互精修 | TODO | |
+| D2 | 依赖职责整理 | DONE | `26c4d8e` |
+| D3 | 样式与交互精修 | DONE | 待提交 |
 | E1 | 全量测试与回归 | TODO | |
 | E2 | 中英文文档 | TODO | |
 | E3 | v1.18.0 Release | TODO | |
@@ -874,7 +874,7 @@ D2：整理 Notebook 基础依赖、项目 Experiment 依赖与开发依赖的�
 
 状态：DONE
 完成时间：2026-09-10 02:35 CST
-提交：待提交
+提交：`26c4d8e`
 
 ### 本步目标
 
@@ -914,6 +914,49 @@ modified：D2 依赖、文档、Skill reference 与日志待提交。
 ### 下一步
 
 D3：完成三端、响应式、暗色与交互视觉精修。
+
+
+## D3 — 样式与交互精修
+
+状态：DONE
+完成时间：2026-09-10 02:43 CST
+提交：待提交
+
+### 本步目标
+
+完成 Compute 新界面的响应式、主题和键盘交互收尾。
+
+### 实际修改
+
+- Remote list 在窄屏改为纵向标题和两行状态布局。
+- Remote Dialog 在移动宽度使用单列表单与更紧凑边距。
+- Local Web 命令与 Server actions 在窄屏垂直排列。
+- 新增列表、折叠区和 Server details 的 focus-visible。
+- 在真实 Local Web 中检查本地/远程主流程，并切换深色主题检查变量继承。
+
+### 修改文件
+
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：Lint、TypeScript、git diff check；浏览器实际检查 Local Web 本地页、远程列表与深色主题。
+
+结果：静态检查通过；三条实际页面路径均可访问，交互语义和信息层级符合计划。
+
+### 设计决定
+
+- 继续使用现有主题变量，不新增独立暗色颜色分支。
+- 所有高级区使用原生 details 语义，键盘与辅助技术可直接操作。
+
+### Git 状态
+
+modified：D3 样式与日志待提交。
+
+### 下一步
+
+E1：执行完整测试、性能测试、原生测试、Local/Static 构建与发布审计。
 
 
 ---
