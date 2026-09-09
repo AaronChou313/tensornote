@@ -3949,6 +3949,10 @@ button.trust-status {
 .local-runtime-add-options small { color: var(--muted); font-size: .56rem; }
 .local-runtime-add-dialog .local-runtime-create { margin-top: 16px; }
 .local-runtime-add-back { border: 0; background: transparent; padding: 0; color: var(--accent); font-size: .58rem; cursor: pointer; }
+.local-runtime-package-summary { display: grid; gap: 3px; margin-bottom: 12px; border-top: 1px solid var(--line); padding-top: 11px; }
+.local-runtime-package-summary strong { color: var(--ink); font-size: .6rem; }
+.local-runtime-package-summary small { color: var(--accent); font-size: .53rem; }
+.local-runtime-package-summary span { color: var(--faint); font-size: .52rem; line-height: 1.45; }
 .local-runtime-message { margin: 12px 0 0; border-radius: 9px; background: var(--accent-pale); padding: 9px 11px; color: var(--accent-strong); font-size: .63rem; line-height: 1.5; }
 .local-runtime-warnings { margin-top: 10px; border-radius: 9px; background: color-mix(in srgb, var(--warning) 8%, var(--surface-muted)); padding: 8px 10px; }
 .local-runtime-warnings summary { display: flex; align-items: center; gap: 6px; color: var(--warning); cursor: pointer; font-size: .62rem; }

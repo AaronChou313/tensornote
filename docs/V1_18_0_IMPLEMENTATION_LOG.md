@@ -9,16 +9,16 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：B4
-- 最后完成 Step：B3
-- 当前进行 Step：B4
-- 当前 HEAD：`6246b50`（B3 提交前）
-- 工作树：B3 统一添加 Dialog、连接入口、样式与日志待提交
-- 当前已知问题：Managed Environment 创建流程已复用旧 plan，但 B4 需补齐产品化说明和状态验收。
+- 当前阶段：B5
+- 最后完成 Step：B4
+- 当前进行 Step：B5
+- 当前 HEAD：`862a8f5`（B4 提交前）
+- 工作树：B4 Managed Environment UX、样式与日志待提交
+- 当前已知问题：External Environment 缺少 Jupyter 时仍无法在 TensorNote 内补齐；B5 需新增受控 Host plan。
 - 下一位智能体第一步：
-  1. 完善 Managed Environment 创建字段与基础包说明
-  2. 验证 plan / progress / success / failure / cancel
-  3. 确认创建成功即 Jupyter Ready 的原生合同
+  1. 为 External Environment 设计受控 Jupyter Support plan
+  2. 明确修改外部环境的强警告与确认
+  3. 保持外部环境不可删除，失败不删除环境
 
 ---
 
@@ -32,8 +32,8 @@
 | A3 | 新增 Compute Overview | DONE | `c162c13` |
 | B1 | Desktop Environment-first 列表 | DONE | `8f3062b` |
 | B2 | Kernel 子级展示 | DONE | `6246b50` |
-| B3 | 添加环境或连接 Dialog | DONE | 待提交 |
-| B4 | Managed Environment 创建 UX | TODO | |
+| B3 | 添加环境或连接 Dialog | DONE | `862a8f5` |
+| B4 | Managed Environment 创建 UX | DONE | 待提交 |
 | B5 | External Jupyter Support | TODO | |
 | B6 | Owned Server 高级管理 | TODO | |
 | C1 | Local Web 专用体验 | TODO | |
@@ -444,7 +444,7 @@ B3：实现单一“添加环境或连接”入口，分开环境管理器与 Ex
 
 状态：DONE
 完成时间：2026-09-10 01:24 CST
-提交：待提交
+提交：`862a8f5`
 
 ### 本步目标
 
@@ -496,6 +496,64 @@ modified：B3 组件、样式与日志待提交。
 ### 下一步
 
 B4：完善并验证 Managed Environment 创建 UX 与 Ready 合同。
+
+
+
+---
+
+## B4 — Managed Environment 创建 UX
+
+状态：DONE
+完成时间：2026-09-10 01:27 CST
+提交：待提交
+
+### 本步目标
+
+完整呈现 Managed Environment 的名称、Manager、Python、目标路径、基础包、Kernel、计划、进度和失败/取消合同。
+
+### 实际修改
+
+- 创建表单明确列出 TensorNote Notebook 最小依赖，并说明 ML 依赖由 Experiment 单独管理。
+- 创建计划显示规范化目标路径、Manager 可执行路径和将注册的 Kernel。
+- 保留原有确认短语、计划过期、受控 argv、进度日志和取消清理机制。
+- UI 明示创建成功时已配置 Jupyter 与 Kernel。
+
+### 修改文件
+
+- `src/components/settings/LocalRuntimeAssistant.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：
+
+```bash
+pnpm lint
+pnpm exec tsc -b
+cargo test --manifest-path src-tauri/Cargo.toml keeps_minimal_environment_free_of_large_ml_frameworks
+cargo test --manifest-path src-tauri/Cargo.toml marks_an_environment_usable_only_after_completion
+```
+
+结果：Lint、TypeScript 和两项 Managed Environment 原生合同测试全部通过。
+
+### 设计决定
+
+- 最小 Notebook Runtime 固定为 `jupyter-server / ipykernel / numpy / matplotlib / pillow`，不包含 torch 或 transformers。
+- 只有全部创建、安装、Kernel 注册和检测完成后才由 operation 返回 completed environment id。
+
+### 未完成 / 风险
+
+- 本步没有真实创建新 Conda 环境，避免未经用户选择产生较大的设备副作用；正式候选需做受控实机验收。
+- B5 对外部环境的修改使用独立 plan，绝不复用 Managed 删除语义。
+
+### Git 状态
+
+modified：B4 UI、样式与日志待提交。
+
+### 下一步
+
+B5：新增 External Environment 安装 Jupyter Support 的受控 Host plan 与明确确认。
 
 
 ---
