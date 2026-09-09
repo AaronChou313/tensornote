@@ -6,8 +6,8 @@ const environment = (patch: Partial<PythonEnvironment> = {}): PythonEnvironment 
 
 describe('localEnvironmentViewModels', () => {
   it('groups kernels and marks the active owned server as current', () => {
-    const [item] = localEnvironmentViewModels({ environments: [environment()], kernels: [{ name: 'python3', displayName: 'Python 3', language: 'python', environmentId: 'env' }], servers: [{ id: 'server', environmentId: 'env', environmentName: 'Project', kernelName: 'python3', url: 'http://127.0.0.1:8888', port: 8888, status: 'running', owned: true, startedAt: 1 }], activeRuntimeServerId: 'server' })
-    expect(item).toMatchObject({ status: 'current', statusLabel: '正在使用', managerLabel: 'Conda', path: '/env/bin/python' })
+    const [item] = localEnvironmentViewModels({ environments: [environment()], kernels: [{ name: 'python3', displayName: 'Python 3', language: 'python', environmentId: 'env' }], servers: [{ id: 'server', environmentId: 'env', environmentName: 'Project', kernelName: 'python3', url: 'http://127.0.0.1:8888', port: 8888, status: 'running', owned: true, startedAt: 1 }], activeRuntimeServerId: 'server', activeKernelName: 'python3' })
+    expect(item).toMatchObject({ status: 'current', statusLabel: '正在使用', managerLabel: 'Conda', path: '/env/bin/python', currentKernelName: 'python3' })
     expect(item.kernels).toHaveLength(1)
   })
 

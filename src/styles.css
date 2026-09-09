@@ -3944,6 +3944,16 @@ button.trust-status {
 .local-runtime-environment-list { display: grid; gap: 6px; margin-top: 14px; }
 .local-runtime-environment-list > button { display: grid; min-width: 0; align-items: center; gap: 9px; grid-template-columns: auto minmax(0, 1fr) auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px; color: var(--muted); cursor: pointer; text-align: left; }
 .local-runtime-environment-list > button:hover, .local-runtime-environment-list > button.is-selected { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-pale); }
+.local-runtime-environment-details { margin: -4px 8px 3px 46px; border-top: 1px solid var(--line); padding: 10px 4px 4px; }
+.local-runtime-environment-details > header { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.local-runtime-environment-details > header strong { color: var(--ink); font-size: .62rem; }
+.local-runtime-environment-details > header small, .local-runtime-environment-details > p { margin: 0; color: var(--faint); font-size: .54rem; }
+.local-runtime-environment-details ul { display: grid; gap: 2px; margin: 8px 0 0; padding: 0; list-style: none; }
+.local-runtime-environment-details li { display: grid; min-height: 36px; align-items: center; gap: 8px; grid-template-columns: auto minmax(0, 1fr) auto; }
+.local-runtime-environment-details li > span:nth-child(2) { display: grid; gap: 1px; }
+.local-runtime-environment-details li strong { color: var(--ink); font-size: .59rem; }
+.local-runtime-environment-details li small, .local-runtime-environment-details li em { color: var(--faint); font-size: .52rem; font-style: normal; }
+.local-runtime-environment-details li em { color: var(--accent); }
 .local-runtime-environment-list__icon { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--accent); }
 .local-runtime-environment-list > button > span:nth-child(2) { display: grid; min-width: 0; gap: 2px; }
 .local-runtime-environment-list strong { color: var(--ink); font-size: .66rem; }

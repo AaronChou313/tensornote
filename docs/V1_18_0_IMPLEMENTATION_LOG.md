@@ -9,16 +9,16 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：B2
-- 最后完成 Step：B1
-- 当前进行 Step：B2
-- 当前 HEAD：`c162c13`（B1 提交前）
-- 工作树：B1 Environment view model、列表重构、测试与日志待提交
-- 当前已知问题：Kernel 已统计但尚未作为 Environment 详情子项展开；B2 处理。
+- 当前阶段：B3
+- 最后完成 Step：B2
+- 当前进行 Step：B3
+- 当前 HEAD：`8f3062b`（B2 提交前）
+- 工作树：B2 Kernel 子级、样式、测试与日志待提交
+- 当前已知问题：创建环境与 Existing Jupyter 仍分散；B3 将建立统一入口。
 - 下一位智能体第一步：
-  1. 按 environmentId 将 0..N Kernel 关联到环境
-  2. 增加环境详情展开与当前 Kernel 状态
-  3. 保持环境列表主视图紧凑
+  1. 新增“添加环境或连接”统一 Dialog
+  2. 分组 uv / Conda / venv 与 Existing Jupyter
+  3. 移除 Desktop 独立“手动连接”主模块
 
 ---
 
@@ -30,8 +30,8 @@
 | A1 | 统一 ComputeCapabilities | DONE | `7e2b460` |
 | A2 | 拆分 ComputeSettings 组件 | DONE | `ddf5104` |
 | A3 | 新增 Compute Overview | DONE | `c162c13` |
-| B1 | Desktop Environment-first 列表 | DONE | 待提交 |
-| B2 | Kernel 子级展示 | TODO | |
+| B1 | Desktop Environment-first 列表 | DONE | `8f3062b` |
+| B2 | Kernel 子级展示 | DONE | 待提交 |
 | B3 | 添加环境或连接 Dialog | TODO | |
 | B4 | Managed Environment 创建 UX | TODO | |
 | B5 | External Jupyter Support | TODO | |
@@ -325,7 +325,7 @@ B1：提取 Environment view model，将 Desktop 本地主流程改为 Environme
 
 状态：DONE
 完成时间：2026-09-10 01:15 CST
-提交：待提交
+提交：`8f3062b`
 
 ### 本步目标
 
@@ -376,6 +376,65 @@ modified：B1 源码、测试与日志待提交。
 ### 下一步
 
 B2：在环境详情中展示关联 Kernel，并表达默认/当前 Kernel。
+
+
+
+---
+
+## B2 — Kernel 子级展示
+
+状态：DONE
+完成时间：2026-09-10 01:19 CST
+提交：待提交
+
+### 本步目标
+
+把 RuntimeKernel 按 `environmentId` 作为 Python Environment 的 0..N 子资源展示。
+
+### 实际修改
+
+- 选中环境后展开 Kernel 详情，不增加主列表常驻视觉负担。
+- 显示 Kernel display name、内部名称、语言以及默认/当前状态。
+- 当前 transient Profile 的 `kernelName` 仅标记匹配 Owned Server 的环境。
+- 无 Kernel 时给出明确空状态。
+
+### 修改文件
+
+- `src/components/settings/localEnvironmentViewModel.ts`
+- `src/components/settings/localEnvironmentViewModel.test.ts`
+- `src/components/settings/LocalRuntimeAssistant.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：
+
+```bash
+pnpm vitest run src/components/settings/localEnvironmentViewModel.test.ts
+pnpm lint
+pnpm exec tsc -b
+```
+
+结果：2 项 view model 测试、Lint 和 TypeScript 全部通过。
+
+### 设计决定
+
+- Kernel 保持独立资源，通过 `environmentId` 关联，不并入 Environment 数据模型。
+- 默认 Kernel 使用环境声明；缺少声明时以首个已发现 Kernel 作为展示默认值。
+
+### 未完成 / 风险
+
+- B3/B6 后续会将“使用环境”和 Server 高级动作重新组织；本步不改变生命周期。
+- C4 负责手动和远程连接的 Kernel 自动发现与选择。
+
+### Git 状态
+
+modified：B2 源码、测试、样式与日志待提交。
+
+### 下一步
+
+B3：实现单一“添加环境或连接”入口，分开环境管理器与 Existing Jupyter 概念。
 
 
 ---

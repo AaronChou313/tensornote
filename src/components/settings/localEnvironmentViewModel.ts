@@ -6,6 +6,7 @@ export interface LocalEnvironmentViewModel {
   environment: PythonEnvironment
   kernels: RuntimeKernel[]
   server?: OwnedJupyterServer
+  currentKernelName?: string
   status: LocalEnvironmentStatus
   statusLabel: string
   managerLabel: string
@@ -17,6 +18,7 @@ export function localEnvironmentViewModels(input: {
   kernels: RuntimeKernel[]
   servers: OwnedJupyterServer[]
   activeRuntimeServerId?: string
+  activeKernelName?: string
 }): LocalEnvironmentViewModel[] {
   return input.environments.map((environment) => {
     const kernels = input.kernels.filter((kernel) => kernel.environmentId === environment.id)
@@ -35,6 +37,7 @@ export function localEnvironmentViewModels(input: {
       environment,
       kernels,
       server,
+      currentKernelName: current ? input.activeKernelName : undefined,
       status,
       statusLabel: current ? '正在使用' : server ? '运行中' : status === 'ready' ? 'Jupyter 就绪' : status === 'missing-jupyter' ? '缺少 Jupyter' : '不可用',
       managerLabel: environment.manager === 'conda' ? 'Conda' : environment.manager === 'venv' ? 'Python venv' : environment.manager === 'uv' ? 'uv' : '系统 Python',
