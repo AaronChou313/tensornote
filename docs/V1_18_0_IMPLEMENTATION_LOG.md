@@ -9,16 +9,16 @@
 ## 当前状态
 
 - 目标版本：v1.18.0
-- 当前阶段：A3
-- 最后完成 Step：A2
-- 当前进行 Step：A3
-- 当前 HEAD：`7e2b460`（A2 提交前）
-- 工作树：A2 组件拆分与本日志待提交
-- 当前已知问题：Compute 页面尚无进入即见的平台、资源与连接摘要；A3 将新增异步 Overview。
+- 当前阶段：B1
+- 最后完成 Step：A3
+- 当前进行 Step：B1
+- 当前 HEAD：`ddf5104`（A3 提交前）
+- 工作树：A3 Compute Overview、测试、样式与本日志待提交
+- 当前已知问题：Desktop 本地页仍保留“便捷连接/手动连接”第一层心智，B1 将改为 Environment-first。
 - 下一位智能体第一步：
-  1. 设计 Compute Overview 的三端状态模型
-  2. Desktop 异步显示环境与 Kernel 统计
-  3. Local Web 与 Online 准确显示能力边界和当前连接
+  1. 提取统一 Environment view model
+  2. 将 Desktop 本地页改为 Python 环境资源列表
+  3. 显示 manager/version/path/managed/Jupyter/kernel/running/current
 
 ---
 
@@ -28,8 +28,8 @@
 |---|---|---|---|
 | A0 | 建立 v1.18 开发断点机制 | DONE | `297a1e2` |
 | A1 | 统一 ComputeCapabilities | DONE | `7e2b460` |
-| A2 | 拆分 ComputeSettings 组件 | DONE | 待提交 |
-| A3 | 新增 Compute Overview | TODO | |
+| A2 | 拆分 ComputeSettings 组件 | DONE | `ddf5104` |
+| A3 | 新增 Compute Overview | DONE | 待提交 |
 | B1 | Desktop Environment-first 列表 | TODO | |
 | B2 | Kernel 子级展示 | TODO | |
 | B3 | 添加环境或连接 Dialog | TODO | |
@@ -199,7 +199,7 @@ A2：从 `SettingsPage.tsx` 拆出 Compute Settings 组件及 local/remote 子�
 
 状态：DONE
 完成时间：2026-09-10 01:00 CST
-提交：待提交
+提交：`ddf5104`
 
 ### 本步目标
 
@@ -250,6 +250,72 @@ modified：A2 组件拆分与日志待提交。
 ### 下一步
 
 A3：新增 Compute Overview，提供平台、资源计数和当前计算状态，且环境探测不阻塞 Settings 打开。
+
+
+
+---
+
+## A3 — 新增 Compute Overview
+
+状态：DONE
+完成时间：2026-09-10 01:09 CST
+提交：待提交
+
+### 本步目标
+
+让用户进入“计算与 Jupyter”后立即看见产品形态、可见资源和当前计算状态，并确保探测异步执行。
+
+### 实际修改
+
+- 新增 Compute Overview，使用统一能力对象渲染 Desktop、Local Web、Online 三种准确状态。
+- Desktop 异步探测 Python 环境与 Kernel，提供轻量 Loading、提示数量和重新检测。
+- Local Web 明示浏览器不能扫描本机环境，不再显示误导性的“0 个环境”。
+- Online 只显示远程计算，不出现本机统计。
+- 当前 Profile 和 Kernel 连接状态在首屏集中展示。
+- 增加 680px 以下单列响应式布局。
+
+### 修改文件
+
+- `src/components/settings/ComputeOverview.tsx`
+- `src/components/settings/ComputeOverview.test.tsx`
+- `src/components/settings/ComputeSettings.tsx`
+- `src/styles.css`
+- `docs/V1_18_0_IMPLEMENTATION_LOG.md`
+
+### 测试 / 验证
+
+执行：
+
+```bash
+pnpm vitest run src/components/settings/ComputeOverview.test.tsx src/compute/runtimeSettings.test.ts
+pnpm lint
+pnpm exec tsc -b
+```
+
+结果：
+
+- 2 个测试文件、12 项测试通过。
+- Lint 与 TypeScript 通过。
+- Local Web 实际页面确认平台、不可直接检测、当前计算和未连接状态可见，未显示“Python 环境 0”。
+
+### 设计决定
+
+- Overview 使用连续分隔信息带，不使用同尺寸指标卡堆叠。
+- 探测通过零延时异步任务启动，不阻塞 Settings 首次渲染。
+- 当前阶段保留 Runtime Assistant 自己的探测；B1 提取共享状态时消除 Desktop 重复探测。
+
+### 未完成 / 风险
+
+- Desktop 实际环境计数和重新检测联动将在 B1 共享 discovery 后再次验证。
+- 当前计算名称沿用 active/fallback Profile；D1 再校正迁移与 transient Owned Profile 语义。
+
+### Git 状态
+
+modified：A3 组件、测试、样式与日志待提交。
+
+### 下一步
+
+B1：提取 Environment view model，将 Desktop 本地主流程改为 Environment-first，并共享 Runtime discovery。
 
 
 ---

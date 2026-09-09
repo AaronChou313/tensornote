@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Cpu, Plus, Pulse, Trash } from '@phosphor-icons/react'
 import { GettingStarted } from '../GettingStarted'
 import { Button } from '../ui/Button'
@@ -9,11 +9,13 @@ import { profileRuntimeLocation, resolveComputeCapabilities, runtimeLocationsFor
 import { computeProfileTemplates, type ComputeConnectorConfig, type ComputeContext, type ComputeSessionScope, type DiagnosticCheck } from '../../compute/types'
 import { deploymentAdapter } from '../../deployment/config'
 import { getHostAdapter } from '../../host/runtime'
+import type { RuntimeDiscovery } from '../../host/types'
 import { useAppStore } from '../../store/useAppStore'
 import { useComputeStore } from '../../store/useComputeStore'
 import { useWorkspaceStore } from '../../store/useWorkspaceStore'
 import { resolveWorkspaceExecutionPolicy } from '../../workspace/executionPolicy'
 import { ComputeRuntimeLocationTabs } from './ComputeRuntimeLocationTabs'
+import { ComputeOverview } from './ComputeOverview'
 
 function SettingRow({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return <div className="settings-row"><span><strong>{title}</strong><small>{description}</small></span><div>{children}</div></div>
@@ -67,7 +69,8 @@ export function ComputeSettings() {
   const removeProfile = useComputeStore((state) => state.removeProfile)
   const setToken = useComputeStore((state) => state.setToken)
   const kernelStatus = useAppStore((state) => state.kernelStatus)
-  const computeCapabilities = resolveComputeCapabilities(deploymentAdapter.mode, getHostAdapter().capabilities)
+  const host = getHostAdapter()
+  const computeCapabilities = resolveComputeCapabilities(deploymentAdapter.mode, host.capabilities)
   const runtimeLocations = runtimeLocationsForCapabilities(computeCapabilities)
   const [runtimeLocation, setRuntimeLocation] = useState<RuntimeLocation>(runtimeLocations[0])
   const visibleProfiles = useMemo(() => profiles.filter((item) => !item.runtimeServerId && profileRuntimeLocation(item) === runtimeLocation), [profiles, runtimeLocation])
@@ -78,8 +81,20 @@ export function ComputeSettings() {
   const [preparing, setPreparing] = useState(false)
   const [reportCopied, setReportCopied] = useState(false)
   const [localCommandCopied, setLocalCommandCopied] = useState(false)
+  const [runtimeDiscovery, setRuntimeDiscovery] = useState<RuntimeDiscovery>()
+  const [discoveringRuntime, setDiscoveringRuntime] = useState(false)
   const token = tokens[profile.id] ?? ''
   const connectorKind = computeConnectorKind(profile.connector) as keyof typeof connectorLabels
+  const discoverRuntime = useCallback(async () => {
+    if (!computeCapabilities.environmentDiscovery || !host.discoverLocalRuntime) return
+    setDiscoveringRuntime(true)
+    try { setRuntimeDiscovery(await host.discoverLocalRuntime(session?.descriptor.id)) }
+    finally { setDiscoveringRuntime(false) }
+  }, [computeCapabilities.environmentDiscovery, host, session?.descriptor.id])
+  useEffect(() => {
+    const timeout = window.setTimeout(() => void discoverRuntime(), 0)
+    return () => window.clearTimeout(timeout)
+  }, [discoverRuntime])
   useEffect(() => {
     if (visibleProfiles.length === 0) {
       addProfile(fallbackTemplate)
@@ -120,6 +135,7 @@ export function ComputeSettings() {
   return (
     <section className="settings-panel">
       <header><span>Runtime</span><h2>计算与 Jupyter</h2><p>Workspace 与计算环境彼此独立；所有 Token 只保存在当前应用会话。</p></header>
+      <ComputeOverview capabilities={computeCapabilities} platformLabel={deploymentAdapter.label} discovery={runtimeDiscovery} discovering={discoveringRuntime} activeComputeName={profile.name} kernelStatus={kernelStatus} onRediscover={computeCapabilities.environmentDiscovery ? () => void discoverRuntime() : undefined} />
       <GettingStarted context="compute" />
       <div className="settings-group settings-execution-group">
         <SettingRow title="允许当前 Workspace 执行代码" description={executionDescription}>

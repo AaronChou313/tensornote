@@ -3897,6 +3897,18 @@ button.trust-status {
 .settings-execution-group .settings-row { min-height: 74px; }
 .settings-execution-note { margin: 9px 2px 0; color: var(--faint); font-size: .6rem; line-height: 1.55; }
 .settings-runtime-location { display: grid; gap: 8px; margin-top: 22px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.compute-overview { margin-top: 18px; border-block: 1px solid var(--line); }
+.compute-overview > header { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 12px; }
+.compute-overview__platform { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: .66rem; font-weight: 650; }
+.compute-overview__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+.compute-overview__facts > div { display: grid; min-width: 0; gap: 3px; padding: 15px 16px 17px 0; }
+.compute-overview__facts > div + div { border-left: 1px solid var(--line); padding-left: 16px; }
+.compute-overview__facts span { color: var(--faint); font-size: .58rem; }
+.compute-overview__facts strong { color: var(--ink); font-size: 1.12rem; line-height: 1.2; }
+.compute-overview__facts strong.is-text { overflow: hidden; font-size: .71rem; text-overflow: ellipsis; white-space: nowrap; }
+.compute-overview__facts small { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: .56rem; line-height: 1.45; }
+.compute-overview__facts small[data-status='connected'] { color: var(--accent); }
+.compute-overview__current { grid-column: -2; }
 .settings-runtime-location > button { display: grid; min-height: 68px; align-items: center; gap: 10px; grid-template-columns: auto minmax(0, 1fr); border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); padding: 11px 13px; color: var(--muted); cursor: pointer; text-align: left; }
 .settings-runtime-location > button:hover, .settings-runtime-location > button.is-active { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); background: var(--accent-pale); color: var(--accent); }
 .settings-runtime-location > button > span { display: grid; gap: 2px; }
@@ -4113,6 +4125,10 @@ button.trust-status {
   .settings-choice-grid { grid-template-columns: 1fr; }
   .settings-choice-grid > button { width: 100%; }
   .settings-runtime-location, .local-runtime-managers { grid-template-columns: 1fr; }
+  .compute-overview__facts { grid-template-columns: 1fr; }
+  .compute-overview__facts > div { padding: 12px 0; }
+  .compute-overview__facts > div + div { border-top: 1px solid var(--line); border-left: 0; padding-left: 0; }
+  .compute-overview__current { grid-column: auto; }
   .settings-local-web-help { align-items: stretch; flex-direction: column; }
   .settings-form-grid,
   .settings-scope-grid,
