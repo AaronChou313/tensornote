@@ -6,7 +6,7 @@
 
 **Keep knowledge in ordinary Markdown files. Read, write, connect ideas and run Python experiments in one workspace.**
 
-[Try online](https://aaronchou313.github.io/tensornote/) · [Download](https://github.com/AaronChou313/tensornote/releases) · [User guide](docs/en/USER_GUIDE.md) · [Release notes](docs/releases/v1.15.0.en.md)
+[Try online](https://aaronchou313.github.io/tensornote/) · [Download](https://github.com/AaronChou313/tensornote/releases) · [User guide](docs/en/USER_GUIDE.md) · [Release notes](docs/releases/v1.16.0.en.md)
 
 [![CI](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml/badge.svg)](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/AaronChou313/tensornote?color=4f8061)](https://github.com/AaronChou313/tensornote/releases/latest) [![License](https://img.shields.io/badge/license-Apache--2.0-5d7869)](LICENSE)
 
@@ -22,6 +22,7 @@ Content, properties, links and experiments live in Markdown, assets and `tensorn
 | Sources | Examples, public GitHub, authorized local folders¹ | Same | Examples, public GitHub, native local folders |
 | Edit/save | Authorized local folders¹; GitHub/examples are read-only | Authorized local folders¹ | Local folders |
 | Python | HTTPS Jupyter, JupyterHub, BinderHub | Local Jupyter or HTTPS remote compute | Local environment assistant and remote compute |
+| Project Experiment | Reading; remote Jupyter / commit-pinned Binder | Python, module and notebook after path mapping | Environment setup, Python, module, notebook, torchrun, logs, cancel and artifacts |
 | Git | No local integration | Optional Git Bridge + system Git | System Git; no Bridge |
 | Offline | Limited page cache; remote content/compute require network | Local app, notes and installed Python work offline | Local notes and installed Python work offline |
 | Best for | Quick exploration and sharing | Browser workflows | Daily knowledge management and experiments |
@@ -32,7 +33,7 @@ Content, properties, links and experiments live in Markdown, assets and `tensorn
 
 **Quickest trial:** open [Online Web](https://aaronchou313.github.io/tensornote/) and select **AI Learning Notes**. To edit examples, download/clone your own copy and open its local directory.
 
-**Local Web:** download `TensorNote-local-web-1.15.0.tar.gz` from [Releases](https://github.com/AaronChou313/tensornote/releases), extract it and run in that directory:
+**Local Web:** download `TensorNote-local-web-1.16.0.tar.gz` from [Releases](https://github.com/AaronChou313/tensornote/releases), extract it and run in that directory:
 
 ```sh
 node start.mjs
@@ -44,7 +45,7 @@ Open `http://127.0.0.1:5173` in Chrome/Edge and select a Markdown folder. The ap
 
 GitHub community distribution does not require a paid developer account. Current packages lack Apple Developer ID notarization and a trusted Windows publisher signature, so your OS may show a warning. Verify the source and `SHA256SUMS`, then follow the [installation guide](docs/en/USER_GUIDE.md#2-download-and-open). Updater cryptographic signatures remain required. Release notes state actual test coverage; a clean-machine test pass on every OS is not claimed.
 
-`TensorNote-web-1.15.0.tar.gz` is the Static Web archive for deployment at `/tensornote/`. GitHub's automatic Source code archives are for development. Local browser users should choose **local-web**.
+`TensorNote-web-1.16.0.tar.gz` is the Static Web archive for deployment at `/tensornote/`. GitHub's automatic Source code archives are for development. Local browser users should choose **local-web**.
 
 ## Configure experiments and Git only when needed
 
@@ -56,19 +57,26 @@ GitHub community distribution does not require a paid developer account. Current
 
 The Git workbench supports status, diff, stage/unstage, history and commit. **A commit does not upload to GitHub. Use a Git client for Push/Pull, Clone, branches and remote authentication.**
 
+## Run a project experiment
+
+Open a note with an Experiment Card → choose the lightest smoke preset → review resources and dependencies → prepare or connect an environment → review scripts, arguments and output scope → confirm and run → inspect logs and artifacts → clean unused local environments. Desktop provides the complete flow. Local Web runs the Jupyter-accessible subset. Online Web supports reading plus remote Jupyter or Binder for a pinned GitHub commit. Without Python, network or a GPU, reading remains available; use a CPU/smoke path or run later. See the [Project Experiment guide](docs/en/PROJECT_EXPERIMENTS.md).
+
 ## Features
 
 - Markdown editing, equations, Mermaid, attachments, properties, draft recovery and external-change conflict protection.
 - WikiLinks, backlinks, tags, outlines, local graphs, full-text search and learning progress.
 - Independent tabs and split reading/editing panes, a command palette, light/dark themes and a responsive sidebar.
 - Multi-cell Python Lab, Scratch, sequential execution, interrupt/restart, compute profiles and diagnostics.
+- Multi-file Project Experiments, dependency groups, notebooks, structured torchrun, logs, cancellation, history and declared artifacts.
 - Frontmatter-based Database with Table, Card and List views.
 - Fixed-revision GitHub sharing and knowledge publication; execution requires explicit permission.
 - Portable Schema v1, an agent skill, templates and strict validation.
 
 ## Current screenshots
 
-Real 1.6.2 Web/Desktop screenshots using bundled example content.
+Current v1.16.0 Project Experiment entry (public Happy-LLM pilot at a pinned commit; [provenance](docs/images/v1.16.0/PROVENANCE.md)):
+
+![TensorNote Project Experiment](docs/images/v1.16.0/project-experiment-card.jpg)
 
 | Local Web home | Desktop reading |
 | --- | --- |
@@ -76,7 +84,7 @@ Real 1.6.2 Web/Desktop screenshots using bundled example content.
 
 ## Let an agent maintain your knowledge base
 
-Download the matching `TensorNote-agent-skill-1.15.0.tar.gz`. Give the agent the extracted `SKILL.md` **and all referenced files**, and explicitly identify your knowledge folder. It can generate and update notes, maintain links/assets, check prerequisites and run the bundled validator.
+Download the matching `TensorNote-agent-skill-1.16.0.tar.gz`. Give the agent the extracted `SKILL.md` **and all referenced files**, and explicitly identify your knowledge folder. It can generate and update notes, maintain links/assets, check prerequisites and run the bundled validator.
 
 Install the skill's own dependencies in its directory, then validate:
 
@@ -90,6 +98,7 @@ This is a portable file-based maintenance protocol, not an arbitrary Desktop she
 ## Documentation and development
 
 - [English user guide](docs/en/USER_GUIDE.md) / [中文使用说明](docs/zh-CN/USER_GUIDE.md): installation, reading/writing, compute, Git, agents, updates and troubleshooting.
+- [Project Experiment guide](docs/en/PROJECT_EXPERIMENTS.md) / [项目实验指南](docs/zh-CN/PROJECT_EXPERIMENTS.md): selection, setup, runs, artifacts, cleanup and authoring.
 - Maintainer references (Chinese): [platform contracts](docs/PLATFORM_CONTRACTS.md), [architecture](docs/ARCHITECTURE.md), [host boundaries](docs/HOST_FEATURE_MATRIX.md), [development](docs/DEVELOPMENT.md), [handoff](docs/AGENT_HANDOFF.md), [release matrix](docs/RELEASE_MATRIX.md).
 
 Source development requires Node.js 22+ and pnpm 11:

@@ -6,7 +6,7 @@
 
 **用普通 Markdown 文件管理知识，在同一个工作台中阅读、写作、连接知识与运行 Python 实验。**
 
-[在线体验](https://aaronchou313.github.io/tensornote/) · [下载应用](https://github.com/AaronChou313/tensornote/releases) · [使用说明](docs/zh-CN/USER_GUIDE.md) · [版本说明](docs/releases/v1.15.0.md)
+[在线体验](https://aaronchou313.github.io/tensornote/) · [下载应用](https://github.com/AaronChou313/tensornote/releases) · [使用说明](docs/zh-CN/USER_GUIDE.md) · [版本说明](docs/releases/v1.16.0.md)
 
 [![CI](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml/badge.svg)](https://github.com/AaronChou313/tensornote/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/AaronChou313/tensornote?color=4f8061)](https://github.com/AaronChou313/tensornote/releases/latest) [![License](https://img.shields.io/badge/license-Apache--2.0-5d7869)](LICENSE)
 
@@ -22,6 +22,7 @@
 | 阅读来源 | 示例、公开 GitHub、本地授权目录¹ | 同左 | 示例、公开 GitHub、原生本地目录 |
 | 编辑保存 | 本地授权目录¹；GitHub/示例只读 | 本地授权目录¹ | 本地目录 |
 | 执行 Python | HTTPS Jupyter、JupyterHub、BinderHub | 本机 Jupyter 或 HTTPS 远程计算 | 本地环境助手启动 Jupyter，也支持远程计算 |
+| Project Experiment | 阅读；远程 Jupyter / 固定 commit Binder | 路径映射通过后的 Python、Module、Notebook | 环境准备、Python、Module、Notebook、torchrun、日志、取消和产物 |
 | Git | 无本地 Git 集成 | 可选 Git Bridge + 系统 Git | 系统 Git，无需 Bridge |
 | 离线能力 | 页面缓存有限；远程内容/计算需网络 | 本地应用、笔记与已安装 Python 可离线 | 本地笔记与已安装 Python 可离线 |
 | 推荐用途 | 快速体验与分享 | 喜欢浏览器工作流 | 每天维护自己的知识库与实验 |
@@ -32,7 +33,7 @@
 
 **最快体验：** 打开[在线版](https://aaronchou313.github.io/tensornote/)，点击 **AI Learning Notes**。想修改示例时，先下载/克隆自己的副本，通过本地目录入口打开。
 
-**本地 Web：** 在 [Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.15.0.tar.gz`，解压，在该目录运行：
+**本地 Web：** 在 [Releases](https://github.com/AaronChou313/tensornote/releases) 下载 `TensorNote-local-web-1.16.0.tar.gz`，解压，在该目录运行：
 
 ```sh
 node start.mjs
@@ -44,7 +45,7 @@ node start.mjs
 
 GitHub 社区发行不要求购买开发者账户；当前包没有 Apple Developer ID 公证或 Windows 受信发布者签名，首次安装可能有系统提示。请核对来源与 `SHA256SUMS`，按[安装说明](docs/zh-CN/USER_GUIDE.md#2-下载和第一次打开)操作。Updater 的密码学签名仍必须验证。平台实测范围见版本说明；不宣称所有操作系统都已完成干净机器验收。
 
-`TensorNote-web-1.15.0.tar.gz` 是供 `/tensornote/` 路径部署的 Static Web 包；GitHub 自动生成的 Source code 是开发源码。普通本地 Web 用户选择 **local-web** 包。
+`TensorNote-web-1.16.0.tar.gz` 是供 `/tensornote/` 路径部署的 Static Web 包；GitHub 自动生成的 Source code 是开发源码。普通本地 Web 用户选择 **local-web** 包。
 
 ## 需要实验或 Git 时再配置
 
@@ -56,19 +57,26 @@ GitHub 社区发行不要求购买开发者账户；当前包没有 Apple Develo
 
 Git 工作台支持 Status、Diff、Stage/Unstage、History 和 Commit。**Commit 不会自动上传到 GitHub；Push/Pull、Clone、分支与远程凭据由 Git 客户端处理。**
 
+## 运行一个项目实验
+
+打开带 Experiment Card 的笔记 → 选择最轻的 smoke Preset → 核对资源和依赖 → 准备或连接环境 → 审阅脚本、参数和写入范围 → 确认运行 → 查看日志与产物 → 清理不再使用的本机环境。Desktop 提供完整流程；本地 Web 运行 Jupyter 可访问的子集；在线版可阅读，并为固定 GitHub commit 提供远程 Jupyter 或 Binder 入口。没有 Python、网络或 GPU 时仍可阅读，选择 CPU/smoke 路径或稍后运行。详见[项目实验指南](docs/zh-CN/PROJECT_EXPERIMENTS.md)。
+
 ## 能做什么
 
 - Markdown 编辑、公式、Mermaid、附件、属性、草稿恢复和外部修改冲突保护。
 - WikiLinks、反向链接、标签、Outline、局部图谱、全文搜索和学习进度。
 - 独立标签与分栏阅读/编辑、命令面板、明暗主题和响应式侧栏。
 - 多 Cell Python Lab、Scratch、顺序运行、中断、重启、计算 Profile 与诊断。
+- 多文件 Project Experiment、分组依赖、Notebook、结构化 torchrun、日志、取消、历史和声明式产物。
 - 从 Frontmatter 重建 Database，在 Table、Card 和 List 视图组织笔记。
 - 固定 GitHub Revision 分享和发布知识库；代码执行需要显式授权。
 - 通用 Agent Skill、模板、严格校验与可移植 Schema v1。
 
 ## 最新界面快照
 
-以下是真实 1.6.2 Web/Desktop 应用截图，使用随仓库提供的示例内容。
+当前 v1.16.0 Project Experiment 入口（公开 Happy-LLM 试点，固定 commit；[来源记录](docs/images/v1.16.0/PROVENANCE.md)）：
+
+![TensorNote Project Experiment](docs/images/v1.16.0/project-experiment-card.jpg)
 
 | 本地 Web 首页 | 桌面阅读 |
 | --- | --- |
@@ -76,7 +84,7 @@ Git 工作台支持 Status、Diff、Stage/Unstage、History 和 Commit。**Commi
 
 ## 让智能体维护知识库
 
-下载同版本 `TensorNote-agent-skill-1.15.0.tar.gz`，把解压目录中的 `SKILL.md` **和全部引用文件**交给智能体，并明确指定你的知识库目录。它可按现有规范生成、更新、整理链接与附件、检查前置关系并运行校验器。
+下载同版本 `TensorNote-agent-skill-1.16.0.tar.gz`，把解压目录中的 `SKILL.md` **和全部引用文件**交给智能体，并明确指定你的知识库目录。它可按现有规范生成、更新、整理链接与附件、检查前置关系并运行校验器。
 
 在 Skill 目录安装独立依赖后验证知识库：
 
@@ -90,6 +98,7 @@ node scripts/validate-workspace.mjs "/你的知识库绝对路径" --strict
 ## 文档与开发
 
 - [中文使用说明](docs/zh-CN/USER_GUIDE.md) / [English user guide](docs/en/USER_GUIDE.md)：安装、读写、三种计算路径、Git、Agent、升级和故障处理。
+- [项目实验指南](docs/zh-CN/PROJECT_EXPERIMENTS.md) / [Project Experiment guide](docs/en/PROJECT_EXPERIMENTS.md)：选择、准备、运行、产物、清理与创作规范。
 - [平台契约](docs/PLATFORM_CONTRACTS.md)、[架构](docs/ARCHITECTURE.md)、[宿主功能边界](docs/HOST_FEATURE_MATRIX.md)。
 - [开发说明](docs/DEVELOPMENT.md)、[维护者交接](docs/AGENT_HANDOFF.md)、[发布矩阵](docs/RELEASE_MATRIX.md)。
 

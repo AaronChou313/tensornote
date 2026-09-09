@@ -127,8 +127,8 @@ v1.6.0 为 `HostAdapter` 增加可选的 update check、download/install progres
 
 仓库级 `AGENTS.md` 负责自动路由；Skill 的 references 提供按需规格，assets 提供可复制模板，`validate-workspace.mjs` 提供确定性检查。完整安装与调用方式见[智能体接口与 Skill 使用说明](AGENT_INTEGRATION.md)。
 
-## 10. Project Experiment Preview 契约
+## 10. Project Experiment Manifest v1
 
-Project Experiment Manifest v1 是独立于 Workspace Schema v1 的可移植声明，用于多文件脚本、Notebook、结构化训练步骤、环境和产物。Preview 阶段不修改 Workspace Provider API v1、Compute Provider API v1 或 Executable Markdown Syntax v1。
+Project Experiment Manifest v1 是独立于 Workspace Schema v1 的可移植声明，用于多文件脚本、Notebook、结构化训练步骤、环境和产物。它不修改 Workspace Provider API v1、Compute Provider API v1 或 Executable Markdown Syntax v1；1.x 中新增 Runner 或可选字段必须保持旧清单可读。
 
-笔记通过 `tensornote-experiment` Fence 引用 Workspace 内的 `tensornote.experiment.yaml`。解析和索引没有执行、网络或写入副作用；未来 Manifest 版本只读。运行能力必须经独立 Experiment Runner capability、Workspace 执行授权、GitHub commit trust 和用户确认。完整格式见 [Project Experiment Manifest v1](PROJECT_EXPERIMENT_MANIFEST_V1.md)。
+笔记通过 `tensornote-experiment` Fence 引用 Workspace 内的 `tensornote.experiment.yaml`。解析和索引没有执行、网络或写入副作用；未来 Manifest 版本只读。运行能力必须经独立 Experiment Runner capability、Workspace 执行授权、GitHub commit trust、环境或运行计划审核和用户确认。Desktop 运行状态保存在应用数据目录；Local Web 只运行路径映射通过的 Jupyter 子集；Pages 的 Binder 入口固定完整 commit SHA。完整格式见 [Project Experiment Manifest v1](PROJECT_EXPERIMENT_MANIFEST_V1.md)。

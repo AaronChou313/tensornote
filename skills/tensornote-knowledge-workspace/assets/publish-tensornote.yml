@@ -12,10 +12,10 @@ permissions:
 
 jobs:
   publish:
-    uses: AaronChou313/tensornote/.github/workflows/publish-workspace.yml@v1.15.0
+    uses: AaronChou313/tensornote/.github/workflows/publish-workspace.yml@v1.16.0
     permissions:
       contents: read
       pages: write
       id-token: write
     with:
-      runtime_ref: v1.15.0
+      runtime_ref: v1.16.0

@@ -1,6 +1,6 @@
 # Web 与 Desktop 功能边界
 
-适用于 v1.6.0 候选源码。这里的“支持”表示实现边界，正式安装包状态仍以 Release Matrix 为准。四种部署共用 Markdown、Schema v1、索引、编辑器、Workbench 与 Compute 接口，入口按 Host 与 Workspace Provider 的能力共同决定。
+适用于 v1.16.0。这里的“支持”表示实现边界，正式安装包状态仍以 Release Matrix 为准。四种部署共用 Markdown、Schema v1、索引、编辑器、Workbench 与 Compute 接口，入口按 Host 与 Workspace Provider 的能力共同决定。
 
 | 能力 | Local Web | Static Web / Pages | Self-hosted Web | Desktop |
 | --- | --- | --- | --- | --- |
@@ -14,7 +14,7 @@
 | 系统文件关联、拖放/深链 | 受浏览器能力限制，无原生文件关联 | 同左 | 同左 | 原生支持 |
 | 应用更新 | 更新 Web 部署；可选 PWA | 更新 Web 部署；可选 PWA | 更新服务镜像/部署 | 显式检查并验证签名的 Updater |
 | 智能体维护知识文件与 JSON 校验 | 独立于应用；需要文件访问与 Node.js | 同左 | 同左 | 同左 |
-| Project Experiment Manifest v1（Preview） | 规划：读取与 Jupyter 子集 | 规划：只读、远程 Jupyter / Binder 引导 | 规划：读取与远程 Jupyter 子集 | 规划：环境、多脚本、Notebook、torchrun 与产物 |
+| Project Experiment Manifest v1 | 读取；路径映射通过后运行 Python/Module/Notebook Jupyter 子集 | 读取；兼容远程 Jupyter；固定 GitHub commit 的 Binder 引导 | 读取；路径映射通过后运行远程 Jupyter 子集 | 环境计划、多脚本 Python/Module、Notebook、torchrun、日志、取消、历史和产物 |
 
 JupyterHub、BinderHub、Direct Jupyter 均走 Compute Connector 能力检查；HTTPS、CORS、WebSocket、用户认证和网络条件仍需满足。HTTPS 页面不能承诺连接任意 HTTP Jupyter。TensorNote 不托管公共 GPU，也不共享作者 Token。
 

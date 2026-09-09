@@ -13,6 +13,7 @@ TensorNote 提供一套可版本管理、可复制安装、可由不同智能体
 | 知识规格 | `references/knowledge-authoring.md` | Frontmatter、目录、章节、链接、Assets、公式、Mermaid、Callout 与质量门 |
 | Workspace 规格 | `references/workspace-configuration.md` | `tensornote.yaml` v1、目录、能力、环境文件、信任和 Secret 边界 |
 | Lab 规格 | `references/executable-labs.md` | Executable Markdown v1、多 Cell 设计、难度、运行条件和安全规则 |
+| 项目实验规格 | `references/project-experiments.md` | Project Experiment Manifest v1、平台能力、结构化步骤、依赖、产物与安全边界 |
 | 维护协议 | `references/maintenance.md` | 更新、移动、合并、删除、冲突处理及 JSON 结果协议 |
 | 运行手册 | `references/runtime-operations.md` | pnpm、Conda/venv/uv、Jupyter、Kernel、Git Bridge、部署和排障 |
 | 确定性工具 | `scripts/validate-workspace.mjs` | 检查 Schema、路径、Frontmatter、ID、WikiLink、Assets 与 Lab 元数据 |
@@ -81,6 +82,12 @@ npm ci --ignore-scripts
 
 ```text
 使用 $tensornote-knowledge-workspace，把选中的概念改成可重复运行的三 Cell Python Lab，声明依赖，限制 CPU/内存，并验证 Restart & Run All 的状态依赖。
+```
+
+多文件项目实验：
+
+```text
+使用 $tensornote-knowledge-workspace，为课程中的多脚本训练项目创建 Project Experiment。先选择最小或完整模板，拆分环境依赖，提供 CPU smoke preset，把命令改写为结构化 runner/file/args，声明产物并严格校验。不要安装依赖或运行训练。
 ```
 
 ## 4. 智能体应遵循的交付流程

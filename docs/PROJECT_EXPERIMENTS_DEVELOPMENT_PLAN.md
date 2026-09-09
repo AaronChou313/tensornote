@@ -1,9 +1,13 @@
 # TensorNote 项目实验系统开发计划
 
-> 状态：可执行方案（交接开发用）  
+> 状态：全部阶段已完成（TensorNote v1.7.0–v1.16.0）
 > 基线：TensorNote v1.6.4  
 > 目标：在保留现有笔记内 Inline Lab 的同时，为依赖安装、多文件脚本、Notebook、训练任务和产物管理增加 Project Experiment。  
 > 首个试点：`happy-llm-tensornote` 第 5～6 章。
+
+## 完成记录
+
+阶段 0～9 已按顺序完成并分别发布。v1.7.0 固化契约；v1.8.2 完成解析索引；v1.9.0 提供只读界面；v1.10.0 完成环境准备；v1.11.0 完成桌面 Job Runner；v1.12.0 增加 Notebook、torchrun、资源与长任务体验；v1.13.0 提供 Web/Jupyter 子集；v1.14.0 提供固定 Revision Binder 引导；v1.15.0 完成 Skill 与 Happy-LLM 迁移；v1.16.0 完成双语文档、平台边界、快照与稳定发布收尾。
 
 ## 1. 背景与问题
 

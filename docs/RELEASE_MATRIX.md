@@ -38,7 +38,7 @@
 
 ## 已知验证债务
 
-干净 Windows/Linux/Intel macOS 的安装/卸载、公共 Binder ready 后完整 Cell 执行，以及真正的 `1.6.1 → 下一公开 Patch` 自动升级闭环尚需对应环境。公开说明保留这些限制，不伪称通过。它们不再因缺少付费证书阻止此次 GitHub 社区发行。
+干净 Windows/Linux/Intel macOS 的安装/卸载、公共 Binder ready 后完整 Notebook 执行，以及真正的旧公开版到 v1.16.0 自动升级闭环尚需对应环境。macOS Apple Silicon 已覆盖源码构建、Rust 检查与发行资产生成；其他平台当前由 GitHub Actions 构建和校验。公开说明保留这些限制，不伪称通过。它们不再因缺少付费证书阻止 GitHub 社区发行。
 
 ## 回滚
 

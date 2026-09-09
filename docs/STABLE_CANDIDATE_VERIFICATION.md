@@ -103,3 +103,10 @@
 - 已部署 Pages 入口资源为 `index-Djc0EP28.js` / `index-BTTnOq_V.css`，与正式 Static archive 一致。完整公开仓库分享 URL 在 Chrome/Safari 均能自动打开 Workspace；更新后只读复查用户公开课程仓库，中文章节名称和 Images 文件夹显示正确。
 - 截图只含内置/公开示例和无用户数据的启动页，见 [v1.6.2 来源说明](images/v1.6.2/PROVENANCE.md)。用户知识库未改写或公开到文档截图。
 - 干净 Windows/Linux/Intel macOS 安装、公共 Binder 完整执行和跨版本安装更新依然不冒充已实测。
+
+## v1.16.0 Project Experiment 稳定候选
+
+- 阶段 0～8 的不可变版本 `v1.7.0`、`v1.8.2`、`v1.9.0`、`v1.10.0`、`v1.11.0`、`v1.12.0`、`v1.13.0`、`v1.14.0`、`v1.15.0` 已逐阶段发布；v1.15.0 工作流 `34306637311` 全部成功，22 个附件齐全后公开。
+- 当前源码在 Local Web 打开 `AaronChou313/happy-llm-tensornote` 的完整 commit `6bacf82c34d3d4e4e735f09eb2ac1e3956c91248`，视觉确认物理文件系统目录、Experiments 数量、笔记内 Project Experiment Card 与无 Focus 遮挡；截图及来源见 `docs/images/v1.16.0/`。
+- 实际打开实验详情页，确认 Local Web 平台标签、CPU/内存/磁盘提示、Manifest v1、环境继承、固定 Revision、未信任禁止执行及 Binder 配置不足的准确降级说明。没有将可访问性元素存在当成像素可见的唯一证据。
+- Happy-LLM 第 5、6 章 Manifest、分组依赖、CPU 检查、结构化脚本入口与 Skill 严格 Validator 已在 v1.15.0 候选中通过。公共 Binder 完整 Notebook 执行、跨版本自动升级、干净 Windows/Linux/Intel macOS 安装仍保留为外部验证债务。
