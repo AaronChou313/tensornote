@@ -15,8 +15,11 @@ export function TopBar() {
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
   const setLeftSidebar = useWorkbenchStore((state) => state.setSidebar)
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
+  const activeNoteId = useWorkbenchStore((state) => state.activeNoteId)
+  const revealHeading = useWorkbenchStore((state) => state.revealHeading)
   const session = useWorkspaceStore((state) => state.session)
   const trustActiveWorkspace = useWorkspaceStore((state) => state.trustActiveWorkspace)
+  const headings = activeNoteId ? session?.documentById.get(activeNoteId)?.headings ?? [] : []
   if (!session) return null
 
   return (
@@ -26,6 +29,7 @@ export function TopBar() {
       <div className="workbench-topbar__spacer" />
       <WorkbenchTopTools />
       <div className="topbar-actions">
+        {headings.length > 0 && <details className="outline-popover"><summary aria-label="打开大纲"><List size={18} /></summary><div className="outline-popover__panel"><header><strong>Outline</strong><span>{headings.length} sections</span></header>{headings.map((heading) => <button key={heading.id} style={{ paddingLeft: `${12 + (heading.depth - 1) * 12}px` }} onClick={(event) => { revealHeading(heading.id); event.currentTarget.closest('details')?.removeAttribute('open') }}>{heading.text}</button>)}</div></details>}
         {session.descriptor.type === 'github' && (
           session.trusted ? (
             <span className="trust-status trust-status--trusted" title="当前 GitHub Revision 已受信任"><ShieldCheck size={14} />Trusted</span>

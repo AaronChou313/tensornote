@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 当前阶段：6
-- 最后完成：5 统一 SidePanel
-- 当前工作：编辑与迁移
+- 当前阶段：7
+- 最后完成：6 编辑与迁移
+- 当前工作：双宿主产品收口
 - 分支：`codex/v2-core-sidecar`
 - 基线：v1.18.0 发布后主线 `fcdfcc2`
 
@@ -17,9 +17,9 @@
 | 2 核心收缩 | DONE | `1c150e5` |
 | 3 单笔记 Workbench | DONE | `ce979bc` |
 | 4 Sidecar 契约 | DONE | `e29668e` |
-| 5 统一 SidePanel | DONE | 待提交 |
-| 6 编辑与迁移 | IN_PROGRESS | |
-| 7 双宿主收口 | TODO | |
+| 5 统一 SidePanel | DONE | `ee1def3` |
+| 6 编辑与迁移 | DONE | 待提交 |
+| 7 双宿主收口 | IN_PROGRESS | |
 | 8 稳定与发行 | TODO | |
 
 ## 2026-09-12 接手记录
@@ -89,3 +89,15 @@
 - 面板宽度限制为 400～850px 并持久保存；切换笔记自动关闭，正文滚动容器不会被替换。
 - Scratch Lab 继续作为临时 Jupyter 工作区，但与普通 Sidecar 互斥显示。
 - `pnpm check` 通过：48 个测试文件、164 项测试、Lint、TypeScript 与生产构建。
+
+## 阶段 6 — 编辑与迁移
+
+状态：DONE
+
+- 编辑器的实验插入弹窗升级为 Sidecar 插入器，可创建 Derivation Markdown 或多 Cell Jupyter 指令。
+- TopBar 增加基于当前笔记 Heading Index 的 Outline Popover，点击标题在同一笔记内定位。
+- Properties 保持编辑态的按需面板，不再占用 SidePanel。
+- `tensornote-knowledge-workspace` Skill 增加 Sidecar 规范、模板和确定性 Validator 规则，移除 Project Experiment 创作模板与路由。
+- Skill 的课程模板 `--strict` 校验零错误零警告；仓库 Workspace 校验零错误零警告（旧 Lab 仅有兼容信息）。
+- `pnpm check` 通过：48 个测试文件、165 项测试、Lint、TypeScript 与生产构建。
+- `quick_validate.py` 已调用，但当前两个可用 Python runtime 均缺少其 PyYAML 依赖；阶段 8 使用隔离临时环境补跑。

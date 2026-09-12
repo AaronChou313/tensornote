@@ -1,11 +1,11 @@
 ---
 name: tensornote-knowledge-workspace
-description: Create, configure, author, validate, operate, or repair TensorNote Markdown knowledge workspaces. Use for TensorNote knowledge-base structure, tensornote.yaml, Frontmatter, WikiLinks, assets, executable Python labs, Jupyter/Conda/venv/uv setup, daily startup, Git Bridge usage, migration, or release-ready workspace checks.
+description: Create, configure, author, validate, operate, or repair TensorNote Markdown knowledge workspaces. Use for TensorNote knowledge-base structure, tensornote.yaml, Frontmatter, WikiLinks, assets, Derivation/Jupyter Sidecars, Jupyter/Conda/venv/uv setup, migration, or release-ready workspace checks.
 ---
 
 # TensorNote Knowledge Workspace
 
-Build knowledge bases that remain ordinary Markdown repositories while gaining TensorNote navigation, properties, executable labs, search, Git, and Jupyter workflows.
+Build knowledge bases that remain ordinary Markdown repositories while gaining TensorNote navigation, properties, contextual derivations, executable Jupyter Sidecars, search, and Jupyter workflows.
 
 ## Core workflow
 
@@ -23,9 +23,8 @@ Build knowledge bases that remain ordinary Markdown repositories while gaining T
 
 - Read [references/knowledge-authoring.md](references/knowledge-authoring.md) when creating, restructuring, reviewing, or linking notes and assets.
 - Read [references/workspace-configuration.md](references/workspace-configuration.md) when creating or changing `tensornote.yaml`, directory layout, capabilities, trust, or portability.
-- Read [references/executable-labs.md](references/executable-labs.md) when adding, editing, reviewing, or debugging Python Labs or Scratch-to-note content.
-- Read [references/project-experiments.md](references/project-experiments.md) when a lesson uses multiple scripts, dependency groups, Notebook workflows, training steps, parameters, or artifacts.
-- Read [references/runtime-operations.md](references/runtime-operations.md) when installing TensorNote, choosing Conda/venv/uv, configuring Jupyter, starting services, using Git Bridge, deploying, or troubleshooting.
+- Read [references/sidecars.md](references/sidecars.md) when adding, editing, reviewing, migrating, or repairing Derivation or Jupyter Sidecars.
+- Read [references/runtime-operations.md](references/runtime-operations.md) when installing TensorNote Desktop, choosing Conda/venv/uv, configuring Jupyter, deploying Web, or troubleshooting.
 
 Read multiple references when a request spans those concerns. Do not infer executable permission from the presence of Python code alone.
 
@@ -46,9 +45,7 @@ Read multiple references when a request spans those concerns. Do not infer execu
 - Copy [assets/course-workspace-template](assets/course-workspace-template) to start a publishable learning path with modules, prerequisites, review prompts, and a multi-cell standard-library Lab.
 - Optionally copy [assets/AGENTS.md](assets/AGENTS.md) into a user Workspace so agents can discover the installed skill; merge with existing instructions instead of overwriting them.
 - Copy [assets/note-template.md](assets/note-template.md) for a conceptual note.
-- Copy [assets/lab-note-template.md](assets/lab-note-template.md) for a multi-cell executable note.
-- Copy [assets/project-experiment-workspace-template](assets/project-experiment-workspace-template) for a safe multi-file experiment Workspace.
-- Copy [assets/project-experiment-minimal.yaml](assets/project-experiment-minimal.yaml) into an existing lesson for a single bounded script, or [assets/project-experiment-full.yaml](assets/project-experiment-full.yaml) for dependency inheritance, parameters, training, downloads, and artifacts.
+- Copy [assets/lab-note-template.md](assets/lab-note-template.md) for a note with Derivation and multi-cell Jupyter Sidecars.
 - Copy [assets/publish-tensornote.yml](assets/publish-tensornote.yml) to `.github/workflows/publish-tensornote.yml` when publishing a public Workspace with GitHub Pages. Add a root License and complete the `publishing` block before enabling the Workflow.
 
 Replace every placeholder, keep IDs unique, and validate after copying.
@@ -69,7 +66,7 @@ Normal mode fails on unsafe or structurally invalid data and reports quality war
 
 - Confirm all created links and local assets resolve.
 - Confirm Frontmatter IDs are unique and the visible H1 matches the title.
-- Confirm executable cells have stable `lab`, sequential `cell`, useful `title`, and explicit `difficulty` metadata.
+- Confirm Sidecar IDs are stable and unique, types are supported, and Jupyter cells run top-to-bottom.
 - Confirm declared environment files exist or clearly report that the user must add them.
-- Confirm the user knows which of TensorNote, Jupyter, and Git Bridge must be running for the requested workflow.
+- Confirm the user knows whether TensorNote Desktop/Web and Jupyter are required for the requested workflow.
 - Preserve a clean, reviewable Git diff and state whether changes were committed or pushed.

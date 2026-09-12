@@ -419,7 +419,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
     const suffix = after && !after.startsWith('\n\n') ? after.startsWith('\n') ? '\n' : '\n\n' : '\n'
     insertAtCursor(`${prefix}${markdown}${suffix}`)
     setLabInitialCode(null)
-    setMessage('已插入可执行实验；保存后可从预览中的实验卡打开。')
+    setMessage('已插入 Sidecar；保存后可从阅读视图中的入口打开。')
   }
 
   const upload = async (file: File) => {

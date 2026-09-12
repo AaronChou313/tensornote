@@ -758,6 +758,18 @@ a {
   padding: 1rem 1rem 5rem;
 }
 
+.side-panel__derivation { max-width: none; }
+
+.outline-popover { position: relative; }
+.outline-popover > summary { display: grid; width: 36px; height: 36px; cursor: pointer; list-style: none; place-items: center; border-radius: 7px; color: var(--muted); }
+.outline-popover > summary::-webkit-details-marker { display: none; }
+.outline-popover > summary:hover, .outline-popover[open] > summary { background: var(--surface-hover); color: var(--accent); }
+.outline-popover__panel { position: absolute; top: calc(100% + 8px); right: 0; z-index: 80; width: min(320px, calc(100vw - 24px)); max-height: min(520px, calc(100vh - 100px)); overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 18px 48px color-mix(in srgb, var(--ink) 14%, transparent); padding: 8px; }
+.outline-popover__panel header { display: flex; align-items: baseline; justify-content: space-between; padding: 8px 10px 10px; border-bottom: 1px solid var(--line); }
+.outline-popover__panel header span { color: var(--faint); font-size: .65rem; }
+.outline-popover__panel button { display: block; width: 100%; overflow: hidden; border: 0; border-radius: 6px; background: transparent; padding-block: 7px; padding-right: 10px; color: var(--muted); font-size: .74rem; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.outline-popover__panel button:hover { background: var(--surface-hover); color: var(--ink); }
+
 .code-cell {
   margin-bottom: 1rem;
   overflow: hidden;

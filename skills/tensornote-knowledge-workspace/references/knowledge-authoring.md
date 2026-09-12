@@ -115,7 +115,7 @@ x = 1
 ```
 ````
 
-Read `executable-labs.md` before adding `exec` metadata.
+Read `sidecars.md` before adding Derivation or Jupyter Sidecars. Keep ordinary code fences display-only.
 
 ## 6. Quality and safety gates
 
