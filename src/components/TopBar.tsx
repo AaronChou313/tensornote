@@ -1,4 +1,4 @@
-import { Command, Flask, Gear, List, ShareNetwork, ShieldCheck, ShieldWarning, SidebarSimple } from '@phosphor-icons/react'
+import { Flask, Gear, List, ShareNetwork, ShieldCheck, ShieldWarning, SidebarSimple } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
@@ -8,7 +8,6 @@ import { WorkbenchTopTools } from './workbench/WorkbenchTabs'
 
 export function TopBar() {
   const kernelStatus = useAppStore((state) => state.kernelStatus)
-  const setCommandPaletteOpen = useAppStore((state) => state.setCommandPaletteOpen)
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
   const setSettingsOpen = useAppStore((state) => state.setSettingsOpen)
@@ -35,7 +34,6 @@ export function TopBar() {
           )
         )}
         <Button variant="ghost" size="icon" className="publish-trigger" onClick={() => setPublishOpen(true)} aria-label="分享 Workspace" title="分享与发布"><ShareNetwork size={18} /></Button>
-        <Button variant="ghost" size="icon" className="command-trigger" onClick={() => setCommandPaletteOpen(true)} aria-label="打开命令面板" title="命令面板 (⌘P)"><Command size={18} /></Button>
         <Button variant="ghost" size="icon" className="scratch-trigger" onClick={() => { setActiveLabId(null); setScratchOpen(true) }} aria-label="打开 Scratch Lab" title="Scratch Lab"><Flask size={18} /></Button>
         <Button className="settings-trigger" variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="打开设置" title="设置"><Gear size={18} /><span className={`settings-trigger__status kernel-dot kernel-dot--${kernelStatus}`} /></Button>
       </div>

@@ -4,7 +4,6 @@ import { computeRuntime } from '../compute/ComputeRuntime'
 import { parseTensorNoteDeepLink } from '../publishing/links'
 import { useAppStore } from '../store/useAppStore'
 import { useComputeStore } from '../store/useComputeStore'
-import { useGitStore } from '../store/useGitStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
@@ -37,7 +36,6 @@ export function DesktopDeepLinkBridge() {
       useWorkbenchStore.getState().resetWorkspace()
       app.resetWorkspaceUi()
       useComputeStore.getState().setScratchOpen(false)
-      useGitStore.getState().disconnect()
     }
 
     const session = sameRevision

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { computeRuntime } from '../compute/ComputeRuntime'
 import { useAppStore } from '../store/useAppStore'
 import { useComputeStore } from '../store/useComputeStore'
-import { useGitStore } from '../store/useGitStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import type { HostDirectorySelection } from './types'
@@ -37,7 +36,6 @@ export function DesktopWorkspaceOpenBridge() {
           useWorkbenchStore.getState().resetWorkspace()
           app.resetWorkspaceUi()
           useComputeStore.getState().setScratchOpen(false)
-          useGitStore.getState().disconnect()
           const { NativeLocalWorkspaceProvider } = await loadNativeWorkspaceProvider()
           await useWorkspaceStore.getState().openProvider(new NativeLocalWorkspaceProvider(selection))
         }

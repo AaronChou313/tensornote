@@ -12,11 +12,7 @@ const GitHubOpenPage = lazy(() => import('./pages/GitHubOpenPage').then((module)
 const NotePage = lazy(() => import('./pages/NotePage').then((module) => ({ default: module.NotePage })))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage').then((module) => ({ default: module.WorkspacePage })))
-const KnowledgePage = lazy(() => import('./pages/KnowledgePage').then((module) => ({ default: module.KnowledgePage })))
-const StructuredKnowledgePage = lazy(() => import('./pages/StructuredKnowledgePage').then((module) => ({ default: module.StructuredKnowledgePage })))
-const GitWorkspacePage = lazy(() => import('./pages/GitWorkspacePage').then((module) => ({ default: module.GitWorkspacePage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })))
-const ExperimentPage = lazy(() => import('./pages/ExperimentPage').then((module) => ({ default: module.ExperimentPage })))
 
 function RouteFallback() {
   return <main className="route-status-page"><span className="workspace-spinner" /><p>正在载入工作区界面…</p></main>
@@ -57,12 +53,7 @@ export function App() {
         <Route path="open/github/:owner/:repo" element={deferred(<GitHubOpenPage />)} />
         <Route element={deferred(<AppShell />)}>
           <Route path="workspace" element={deferred(<WorkspacePage />)} />
-          <Route path="knowledge" element={deferred(<KnowledgePage />)} />
-          <Route path="database" element={deferred(<StructuredKnowledgePage />)} />
-          <Route path="git" element={deferred(<GitWorkspacePage />)} />
           <Route path="settings" element={deferred(<SettingsPage />)} />
-          <Route path="experiments" element={deferred(<ExperimentPage />)} />
-          <Route path="experiments/:experimentKey" element={deferred(<ExperimentPage />)} />
           <Route path="notes" element={deferred(<NotePage />)} />
           <Route path="notes/:noteId" element={deferred(<NotePage />)} />
         </Route>

@@ -1,7 +1,6 @@
 import type { Note } from '../types'
 import type { NoteTreeItem } from '../content/noteTree'
 import type { KnowledgeIndex } from '../content/knowledgeIndex'
-import type { PropertyIndex } from '../content/propertyIndex'
 
 export const WORKSPACE_PROVIDER_API_VERSION = 1
 
@@ -138,9 +137,7 @@ export interface WorkspaceSession {
   documents: Note[]
   documentById: Map<string, Note>
   knowledgeIndex: KnowledgeIndex
-  propertyIndex: PropertyIndex
   environmentFiles: WorkspaceEnvironmentFile[]
-  experiments: import('../experiments/types').IndexedExperiment[]
   navigation: NoteTreeItem[]
   trusted: boolean
   openedAt: number

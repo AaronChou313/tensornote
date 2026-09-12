@@ -2,9 +2,6 @@ import type {
   DependencyInstallPlanRequest,
   EnvironmentPlan,
   EnvironmentPlanRequest,
-  ExperimentJob,
-  ExperimentRunPlan,
-  ExperimentRunPlanRequest,
   HostAdapter,
   HostCapabilities,
   HostDirectorySelection,
@@ -23,7 +20,6 @@ const desktopCapabilities: HostCapabilities = {
   nativeFilesystem: true,
   environmentDiscovery: true,
   processManagement: true,
-  nativeGit: true,
   fileAssociations: true,
   autoUpdate: true,
 }
@@ -107,46 +103,6 @@ export class TauriHostAdapter implements HostAdapter {
   async removeLocalEnvironment(environmentId: string, confirmation: string): Promise<void> {
     const { invoke } = await import('@tauri-apps/api/core')
     await invoke('local_runtime_remove_environment', { environmentId, confirmation })
-  }
-
-  async planExperimentRun(request: ExperimentRunPlanRequest): Promise<ExperimentRunPlan> {
-    const { invoke } = await import('@tauri-apps/api/core')
-    return invoke<ExperimentRunPlan>('experiment_plan_run', { request })
-  }
-
-  async startExperimentJob(planId: string, environmentId: string, confirmation: string): Promise<ExperimentJob> {
-    const { invoke } = await import('@tauri-apps/api/core')
-    return invoke<ExperimentJob>('experiment_start_job', { planId, environmentId, confirmation })
-  }
-
-  async getExperimentJob(jobId: string): Promise<ExperimentJob> {
-    const { invoke } = await import('@tauri-apps/api/core')
-    return invoke<ExperimentJob>('experiment_job', { jobId })
-  }
-
-  async listExperimentJobs(): Promise<ExperimentJob[]> {
-    const { invoke } = await import('@tauri-apps/api/core')
-    return invoke<ExperimentJob[]>('experiment_jobs')
-  }
-
-  async cancelExperimentJob(jobId: string): Promise<ExperimentJob> {
-    const { invoke } = await import('@tauri-apps/api/core')
-    return invoke<ExperimentJob>('experiment_cancel_job', { jobId })
-  }
-
-  async clearExperimentJobs(): Promise<void> {
-    const { invoke } = await import('@tauri-apps/api/core')
-    await invoke('experiment_clear_jobs')
-  }
-
-  async inspectSystemResources(workspaceId?: string) {
-    const { invoke } = await import('@tauri-apps/api/core')
-    return invoke<import('./types').SystemResourceSnapshot>('experiment_system_resources', { workspaceId })
-  }
-
-  async revealExperimentArtifact(jobId: string, artifactId: string): Promise<void> {
-    const { invoke } = await import('@tauri-apps/api/core')
-    await invoke('experiment_reveal_artifact', { jobId, artifactId })
   }
 
   async startOwnedJupyter(environmentId: string, workspaceId: string | undefined, origin: string): Promise<JupyterServerLaunch> {

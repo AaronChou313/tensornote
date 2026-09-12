@@ -323,14 +323,6 @@ pub struct LocalRuntimeManager {
 }
 
 impl LocalRuntimeManager {
-    pub(crate) fn environment_python(&self, environment_id: &str) -> Result<PathBuf, String> {
-        self.environments
-            .lock()
-            .map_err(|_| "Runtime environment registry is unavailable")?
-            .get(environment_id)
-            .map(|environment| environment.python.clone())
-            .ok_or_else(|| "所选 Python 环境不存在，请重新检测".into())
-    }
     pub fn new(app: &AppHandle) -> Result<Self, String> {
         let app_data = app.path().app_local_data_dir().map_err(error_string)?;
         fs::create_dir_all(app_data.join("managed-environments")).map_err(error_string)?;

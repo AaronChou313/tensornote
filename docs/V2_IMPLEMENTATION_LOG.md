@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 当前阶段：2
-- 最后完成：1 Host 契约
-- 当前工作：核心收缩与依赖切割
+- 当前阶段：3
+- 最后完成：2 核心收缩
+- 当前工作：单笔记 Workbench
 - 分支：`codex/v2-core-sidecar`
 - 基线：v1.18.0 发布后主线 `fcdfcc2`
 
@@ -13,9 +13,9 @@
 | 阶段 | 状态 | Commit |
 | --- | --- | --- |
 | 0 规范与基线 | DONE | `2b5688a` |
-| 1 Host 契约 | DONE | 待提交 |
-| 2 核心收缩 | TODO | |
-| 3 单笔记 Workbench | TODO | |
+| 1 Host 契约 | DONE | `5d6c1aa` |
+| 2 核心收缩 | DONE | 待提交 |
+| 3 单笔记 Workbench | IN_PROGRESS | |
 | 4 Sidecar 契约 | TODO | |
 | 5 统一 SidePanel | TODO | |
 | 6 编辑与迁移 | TODO | |
@@ -47,3 +47,14 @@
 - Compute 默认 Profile 与能力完全由 Host 决定；Web 不再因本地开发地址获得 localhost Jupyter 产品能力。
 - 浏览器目录能力继续属于 Workspace Provider，不由 deployment target 冒充原生 Host 能力。
 - 4 个相关测试文件、11 项测试、Lint 与 TypeScript 通过。
+
+## 阶段 2 — 核心收缩
+
+状态：DONE
+
+- 删除 Command Palette 与公共命令 Registry；编辑器变换迁至 `src/editor/markdownTransforms.ts`，Toolbar 与快捷键直接调用。
+- 删除 Extension Platform、扩展管理/状态/视图、扩展 Store、示例及 v1 公共导出。
+- 删除 Structured Database、Graph/Knowledge 一级页面、Git Workspace、Git Bridge 客户端与 Desktop Native Git。
+- 删除 Project Experiment 前端、Manifest/索引/Runner 与专用 Rust runtime；保留独立的 GitHub Workspace Provider、WikiLink/Search 索引及 BinderHub Compute Connector。
+- AppShell、Sidebar、Settings、Workspace session 与 Markdown renderer 完成解耦；旧 Lab 暂留给阶段 4 的兼容适配。
+- `pnpm check` 通过：47 个测试文件、169 项测试、Lint、TypeScript 与生产构建；Rust fmt、Clippy 与 15 项测试通过。

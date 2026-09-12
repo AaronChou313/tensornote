@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowClockwise, ArrowSquareOut, CaretDown, CaretUpDown, FilePlus, FileText, Flask, FolderOpen, FolderPlus, GitBranch, House, MagnifyingGlass, PuzzlePiece, Rows, ShareNetwork, SidebarSimple, X } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowSquareOut, CaretDown, CaretUpDown, FilePlus, FileText, FolderOpen, FolderPlus, House, MagnifyingGlass, SidebarSimple, X } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
@@ -10,8 +10,6 @@ import { Button } from './ui/Button'
 import { WorkspaceFileMenu } from './WorkspaceFileMenu'
 import { WorkspaceFileDialog, type FileDialogRequest } from './WorkspaceFileDialog'
 import { joinWorkspacePath } from '../workspace/path'
-import { useExtensionSnapshot } from '../extensions/ExtensionContext'
-import { useCommandRegistry } from '../commands/CommandContext'
 import { getHostAdapter } from '../host/runtime'
 
 const treePageSize = 200
@@ -83,8 +81,6 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
   const setLeftSidebar = useWorkbenchStore((state) => state.setSidebar)
   const recent = useWorkbenchStore((state) => state.recent)
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
-  const registry = useCommandRegistry()
-  const extensionItems = useExtensionSnapshot().sidebarItems
   const workspaceMenu = useRef<HTMLDetailsElement>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [workspaceActionError, setWorkspaceActionError] = useState<string | null>(null)
@@ -177,18 +173,6 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           <NavLink to="/workspace" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <House size={15} />Overview
           </NavLink>
-          <NavLink to="/knowledge" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
-            <ShareNetwork size={15} />Knowledge
-          </NavLink>
-          <NavLink to="/database" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
-            <Rows size={15} />Database
-          </NavLink>
-          {session.experiments.length > 0 && <NavLink to="/experiments" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
-            <Flask size={15} />Experiments <small>{session.experiments.length}</small>
-          </NavLink>}
-          {hostAdapter.capabilities.nativeGit && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
-            <GitBranch size={15} />Git
-          </NavLink>}
         </div>
 
         {recent.length > 0 && <SidebarSection title="Recent files" className="sidebar-recent"><div>{recent.slice(0, 4).map((noteId) => {
@@ -200,8 +184,6 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           {session.capabilities.write && <div className="sidebar-file-actions"><button onClick={() => setFileDialog({ action: 'new-note' })} aria-label="新建笔记"><FilePlus size={14} /></button><button onClick={() => setFileDialog({ action: 'new-folder' })} aria-label="新建文件夹"><FolderPlus size={14} /></button></div>}
           <nav className="workspace-tree" aria-label="Workspace 文件"><TreeChildren items={session.navigation} onAction={setFileDialog} onOpenNote={openNote} /></nav>
         </SidebarSection>
-
-        {extensionItems.length > 0 && <SidebarSection title="Extensions" className="sidebar-extension-items"><div>{extensionItems.map((item) => <button key={`${item.extensionId}:${item.id}`} onClick={() => registry.execute(item.commandId)}><PuzzlePiece size={14} />{item.label}</button>)}</div></SidebarSection>}
 
       </aside>
       <WorkspaceFileDialog key={fileDialog ? `${fileDialog.action}:${fileDialog.path || ''}` : 'closed'} request={fileDialog} onClose={() => setFileDialog(null)} />

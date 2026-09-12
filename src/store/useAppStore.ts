@@ -6,7 +6,7 @@ import { migrateAppPreferences } from './migrations'
 type Theme = 'light' | 'dark'
 export type EditorMode = 'read' | 'edit' | 'split'
 export type PendingLabAction = { labId: string; action: 'runAll' } | null
-export type SettingsSection = 'appearance' | 'editor' | 'compute' | 'extensions' | 'about'
+export type SettingsSection = 'appearance' | 'editor' | 'compute' | 'about'
 
 interface AppState {
   theme: Theme
@@ -15,7 +15,6 @@ interface AppState {
   editorWordWrap: boolean
   sidebarOpen: boolean
   searchOpen: boolean
-  commandPaletteOpen: boolean
   publishOpen: boolean
   settingsOpen: boolean
   settingsSection: SettingsSection
@@ -35,7 +34,6 @@ interface AppState {
   setEditorWordWrap: (enabled: boolean) => void
   setSidebarOpen: (open: boolean) => void
   setSearchOpen: (open: boolean) => void
-  setCommandPaletteOpen: (open: boolean) => void
   setPublishOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean, section?: SettingsSection) => void
   requestNewNote: () => void
@@ -61,7 +59,6 @@ export const useAppStore = create<AppState>()(
       editorWordWrap: true,
       sidebarOpen: false,
       searchOpen: false,
-      commandPaletteOpen: false,
       publishOpen: false,
       settingsOpen: false,
       settingsSection: 'appearance',
@@ -81,7 +78,6 @@ export const useAppStore = create<AppState>()(
       setEditorWordWrap: (editorWordWrap) => set({ editorWordWrap }),
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       setSearchOpen: (searchOpen) => set({ searchOpen }),
-      setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
       setPublishOpen: (publishOpen) => set({ publishOpen }),
       setSettingsOpen: (settingsOpen, section) => set((state) => ({ settingsOpen, ...(section ? { settingsSection: section } : {}), ...(settingsOpen ? {} : { settingsSection: state.settingsSection }) })),
       requestNewNote: () => set((state) => ({ newNoteRequestNonce: state.newNoteRequestNonce + 1 })),
@@ -100,7 +96,6 @@ export const useAppStore = create<AppState>()(
       resetWorkspaceUi: () => set({
         sidebarOpen: false,
         searchOpen: false,
-        commandPaletteOpen: false,
         publishOpen: false,
         settingsOpen: false,
         settingsSection: 'appearance',

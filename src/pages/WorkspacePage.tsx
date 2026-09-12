@@ -1,4 +1,4 @@
-import { ArrowRight, BracketsCurly, FilePlus, FileText, Flask, ShareNetwork, Tag, WarningCircle } from '@phosphor-icons/react'
+import { ArrowRight, BracketsCurly, FilePlus, FileText, Flask, Tag, WarningCircle } from '@phosphor-icons/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { createDocumentTemplate } from '../content/document'
@@ -67,11 +67,6 @@ export function WorkspacePage() {
           </div>
         </section>}
 
-        <Link className="workspace-knowledge-link" to="/knowledge">
-          <span><ShareNetwork size={19} /></span>
-          <span><strong>探索知识关联</strong><small>WikiLinks、Backlinks、Tags、Properties 与局部图谱</small></span>
-          <ArrowRight size={16} />
-        </Link>
       </div>
     </main>
   )

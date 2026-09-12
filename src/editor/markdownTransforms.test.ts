@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { transformEditorCommand } from './editor'
+import { transformEditorCommand } from './markdownTransforms'
 
 describe('editor command transforms', () => {
   it('toggles bold around the selection', () => {

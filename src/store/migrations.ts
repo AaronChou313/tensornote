@@ -1,4 +1,3 @@
-import { extensionPermissions, type ExtensionPermission } from '../extensions/types'
 import type { NoteProgress } from '../types'
 import type { RecentWorkspace } from '../workspace/types'
 
@@ -58,29 +57,4 @@ export function migrateWorkspaceSettings(persisted: unknown) {
     ? [...new Set(state.trustedRevisions.filter((item): item is string => typeof item === 'string' && item.length > 0))]
     : []
   return { recentWorkspaces, trustedRevisions, executionOverrides: booleanRecord(state.executionOverrides) }
-}
-
-export function migrateExtensionSettings(persisted: unknown) {
-  const removedExtensions = new Set(['tensornote.focus-mode'])
-  const state = record(persisted)
-  const rawGrants = record(state.grants ?? state.permissions)
-  const grants: Record<string, ExtensionPermission[]> = {}
-  for (const [id, values] of Object.entries(rawGrants)) {
-    if (removedExtensions.has(id)) continue
-    if (!Array.isArray(values)) continue
-    grants[id] = [...new Set(values.filter((value): value is ExtensionPermission => extensionPermissions.includes(value as ExtensionPermission)))]
-  }
-  const settings: Record<string, Record<string, boolean | string>> = {}
-  for (const [id, values] of Object.entries(record(state.settings))) {
-    if (removedExtensions.has(id)) continue
-    settings[id] = Object.fromEntries(Object.entries(record(values)).filter((entry): entry is [string, boolean | string] => typeof entry[1] === 'boolean' || typeof entry[1] === 'string'))
-  }
-  const enabled = Object.fromEntries(Object.entries(booleanRecord(state.enabled)).filter(([id]) => !removedExtensions.has(id)))
-  return { enabled, grants, settings }
-}
-
-export function migrateGitSettings(persisted: unknown) {
-  const state = record(persisted)
-  const candidate = state.bridgeUrl ?? state.url
-  return { bridgeUrl: typeof candidate === 'string' && candidate.trim() ? candidate.trim() : 'http://127.0.0.1:4318' }
 }

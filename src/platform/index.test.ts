@@ -4,7 +4,6 @@ import {
   COMPUTE_PROVIDER_API_VERSION,
   CURRENT_WORKSPACE_SCHEMA_VERSION,
   EXECUTABLE_MARKDOWN_SYNTAX_VERSION,
-  EXTENSION_API_VERSION,
   SECRET_MODEL_VERSION,
   SETTINGS_MODEL_VERSION,
   TENSORNOTE_VERSION,
@@ -22,11 +21,10 @@ describe('TensorNote v1 platform contracts', () => {
       workspaceProvider: WORKSPACE_PROVIDER_API_VERSION,
       computeProvider: COMPUTE_PROVIDER_API_VERSION,
       computeConnector: COMPUTE_CONNECTOR_API_VERSION,
-      extension: EXTENSION_API_VERSION,
       executableMarkdown: EXECUTABLE_MARKDOWN_SYNTAX_VERSION,
       settings: SETTINGS_MODEL_VERSION,
       secrets: SECRET_MODEL_VERSION,
-    }).toEqual({ workspaceSchema: 1, workspaceProvider: 1, computeProvider: 1, computeConnector: 1, extension: 1, executableMarkdown: 1, settings: 1, secrets: 1 })
+    }).toEqual({ workspaceSchema: 1, workspaceProvider: 1, computeProvider: 1, computeConnector: 1, executableMarkdown: 1, settings: 1, secrets: 1 })
   })
 
   it('keeps executable Markdown portable and parseable through the v1 surface', () => {

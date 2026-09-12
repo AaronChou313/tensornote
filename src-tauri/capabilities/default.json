@@ -12,7 +12,6 @@
     "updater:default",
     "allow-platform-info",
     "allow-native-workspace",
-    "allow-native-git",
     "allow-local-runtime",
     {
       "identifier": "opener:allow-open-url",

@@ -5,7 +5,6 @@ const webCapabilities: HostCapabilities = {
   nativeFilesystem: false,
   environmentDiscovery: false,
   processManagement: false,
-  nativeGit: false,
   fileAssociations: false,
   autoUpdate: false,
 }

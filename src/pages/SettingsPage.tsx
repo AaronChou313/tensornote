@@ -1,22 +1,19 @@
 import { ComputeSettings } from '../components/settings/ComputeSettings'
 import { useMemo, useState, type ReactNode } from 'react'
-import { ArrowClockwise, CheckCircle, Cpu, DownloadSimple, Gear, Info, Moon, NotePencil, PaintBrush, PuzzlePiece, Sun } from '@phosphor-icons/react'
+import { ArrowClockwise, CheckCircle, Cpu, DownloadSimple, Gear, Info, Moon, NotePencil, PaintBrush, Sun } from '@phosphor-icons/react'
 import { useSearchParams } from 'react-router-dom'
 import { getHostAdapter } from '../host/runtime'
 import type { HostUpdateInfo, HostUpdateProgress } from '../host/types'
-import { useExtensionRecords, useExtensionRuntime } from '../extensions/ExtensionContext'
 import {
   COMPUTE_PROVIDER_API_VERSION,
   COMPUTE_CONNECTOR_API_VERSION,
   CURRENT_WORKSPACE_SCHEMA_VERSION,
   EXECUTABLE_MARKDOWN_SYNTAX_VERSION,
-  EXTENSION_API_VERSION,
   SETTINGS_MODEL_VERSION,
   TENSORNOTE_VERSION,
   WORKSPACE_PROVIDER_API_VERSION,
 } from '../platform'
 import { useAppStore, type EditorMode, type SettingsSection } from '../store/useAppStore'
-import { useExtensionStore } from '../store/useExtensionStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from '../components/ui/Button'
 
@@ -24,7 +21,6 @@ const settingsNavigation: Array<{ id: SettingsSection; label: string; icon: type
   { id: 'appearance', label: '外观', icon: PaintBrush },
   { id: 'editor', label: '编辑器', icon: NotePencil },
   { id: 'compute', label: '计算与 Jupyter', icon: Cpu },
-  { id: 'extensions', label: '扩展', icon: PuzzlePiece },
   { id: 'about', label: '关于', icon: Info },
 ]
 
@@ -48,19 +44,6 @@ function EditorSettings() {
   return <section className="settings-panel"><header><span>Authoring</span><h2>编辑器</h2><p>这些选项会应用到之后打开的编辑窗格。</p></header><div className="settings-group"><SettingRow title="默认打开模式" description="阅读、源码编辑或编辑与预览并排。"><select value={mode} onChange={(event) => setMode(event.target.value as EditorMode)}><option value="read">阅读</option><option value="edit">编辑</option><option value="split">双栏预览</option></select></SettingRow><SettingRow title="显示行号" description="同时控制折叠标记栏。"><label className="settings-switch"><input type="checkbox" checked={lineNumbers} onChange={(event) => setLineNumbers(event.target.checked)} /><i /></label></SettingRow><SettingRow title="长行自动换行" description="关闭后可横向滚动查看源码。"><label className="settings-switch"><input type="checkbox" checked={wordWrap} onChange={(event) => setWordWrap(event.target.checked)} /><i /></label></SettingRow></div></section>
 }
 
-
-function ExtensionSettings() {
-  const records = useExtensionRecords()
-  const runtime = useExtensionRuntime()
-  const setManagerOpen = useExtensionStore((state) => state.setManagerOpen)
-  const setEnabled = useExtensionStore((state) => state.setEnabled)
-  const [message, setMessage] = useState<string | null>(null)
-  const toggle = async (id: string, active: boolean) => {
-    try { if (active) await runtime.deactivate(id); else await runtime.activate(id); setEnabled(id, !active); setMessage(null) }
-    catch (reason) { setMessage(reason instanceof Error ? reason.message : '无法更新扩展状态') }
-  }
-  return <section className="settings-panel"><header><span>Platform</span><h2>扩展</h2><p>扩展入口集中在这里，不占用日常工作区工具栏。</p></header><div className="settings-group"><SettingRow title="本地扩展与权限" description="加载文件、查看权限和扩展贡献。"><Button variant="secondary" size="sm" onClick={() => setManagerOpen(true)}><PuzzlePiece size={15} />管理扩展</Button></SettingRow></div>{message && <p className="settings-message" role="alert">{message}</p>}<div className="settings-extension-list">{records.map((record) => { const active = record.status === 'active'; return <article key={record.manifest.id}><span><PuzzlePiece size={17} /></span><div><strong>{record.manifest.name}</strong><small>{record.manifest.description || record.manifest.id} · v{record.manifest.version}</small></div><label className="settings-switch"><input type="checkbox" checked={active} onChange={() => void toggle(record.manifest.id, active)} /><i /></label></article> })}</div></section>
-}
 
 function DesktopUpdateSettings() {
   const host = getHostAdapter()
@@ -121,7 +104,6 @@ function AboutSettings() {
     `WorkspaceProvider v${WORKSPACE_PROVIDER_API_VERSION}`,
     `ComputeProvider v${COMPUTE_PROVIDER_API_VERSION}`,
     `ComputeConnector v${COMPUTE_CONNECTOR_API_VERSION}`,
-    `Extension API v${EXTENSION_API_VERSION}`,
     `Executable Markdown v${EXECUTABLE_MARKDOWN_SYNTAX_VERSION}`,
     `Settings Model v${SETTINGS_MODEL_VERSION}`,
   ]
@@ -129,7 +111,7 @@ function AboutSettings() {
 }
 
 export function SettingsContent({ section, onSectionChange }: { section: SettingsSection; onSectionChange: (section: SettingsSection) => void }) {
-  const content = section === 'appearance' ? <AppearanceSettings /> : section === 'editor' ? <EditorSettings /> : section === 'compute' ? <ComputeSettings /> : section === 'extensions' ? <ExtensionSettings /> : <AboutSettings />
+  const content = section === 'appearance' ? <AppearanceSettings /> : section === 'editor' ? <EditorSettings /> : section === 'compute' ? <ComputeSettings /> : <AboutSettings />
   return <><aside className="settings-navigation"><header><span><Gear size={18} /></span><div><strong>设置</strong><small>TensorNote preferences</small></div></header><nav aria-label="设置分类">{settingsNavigation.map((item) => { const Icon = item.icon; return <button key={item.id} className={section === item.id ? 'is-active' : ''} onClick={() => onSectionChange(item.id)}><Icon size={16} />{item.label}</button> })}</nav></aside><div className="settings-content">{content}</div></>
 }
 

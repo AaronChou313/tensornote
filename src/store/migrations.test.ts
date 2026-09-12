@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { migrateAppPreferences, migrateExtensionSettings, migrateGitSettings, migrateWorkspaceSettings } from './migrations'
+import { migrateAppPreferences, migrateWorkspaceSettings } from './migrations'
 
 describe('persisted settings migrations', () => {
   it('migrates legacy theme and progress while dropping malformed values', () => {
@@ -40,20 +40,4 @@ describe('persisted settings migrations', () => {
     })
   })
 
-  it('renames extension permissions to grants and removes unknown capabilities', () => {
-    expect(migrateExtensionSettings({
-      enabled: { 'demo.ok': true, 'tensornote.focus-mode': true, bad: 'yes' },
-      permissions: { 'demo.ok': ['workspace:read', 'camera', 'workspace:read'], 'tensornote.focus-mode': ['workspace:read'] },
-      settings: { 'demo.ok': { label: 'Hello', count: 3 }, 'tensornote.focus-mode': { hidden: true } },
-    })).toEqual({
-      enabled: { 'demo.ok': true },
-      grants: { 'demo.ok': ['workspace:read'] },
-      settings: { 'demo.ok': { label: 'Hello' } },
-    })
-  })
-
-  it('migrates the legacy Git bridge url and falls back safely', () => {
-    expect(migrateGitSettings({ url: ' http://127.0.0.1:9000 ' })).toEqual({ bridgeUrl: 'http://127.0.0.1:9000' })
-    expect(migrateGitSettings(null)).toEqual({ bridgeUrl: 'http://127.0.0.1:4318' })
-  })
 })

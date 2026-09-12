@@ -9,9 +9,6 @@ export type { CellOutput, ComputeConnectionConfig, ComputeConnectionEvent, Compu
 export { computeConnectorCompatibilityMatrix, connectorCompatibility, formatComputeDiagnosticReport } from '../compute/compatibility'
 export type { ComputeConnectorCompatibility } from '../compute/compatibility'
 
-export { EXTENSION_API_VERSION } from '../extensions/constants'
-export type { ExtensionAPI, ExtensionManifest, ExtensionModule, ExtensionPermission, ExtensionSetting } from '../extensions/types'
-
 export { EXECUTABLE_MARKDOWN_SYNTAX_VERSION, createExecutableLabMarkdown, extractLabs, updateLabCells } from '../content/labParser'
 export type { ExecutableLabDraft } from '../content/labParser'
 

@@ -1,12 +1,10 @@
 import { buildNoteTree } from '../content/noteTree'
 import { parseDocument } from '../content/document'
 import { buildKnowledgeIndex } from '../content/knowledgeIndex'
-import { buildPropertyIndex } from '../content/propertyIndex'
 import { joinWorkspacePath, normalizeWorkspacePath } from './path'
 import { parseWorkspaceManifestWithCompatibility } from './schema'
 import type { WorkspaceEntry, WorkspaceProvider, WorkspaceSession } from './types'
 import { mapConcurrent } from './concurrency'
-import { indexExperiments } from '../experiments/indexer'
 
 const conventionalEnvironmentFiles = ['requirements.txt', 'pyproject.toml', 'environment.yml', 'environment.yaml']
 
@@ -95,7 +93,6 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
   const trusted = descriptor.type !== 'github'
     || Boolean(descriptor.trustKey && trustedRevisions.includes(descriptor.trustKey))
 
-  const experiments = await indexExperiments(provider, documents)
   return {
     descriptor,
     capabilities: compatibility.readOnly
@@ -107,9 +104,7 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     overview,
     documentById,
     knowledgeIndex: buildKnowledgeIndex(documents),
-    propertyIndex: buildPropertyIndex(documents),
     environmentFiles: detectEnvironmentFiles(allEntries, manifest.environment.files),
-    experiments,
     navigation: buildNoteTree(
       documents,
       contentRoot,

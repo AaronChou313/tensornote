@@ -52,10 +52,7 @@ import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { NoteProgress } from './NoteProgress'
-import { KnowledgePanel } from './KnowledgePanel'
-import { useCommandRegistry } from '../commands/CommandContext'
-import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../commands/editor'
-import { useExtensionSnapshot } from '../extensions/ExtensionContext'
+import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../editor/markdownTransforms'
 import { draftRecovery, type DraftRecoveryRecord } from '../recovery/draftRecovery'
 import { LabInsertDialog } from './LabInsertDialog'
 import { useSplitScrollSync } from '../workbench/useSplitScrollSync'
@@ -217,8 +214,6 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const baselineRef = useRef({ modifiedAt: note.sourceModifiedAt, size: note.sourceSize })
   const dirtyRef = useRef(dirty)
   const recoveryRef = useRef({ dirty, draft, workspaceId, path: note.path, baseModifiedAt: note.sourceModifiedAt, baseSize: note.sourceSize })
-  const registry = useCommandRegistry()
-  const extensionEditorExtensions = useExtensionSnapshot().editorExtensions
 
   useEffect(() => {
     dirtyRef.current = dirty
@@ -323,19 +318,6 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
       changeBody(result.value)
     }
   }, [changeBody, codeLanguage, editableBody, isActive, mode])
-
-  useEffect(() => {
-    if (!isActive) return
-    const remove = (Object.keys(editorCommandLabels) as EditorCommandId[]).map((id) => registry.register({
-      id,
-      label: editorCommandLabels[id],
-      category: 'Editor',
-      shortcut: id === 'editor.bold' ? '⌘B' : id === 'editor.italic' ? '⌘I' : id === 'editor.link' ? '⌘K' : undefined,
-      isAvailable: () => mode !== 'read',
-      execute: () => executeEditorCommand(id),
-    }))
-    return () => remove.forEach((unregister) => unregister())
-  }, [executeEditorCommand, isActive, mode, registry])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -515,7 +497,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
             <div className="editor-file-label"><span>{note.path}</span><small>Markdown source</small></div>
             <CodeMirror
               value={editableBody}
-              extensions={[markdown(), ...(editorWordWrap ? [EditorView.lineWrapping] : []), ...extensionEditorExtensions.map((item) => item.extension)]}
+              extensions={[markdown(), ...(editorWordWrap ? [EditorView.lineWrapping] : [])]}
               theme={theme}
               minHeight={mode === 'split' ? '100%' : 'calc(100dvh - 166px)'}
               height={mode === 'split' ? '100%' : undefined}
@@ -526,9 +508,6 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
           </section>
         )}
         {mode !== 'edit' && <section ref={previewRef} className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} compact={mode === 'split'} /></section>}
-        {mode === 'read' && <KnowledgePanel noteId={note.id} onNavigateHeading={(id) => {
-          if (previewRef.current) scrollToHeading(previewRef.current, id)
-        }} />}
         {propertiesOpen && mode !== 'read' && <div id="document-properties"><PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} /></div>}
       </div>
       {labInitialCode !== null && <LabInsertDialog initialCode={labInitialCode} onInsert={insertLab} onClose={() => setLabInitialCode(null)} />}

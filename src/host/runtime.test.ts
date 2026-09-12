@@ -15,7 +15,6 @@ describe('host adapter runtime', () => {
       nativeFilesystem: false,
       environmentDiscovery: false,
       processManagement: false,
-      nativeGit: false,
       fileAssociations: false,
       autoUpdate: false,
     })
@@ -31,7 +30,7 @@ describe('host adapter runtime', () => {
     expect(adapter).toMatchObject({ id: 'desktop', label: 'Desktop' })
     expect(adapter.capabilities.desktopShell).toBe(true)
     expect(adapter.capabilities.nativeFilesystem).toBe(true)
-    expect(adapter.capabilities.nativeGit).toBe(true)
+    expect(adapter.capabilities.nativeFilesystem).toBe(true)
     expect(adapter.capabilities.fileAssociations).toBe(true)
     expect(adapter.capabilities.environmentDiscovery).toBe(true)
     expect(adapter.capabilities.processManagement).toBe(true)

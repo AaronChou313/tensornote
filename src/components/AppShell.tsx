@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef } from 'react'
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
@@ -7,19 +7,8 @@ import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { computeRuntime } from '../compute/ComputeRuntime'
 import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
-import { CommandRegistry } from '../commands/CommandRegistry'
-import { CommandRegistryContext } from '../commands/CommandContext'
-import { CommandPalette } from './workbench/CommandPalette'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
-import { ExtensionRuntime } from '../extensions/ExtensionRuntime'
-import { ExtensionRuntimeContext } from '../extensions/ExtensionContext'
-import { useExtensionStore } from '../store/useExtensionStore'
-import { ExtensionManagerDialog } from './extensions/ExtensionManagerDialog'
-import { ExtensionStatusBar } from './extensions/ExtensionStatusBar'
-import { ExtensionViewDialog } from './extensions/ExtensionViewDialog'
 import { SettingsDialog } from './workbench/SettingsDialog'
-import { useGitStore } from '../store/useGitStore'
-import { getHostAdapter } from '../host/runtime'
 import { PublishDialog } from './publishing/PublishDialog'
 
 const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: module.LabDrawer })))
@@ -27,9 +16,6 @@ const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: 
 export function AppShell() {
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
   const setActiveLabId = useAppStore((state) => state.setActiveLabId)
-  const openLab = useAppStore((state) => state.openLab)
-  const setPendingLabAction = useAppStore((state) => state.setPendingLabAction)
-  const requestNewNote = useAppStore((state) => state.requestNewNote)
   const setKernelStatus = useAppStore((state) => state.setKernelStatus)
   const session = useWorkspaceStore((state) => state.session)
   const status = useWorkspaceStore((state) => state.status)
@@ -45,14 +31,6 @@ export function AppShell() {
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
   const previousPath = useRef(location.pathname)
   const legacyOpenAttempted = useRef(false)
-  const [registry] = useState(() => new CommandRegistry())
-  const [extensionRuntime] = useState(() => new ExtensionRuntime({
-    commandRegistry: registry,
-    workspace: () => useWorkspaceStore.getState().provider,
-    hasPermission: (extensionId, permission) => useExtensionStore.getState().grants[extensionId]?.includes(permission) ?? false,
-    getSetting: (extensionId, key) => useExtensionStore.getState().settings[extensionId]?.[key],
-    setSetting: (extensionId, key, value) => useExtensionStore.getState().setSetting(extensionId, key, value),
-  }))
 
   const switchWorkspace = useCallback(async () => {
     const appState = useAppStore.getState()
@@ -60,13 +38,11 @@ export function AppShell() {
     if ((dirtyNotes > 0 || appState.labDirty) && !window.confirm(
       `${dirtyNotes > 0 ? `${dirtyNotes} 篇笔记有未保存修改` : ''}${dirtyNotes > 0 && appState.labDirty ? '，并且 ' : ''}${appState.labDirty ? 'Python Lab 有未保存修改' : ''}。确定关闭当前 Workspace 吗？`,
     )) return false
-
     await computeRuntime.shutdown()
     await useWorkspaceStore.getState().closeWorkspace()
     useWorkbenchStore.getState().resetWorkspace()
     useAppStore.getState().resetWorkspaceUi()
     useComputeStore.getState().setScratchOpen(false)
-    useGitStore.getState().disconnect()
     navigate('/', { replace: true })
     return true
   }, [navigate])
@@ -74,77 +50,33 @@ export function AppShell() {
   useEffect(() => {
     if (!session && status === 'idle' && (location.pathname === '/notes' || location.pathname.startsWith('/notes/')) && !legacyOpenAttempted.current) {
       legacyOpenAttempted.current = true
-      void import('../workspace/providers/BundledWorkspaceProvider')
-        .then(({ BundledWorkspaceProvider }) => openProvider(new BundledWorkspaceProvider()))
-        .catch(() => undefined)
+      void import('../workspace/providers/BundledWorkspaceProvider').then(({ BundledWorkspaceProvider }) => openProvider(new BundledWorkspaceProvider())).catch(() => undefined)
     }
   }, [location.pathname, openProvider, session, status])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.isComposing || event.defaultPrevented) return
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        if (document.querySelector('[role="dialog"]')) { event.preventDefault(); return }
-        const editing = document.activeElement?.closest('.cm-content')
-        if (!editing) {
-          event.preventDefault()
-          if (session) setSearchOpen(true)
-        }
-      }
+      if (event.isComposing || event.defaultPrevented || !(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'k') return
+      if (document.querySelector('[role="dialog"]') || document.activeElement?.closest('.cm-content')) return
+      event.preventDefault()
+      if (session) setSearchOpen(true)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [session, setSearchOpen])
 
   useEffect(() => {
-    if (!session) return
-    const activeNote = () => {
-      const state = useWorkbenchStore.getState()
-      const id = state.panes[state.activePane]
-      return id ? session.documentById.get(id) : undefined
-    }
-    const open = (noteId: string) => {
-      const note = session.documentById.get(noteId)
-      if (!note) return
-      useWorkbenchStore.getState().openNote(note.id, note.frontmatter.title)
-      navigate(`/notes/${note.id}`)
-    }
-    const unregister = [
-      ...session.documents.map((note) => registry.register({ id: `note.open.${note.id}`, label: `Open note: ${note.frontmatter.title}`, category: 'Navigation' as const, description: note.path, execute: () => open(note.id) })),
-      registry.register({ id: 'note.new', label: 'New note', category: 'Workspace', description: 'Open the New note dialog', isAvailable: () => session.capabilities.write, execute: requestNewNote }),
-      registry.register({ id: 'workspace.overview', label: 'Open workspace overview', category: 'Workspace', execute: () => navigate('/workspace') }),
-      registry.register({ id: 'workspace.refresh', label: 'Refresh workspace files', category: 'Workspace', execute: () => useWorkspaceStore.getState().refreshWorkspace().then(() => undefined) }),
-      registry.register({ id: 'workspace.switch', label: 'Switch workspace', category: 'Workspace', description: 'Close the current workspace and return to the start page', execute: async () => { await switchWorkspace() } }),
-      registry.register({ id: 'workspace.share', label: 'Share or publish workspace', category: 'Workspace', description: 'Copy a revision-pinned link or inspect publication readiness', execute: () => useAppStore.getState().setPublishOpen(true) }),
-      registry.register({ id: 'view.graph', label: 'Open graph', category: 'View', execute: () => navigate('/knowledge') }),
-      registry.register({ id: 'view.database', label: 'Open database', category: 'View', description: 'Browse structured note properties', execute: () => navigate('/database') }),
-      registry.register({ id: 'view.experiments', label: 'Open experiments', category: 'View', description: 'Inspect project environments, steps, files, and artifacts', isAvailable: () => session.experiments.length > 0, execute: () => navigate('/experiments') }),
-      registry.register({ id: 'view.settings', label: 'Open settings', category: 'View', description: 'Appearance, editor, compute and extensions', execute: () => useAppStore.getState().setSettingsOpen(true) }),
-      registry.register({ id: 'view.git', label: 'Open Git workspace', category: 'View', description: 'Inspect local changes, diffs, history, and commits', isAvailable: () => getHostAdapter().capabilities.nativeGit && session.capabilities.git && session.descriptor.type === 'local', execute: () => navigate('/git') }),
-      registry.register({ id: 'view.toggleSidebar', label: 'Toggle sidebar', category: 'View', execute: () => useWorkbenchStore.getState().setSidebar('left', !useWorkbenchStore.getState().leftSidebar) }),
-      registry.register({ id: 'navigate.back', label: 'Go back', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goBack(); if (note) navigate(`/notes/${note}`) } }),
-      registry.register({ id: 'navigate.forward', label: 'Go forward', category: 'Navigation', execute: () => { const note = useWorkbenchStore.getState().goForward(); if (note) navigate(`/notes/${note}`) } }),
-      registry.register({ id: 'compute.runAll', label: 'Run all labs in current note', category: 'Compute', description: 'Open the note Lab and queue Run all', isAvailable: () => Boolean(activeNote()?.labs[0]), execute: () => { const note = activeNote(); const lab = note?.labs[0]; if (!note || !lab) return; setScratchOpen(false); openLab(note.id, lab.id); setPendingLabAction({ labId: lab.id, action: 'runAll' }) } }),
-    ]
-    return () => unregister.forEach((remove) => remove())
-  }, [navigate, openLab, registry, requestNewNote, session, setPendingLabAction, setScratchOpen, switchWorkspace])
-
-  useEffect(() => {
     computeRuntime.onStatus(setKernelStatus)
     computeRuntime.onConnectionEvent(setConnectionEvent)
-    return () => {
-      computeRuntime.onConnectionEvent(() => undefined)
-      void computeRuntime.shutdown()
-    }
+    return () => { computeRuntime.onConnectionEvent(() => undefined); void computeRuntime.shutdown() }
   }, [setConnectionEvent, setKernelStatus])
 
   useEffect(() => {
-    if (previousPath.current !== location.pathname) {
-      setActiveLabId(null)
-      setScratchOpen(false)
-      window.scrollTo({ top: 0 })
-      previousPath.current = location.pathname
-    }
+    if (previousPath.current === location.pathname) return
+    setActiveLabId(null)
+    setScratchOpen(false)
+    window.scrollTo({ top: 0 })
+    previousPath.current = location.pathname
   }, [location.pathname, setActiveLabId, setScratchOpen])
 
   useEffect(() => {
@@ -166,11 +98,7 @@ export function AppShell() {
     const previousAccent = root.style.getPropertyValue('--accent')
     document.title = `${session.manifest.publishing.title || session.manifest.workspace.name} · TensorNote`
     if (session.manifest.publishing.accent) root.style.setProperty('--accent', session.manifest.publishing.accent)
-    return () => {
-      document.title = previousTitle
-      if (previousAccent) root.style.setProperty('--accent', previousAccent)
-      else root.style.removeProperty('--accent')
-    }
+    return () => { document.title = previousTitle; if (previousAccent) root.style.setProperty('--accent', previousAccent); else root.style.removeProperty('--accent') }
   }, [session])
 
   useEffect(() => {
@@ -182,40 +110,20 @@ export function AppShell() {
       if (note && (state.activeView || state.panes[state.activePane] !== note.id)) state.openNote(note.id, note.frontmatter.title)
       return
     }
-    const viewByPath = { '/workspace': 'workspace', '/knowledge': 'knowledge', '/database': 'database', '/git': 'git', '/settings': 'settings' } as const
-    const view = viewByPath[location.pathname as keyof typeof viewByPath]
-    if (view && useWorkbenchStore.getState().activeView !== view) useWorkbenchStore.getState().openView(view)
+    if (location.pathname === '/workspace' && useWorkbenchStore.getState().activeView !== 'workspace') useWorkbenchStore.getState().openView('workspace')
   }, [location.pathname, session])
 
   if (!session) {
-    if (status === 'idle' && (location.pathname === '/workspace' || location.pathname === '/knowledge' || location.pathname === '/database' || location.pathname === '/git' || location.pathname === '/settings')) return <Navigate to="/" replace />
-    return (
-      <main className="route-status-page">
-        <span className="workspace-spinner" />
-        <h1>{status === 'error' ? 'Workspace 打开失败' : '正在准备 Workspace'}</h1>
-        <p>{error || '正在读取 Markdown、索引和 Workspace 配置。'}</p>
-        {status === 'error' && <Link to="/">返回 Workspace 首页</Link>}
-      </main>
-    )
+    if (status === 'idle' && location.pathname === '/workspace') return <Navigate to="/" replace />
+    return <main className="route-status-page"><span className="workspace-spinner" /><h1>{status === 'error' ? 'Workspace 打开失败' : '正在准备 Workspace'}</h1><p>{error || '正在读取 Markdown、索引和 Workspace 配置。'}</p>{status === 'error' && <Link to="/">返回 Workspace 首页</Link>}</main>
   }
 
-  return <CommandRegistryContext.Provider value={registry}>
-    <ExtensionRuntimeContext.Provider value={extensionRuntime}>
-      <div className={`app-workbench ${leftSidebar ? '' : 'app-workbench--sidebar-collapsed'}`}>
-        <Sidebar onSwitchWorkspace={switchWorkspace} />
-        <div className="workbench-main">
-          <TopBar />
-          <div className="workbench-route"><Outlet /></div>
-          <ExtensionStatusBar />
-        </div>
-        <SearchDialog />
-        <CommandPalette />
-        <SettingsDialog />
-        <PublishDialog />
-        <Suspense fallback={null}><LabDrawer /></Suspense>
-        <ExtensionManagerDialog />
-        <ExtensionViewDialog />
-      </div>
-    </ExtensionRuntimeContext.Provider>
-  </CommandRegistryContext.Provider>
+  return <div className={`app-workbench ${leftSidebar ? '' : 'app-workbench--sidebar-collapsed'}`}>
+    <Sidebar onSwitchWorkspace={switchWorkspace} />
+    <div className="workbench-main"><TopBar /><div className="workbench-route"><Outlet /></div></div>
+    <SearchDialog />
+    <SettingsDialog />
+    <PublishDialog />
+    <Suspense fallback={null}><LabDrawer /></Suspense>
+  </div>
 }

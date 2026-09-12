@@ -14,9 +14,7 @@ import { extractHeadingSection, transformWikiMarkdown, type KnowledgeIndex } fro
 import { LabCard } from './LabCard'
 import { MermaidDiagram } from './MermaidDiagram'
 import { WorkspaceImage } from './WorkspaceImage'
-import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 import { scrollToHeading } from '../workbench/headingNavigation'
-import { ExperimentCard } from './ExperimentCard'
 
 const calloutLabels: Record<string, string> = {
   intuition: '直觉',
@@ -46,15 +44,10 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content, labs, documentTitle, documentPath = '', resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail = [] }: MarkdownRendererProps) {
-  const processors = useExtensionSnapshot().markdownProcessors
   const labMap = new Map(labs.map((lab) => [lab.id, lab]))
-  const processedContent = processors.reduce((markdown, processor) => {
-    try { return processor.process(markdown, { documentPath, noteId }) }
-    catch (reason) { console.error(`Markdown processor failed: ${processor.id}`, reason); return markdown }
-  }, content)
   const markdown = useMemo(
-    () => knowledgeIndex && noteId ? transformWikiMarkdown(processedContent, knowledgeIndex, noteId) : processedContent,
-    [knowledgeIndex, noteId, processedContent],
+    () => knowledgeIndex && noteId ? transformWikiMarkdown(content, knowledgeIndex, noteId) : content,
+    [content, knowledgeIndex, noteId],
   )
   const firstH1Offset = markdown.search(/^#\s+/m)
 
@@ -114,7 +107,6 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
             const lab = labMap.get(source.trim())
             return lab ? <LabCard lab={lab} noteId={noteId} /> : null
           }
-          if (language === 'tensornote-experiment') return <ExperimentCard source={source} noteId={noteId} />
           if (language === 'tensornote-embed' && knowledgeIndex && noteId) {
             const reference = source.trim()
             const resolved = knowledgeIndex.resolveReference(reference, noteId)
@@ -146,7 +138,7 @@ export function MarkdownRenderer({ content, labs, documentTitle, documentPath = 
           const classNames = codeNode?.type === 'element' ? codeNode.properties.className : []
           const classes = Array.isArray(classNames) ? classNames.map(String) : [String(classNames ?? '')]
           const isCustomBlock = classes.some((className) =>
-            className === 'language-mermaid' || className === 'language-tensornote-lab' || className === 'language-tensornote-embed' || className === 'language-tensornote-experiment',
+            className === 'language-mermaid' || className === 'language-tensornote-lab' || className === 'language-tensornote-embed',
           )
           if (isCustomBlock) return <>{children}</>
           return <pre>{children}</pre>

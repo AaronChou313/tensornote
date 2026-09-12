@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { buildKnowledgeIndex } from '../content/knowledgeIndex'
 import { buildNoteTree } from '../content/noteTree'
 import { parseDocument } from '../content/document'
-import { buildPropertyIndex } from '../content/propertyIndex'
 
 function createDocuments(count: number) {
   return Array.from({ length: count }, (_, index) => parseDocument(`notes/group-${index % 100}/note-${index}.md`, `---
@@ -23,12 +22,10 @@ describe('large workspace performance budgets', () => {
     const documents = createDocuments(1_000)
     const started = performance.now()
     const knowledge = buildKnowledgeIndex(documents)
-    const properties = buildPropertyIndex(documents)
     const tree = buildNoteTree(documents, 'notes')
     const duration = performance.now() - started
 
     expect(knowledge.documents).toHaveLength(1_000)
-    expect(properties.rows).toHaveLength(1_000)
     expect(tree.length).toBeGreaterThan(0)
     expect(duration).toBeLessThan(5_000)
   })
@@ -37,12 +34,10 @@ describe('large workspace performance budgets', () => {
     const documents = createDocuments(10_000)
     const started = performance.now()
     const knowledge = buildKnowledgeIndex(documents)
-    const properties = buildPropertyIndex(documents)
     const tree = buildNoteTree(documents, 'notes')
     const duration = performance.now() - started
 
     expect(knowledge.links).toHaveLength(10_000)
-    expect(properties.query('status = ready').rows).toHaveLength(5_000)
     expect(tree.length).toBe(100)
     expect(duration).toBeLessThan(15_000)
   })
