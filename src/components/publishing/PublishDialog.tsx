@@ -38,7 +38,7 @@ export function PublishDialog() {
   const open = useAppStore((state) => state.publishOpen)
   const setOpen = useAppStore((state) => state.setPublishOpen)
   const session = useWorkspaceStore((state) => state.session)
-  const paneNote = useWorkbenchStore((state) => state.panes[state.activePane])
+  const paneNote = useWorkbenchStore((state) => state.activeNoteId)
   const location = useLocation()
   const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>(null)
   const activeNote = location.pathname.startsWith('/notes/') ? paneNote ?? undefined : undefined

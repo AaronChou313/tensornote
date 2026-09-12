@@ -4,7 +4,7 @@ import type { KernelStatus, NoteProgress } from '../types'
 import { migrateAppPreferences } from './migrations'
 
 type Theme = 'light' | 'dark'
-export type EditorMode = 'read' | 'edit' | 'split'
+export type EditorMode = 'read' | 'edit'
 export type PendingLabAction = { labId: string; action: 'runAll' } | null
 export type SettingsSection = 'appearance' | 'editor' | 'compute' | 'about'
 

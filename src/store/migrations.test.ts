@@ -15,9 +15,9 @@ describe('persisted settings migrations', () => {
     })
   })
 
-  it('keeps valid editor preferences and repairs invalid values', () => {
-    expect(migrateAppPreferences({ editorDefaultMode: 'split', editorLineNumbers: false, editorWordWrap: false })).toMatchObject({
-      editorDefaultMode: 'split',
+  it('keeps valid editor preferences and migrates removed split mode', () => {
+    expect(migrateAppPreferences({ editorDefaultMode: 'edit', editorLineNumbers: false, editorWordWrap: false })).toMatchObject({
+      editorDefaultMode: 'edit',
       editorLineNumbers: false,
       editorWordWrap: false,
     })
@@ -26,6 +26,7 @@ describe('persisted settings migrations', () => {
       editorLineNumbers: true,
       editorWordWrap: true,
     })
+    expect(migrateAppPreferences({ editorDefaultMode: 'split' })).toMatchObject({ editorDefaultMode: 'read' })
   })
 
   it('normalizes recent workspaces and trust keys from old settings', () => {

@@ -11,7 +11,6 @@ import {
   ClockCounterClockwise,
   Code,
   CodeBlock,
-  Columns,
   Eye,
   Flask,
   FloppyDisk,
@@ -45,7 +44,7 @@ import type { Note } from '../types'
 import { getDocumentBody, getDocumentProperties, parseDocument, replaceDocumentBody, updateDocumentProperties, type DocumentProperties } from '../content/document'
 import { dirname, joinWorkspacePath, relativeWorkspacePath } from '../workspace/path'
 import { WorkspaceConflictError, type WorkspaceFileStat, type WorkspaceProvider } from '../workspace/types'
-import { headingSourceOffset, scrollToHeading } from '../workbench/headingNavigation'
+import { headingSourceOffset } from '../workbench/headingNavigation'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { useAppStore, type EditorMode } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
@@ -55,12 +54,11 @@ import { NoteProgress } from './NoteProgress'
 import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../editor/markdownTransforms'
 import { draftRecovery, type DraftRecoveryRecord } from '../recovery/draftRecovery'
 import { LabInsertDialog } from './LabInsertDialog'
-import { useSplitScrollSync } from '../workbench/useSplitScrollSync'
 
-function NotePreview({ note, provider, compact = false }: { note: Note; provider: WorkspaceProvider; compact?: boolean }) {
+function NotePreview({ note, provider }: { note: Note; provider: WorkspaceProvider }) {
   const session = useWorkspaceStore((state) => state.session)
   return (
-    <article className={compact ? 'note-prose note-prose--preview' : 'note-prose'}>
+    <article className="note-prose">
       <header className="note-header">
         <p className="note-section">{note.frontmatter.section}</p>
         <h1>{note.frontmatter.title}</h1>
@@ -76,7 +74,7 @@ function NotePreview({ note, provider, compact = false }: { note: Note; provider
         knowledgeIndex={session?.knowledgeIndex}
         noteId={note.id}
       />
-      {!compact && session && <NoteProgress noteId={`${session.descriptor.id}:${note.id}`} hasLab={note.labs.length > 0} />}
+      {session && <NoteProgress noteId={`${session.descriptor.id}:${note.id}`} hasLab={note.labs.length > 0} />}
     </article>
   )
 }
@@ -196,10 +194,6 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const [codeLanguage, setCodeLanguage] = useState('python')
   const [labInitialCode, setLabInitialCode] = useState<string | null>(null)
   const viewRef = useRef<EditorView | null>(null)
-  const previewRef = useRef<HTMLElement | null>(null)
-  const [editorView, setEditorView] = useState<EditorView | null>(null)
-  const [syncScroll, setSyncScroll] = useState(true)
-  useSplitScrollSync(mode === 'split' && syncScroll, editorView, previewRef, getDocumentBody(draft))
   const headingRequest = useWorkbenchStore((state) => state.headingRequest)
   useEffect(() => {
     if (!isActive || mode !== 'edit' || !headingRequest) return
@@ -456,8 +450,6 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
         <div className="mode-switcher" aria-label="阅读与编辑模式">
           <button className={mode === 'read' ? 'is-active' : ''} onClick={() => setMode('read')}><Eye size={15} />阅读</button>
           <button className={mode === 'edit' ? 'is-active' : ''} onClick={() => setMode('edit')}><NotePencil size={15} />编辑</button>
-          <button className={mode === 'split' ? 'is-active' : ''} onClick={() => setMode('split')}><Columns size={15} />双栏预览</button>
-          {mode === 'split' && <button aria-pressed={syncScroll} onClick={() => setSyncScroll((value) => !value)}>{syncScroll ? '同步滚动：开' : '同步滚动：关'}</button>}
         </div>
         <div className="authoring-toolbar__actions">
           {mode !== 'read' && <>
@@ -499,15 +491,14 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
               value={editableBody}
               extensions={[markdown(), ...(editorWordWrap ? [EditorView.lineWrapping] : [])]}
               theme={theme}
-              minHeight={mode === 'split' ? '100%' : 'calc(100dvh - 166px)'}
-              height={mode === 'split' ? '100%' : undefined}
+              minHeight="calc(100dvh - 166px)"
               basicSetup={{ lineNumbers: editorLineNumbers, foldGutter: editorLineNumbers, history: true, autocompletion: true, highlightActiveLine: true }}
-              onCreateEditor={(view) => { viewRef.current = view; setEditorView(view) }}
+              onCreateEditor={(view) => { viewRef.current = view }}
               onChange={changeBody}
             />
           </section>
         )}
-        {mode !== 'edit' && <section ref={previewRef} className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} compact={mode === 'split'} /></section>}
+        {mode === 'read' && <section className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} /></section>}
         {propertiesOpen && mode !== 'read' && <div id="document-properties"><PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} /></div>}
       </div>
       {labInitialCode !== null && <LabInsertDialog initialCode={labInitialCode} onInsert={insertLab} onClose={() => setLabInitialCode(null)} />}

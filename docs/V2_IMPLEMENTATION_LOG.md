@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 当前阶段：3
-- 最后完成：2 核心收缩
-- 当前工作：单笔记 Workbench
+- 当前阶段：4
+- 最后完成：3 单笔记 Workbench
+- 当前工作：Sidecar 内容契约
 - 分支：`codex/v2-core-sidecar`
 - 基线：v1.18.0 发布后主线 `fcdfcc2`
 
@@ -14,9 +14,9 @@
 | --- | --- | --- |
 | 0 规范与基线 | DONE | `2b5688a` |
 | 1 Host 契约 | DONE | `5d6c1aa` |
-| 2 核心收缩 | DONE | 待提交 |
-| 3 单笔记 Workbench | IN_PROGRESS | |
-| 4 Sidecar 契约 | TODO | |
+| 2 核心收缩 | DONE | `1c150e5` |
+| 3 单笔记 Workbench | DONE | 待提交 |
+| 4 Sidecar 契约 | IN_PROGRESS | |
 | 5 统一 SidePanel | TODO | |
 | 6 编辑与迁移 | TODO | |
 | 7 双宿主收口 | TODO | |
@@ -58,3 +58,13 @@
 - 删除 Project Experiment 前端、Manifest/索引/Runner 与专用 Rust runtime；保留独立的 GitHub Workspace Provider、WikiLink/Search 索引及 BinderHub Compute Connector。
 - AppShell、Sidebar、Settings、Workspace session 与 Markdown renderer 完成解耦；旧 Lab 暂留给阶段 4 的兼容适配。
 - `pnpm check` 通过：47 个测试文件、169 项测试、Lint、TypeScript 与生产构建；Rust fmt、Clippy 与 15 项测试通过。
+
+## 阶段 3 — 单笔记 Workbench
+
+状态：DONE
+
+- Workbench 状态收缩为单一 `activeNoteId`，删除左右 Pane、双笔记和右侧视图状态。
+- 笔记页只保留一个阅读/编辑表面；移除双栏预览、滚动对齐算法、Knowledge Panel 与旧 Workbench 右侧栏。
+- 顶部标签仅承担打开笔记与历史切换，不再表示多 Pane 布局。
+- 保留 Properties 编辑入口，并将旧 Lab 作为阶段 4～5 的 Sidecar 兼容输入。
+- `pnpm check` 通过：46 个测试文件、159 项测试、Lint、TypeScript 与生产构建；Rust fmt、Clippy 与 15 项测试通过。

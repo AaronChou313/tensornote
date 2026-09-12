@@ -107,7 +107,7 @@ export function AppShell() {
     if (noteId) {
       const note = session.documentById.get(decodeURIComponent(noteId))
       const state = useWorkbenchStore.getState()
-      if (note && (state.activeView || state.panes[state.activePane] !== note.id)) state.openNote(note.id, note.frontmatter.title)
+      if (note && (state.activeView || state.activeNoteId !== note.id)) state.openNote(note.id, note.frontmatter.title)
       return
     }
     if (location.pathname === '/workspace' && useWorkbenchStore.getState().activeView !== 'workspace') useWorkbenchStore.getState().openView('workspace')

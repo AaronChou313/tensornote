@@ -2,7 +2,6 @@ import { ArrowRight, Flask } from '@phosphor-icons/react'
 import type { Lab } from '../types'
 import { useAppStore } from '../store/useAppStore'
 import { useComputeStore } from '../store/useComputeStore'
-import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 
 export function LabCard({ lab, noteId }: { lab: Lab; noteId?: string }) {
   const openLab = useAppStore((state) => state.openLab)
@@ -12,7 +11,6 @@ export function LabCard({ lab, noteId }: { lab: Lab; noteId?: string }) {
   return (
     <button className="lab-card group" onClick={() => {
       setScratchOpen(false)
-      useWorkbenchStore.getState().setSidebar('right', false)
       openLab(noteId ?? null, lab.id)
     }}>
       <span className="lab-card__icon"><Flask size={22} weight="duotone" /></span>
