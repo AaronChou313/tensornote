@@ -46,7 +46,7 @@ export class WorkspaceConflictError extends Error {
   }
 }
 
-export type WorkspaceSourceType = 'bundled' | 'local' | 'github' | (string & {})
+export type WorkspaceSourceType = 'local' | 'github' | 'gitlab' | 'gitee' | (string & {})
 
 export interface WorkspaceDescriptor {
   id: string

@@ -30,14 +30,14 @@ export function TopBar() {
       <WorkbenchTopTools />
       <div className="topbar-actions">
         {headings.length > 0 && <details className="outline-popover"><summary aria-label="打开大纲"><List size={18} /></summary><div className="outline-popover__panel"><header><strong>Outline</strong><span>{headings.length} sections</span></header>{headings.map((heading) => <button key={heading.id} style={{ paddingLeft: `${12 + (heading.depth - 1) * 12}px` }} onClick={(event) => { revealHeading(heading.id); event.currentTarget.closest('details')?.removeAttribute('open') }}>{heading.text}</button>)}</div></details>}
-        {session.descriptor.type === 'github' && (
+        {session.descriptor.trustKey && (
           session.trusted ? (
-            <span className="trust-status trust-status--trusted" title="当前 GitHub Revision 已受信任"><ShieldCheck size={14} />Trusted</span>
+            <span className="trust-status trust-status--trusted" title="当前远程版本已受信任"><ShieldCheck size={14} />Trusted</span>
           ) : (
-            <button className="trust-status trust-status--pending" onClick={trustActiveWorkspace} title="信任当前 GitHub Revision 后允许执行代码"><ShieldWarning size={14} />Trust to run</button>
+            <button className="trust-status trust-status--pending" onClick={trustActiveWorkspace} title="信任当前远程版本后允许执行代码"><ShieldWarning size={14} />Trust to run</button>
           )
         )}
-        <Button variant="ghost" size="icon" className="publish-trigger" onClick={() => setPublishOpen(true)} aria-label="分享 Workspace" title="分享与发布"><ShareNetwork size={18} /></Button>
+        <Button variant="ghost" size="icon" className="publish-trigger" onClick={() => setPublishOpen(true)} aria-label="分享知识库" title="分享知识库"><ShareNetwork size={18} /></Button>
         <Button variant="ghost" size="icon" className="scratch-trigger" onClick={() => { useSidecarStore.getState().close(); setScratchOpen(true) }} aria-label="打开 Scratch Lab" title="Scratch Lab"><Flask size={18} /></Button>
         <Button className="settings-trigger" variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="打开设置" title="设置"><Gear size={18} /><span className={`settings-trigger__status kernel-dot kernel-dot--${kernelStatus}`} /></Button>
       </div>

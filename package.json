@@ -22,7 +22,7 @@
     "node": ">=22"
   },
   "packageManager": "pnpm@11.24.0",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -54,6 +54,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tauri-apps/api": "2.11.1",
     "@tauri-apps/plugin-deep-link": "2.4.10",
+    "@tauri-apps/plugin-opener": "2.5.4",
     "@tauri-apps/plugin-process": "2.3.1",
     "@tauri-apps/plugin-updater": "2.11.0",
     "@uiw/react-codemirror": "^4.25.4",

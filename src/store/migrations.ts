@@ -36,8 +36,12 @@ export function migrateAppPreferences(persisted: unknown) {
 
 function recentWorkspace(value: unknown): RecentWorkspace | null {
   const item = record(value)
-  if (typeof item.id !== 'string' || typeof item.type !== 'string' || typeof item.name !== 'string') return null
+  if (typeof item.id !== 'string' || typeof item.type !== 'string' || typeof item.name !== 'string' || item.type === 'bundled' || item.name === 'AI Learning Notes') return null
   const config = Object.fromEntries(Object.entries(record(item.config)).filter((entry): entry is [string, string] => typeof entry[1] === 'string'))
+  if (item.type === 'github' && !config.project && config.owner && config.repo) {
+    config.project = `${config.owner}/${config.repo}`
+    config.repositoryUrl = `https://github.com/${config.project}`
+  }
   return {
     id: item.id,
     type: item.type,
@@ -52,7 +56,7 @@ function recentWorkspace(value: unknown): RecentWorkspace | null {
 export function migrateWorkspaceSettings(persisted: unknown) {
   const state = record(persisted)
   const candidates = Array.isArray(state.recentWorkspaces) ? state.recentWorkspaces : Array.isArray(state.recent) ? state.recent : []
-  const recentWorkspaces = candidates.map(recentWorkspace).filter((item): item is RecentWorkspace => item !== null).slice(0, 8)
+  const recentWorkspaces = candidates.map(recentWorkspace).filter((item): item is RecentWorkspace => item !== null).sort((a, b) => b.openedAt - a.openedAt).slice(0, 8)
   const trustedRevisions = Array.isArray(state.trustedRevisions)
     ? [...new Set(state.trustedRevisions.filter((item): item is string => typeof item === 'string' && item.length > 0))]
     : []

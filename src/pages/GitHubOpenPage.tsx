@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { GithubLogo } from '@phosphor-icons/react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
-import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
+import { createRemoteWorkspaceProvider } from '../workspace/providers/createRemoteWorkspaceProvider'
 
 export function GitHubOpenPage() {
   const { owner, repo } = useParams()
@@ -19,7 +19,7 @@ export function GitHubOpenPage() {
   useEffect(() => {
     if (!owner || !repo || attempted.current === key) return
     attempted.current = key
-    void openProvider(new GitHubWorkspaceProvider(owner, repo, ref))
+    void openProvider(createRemoteWorkspaceProvider({ provider: 'github', project: `${owner}/${repo}`, repositoryUrl: `https://github.com/${owner}/${repo}`, ref }))
       .then((session) => {
         const noteId = requestedNote || session.manifest.publishing.defaultNote
         navigate(noteId && session.documentById.has(noteId) ? `/notes/${encodeURIComponent(noteId)}` : '/workspace', { replace: true })
@@ -30,9 +30,9 @@ export function GitHubOpenPage() {
   return (
     <main className="route-status-page">
       <GithubLogo size={30} weight="duotone" />
-      <h1>{error ? '无法打开 GitHub Workspace' : '正在打开 GitHub Workspace'}</h1>
+      <h1>{error ? '无法打开 GitHub 知识库' : '正在打开 GitHub 知识库'}</h1>
       <p>{error || loadingMessage || `${owner}/${repo}`}</p>
-      {error && <Link to="/">返回 Workspace 首页</Link>}
+      {error && <Link to="/">返回知识库首页</Link>}
     </main>
   )
 }

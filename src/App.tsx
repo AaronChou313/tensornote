@@ -9,6 +9,7 @@ import { createGitHubOpenPath, isPinnedGitHubRevision } from './publishing/links
 
 const AppShell = lazy(() => import('./components/AppShell').then((module) => ({ default: module.AppShell })))
 const GitHubOpenPage = lazy(() => import('./pages/GitHubOpenPage').then((module) => ({ default: module.GitHubOpenPage })))
+const RemoteWorkspaceOpenPage = lazy(() => import('./pages/RemoteWorkspaceOpenPage').then((module) => ({ default: module.RemoteWorkspaceOpenPage })))
 const NotePage = lazy(() => import('./pages/NotePage').then((module) => ({ default: module.NotePage })))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })))
 const WorkspacePage = lazy(() => import('./pages/WorkspacePage').then((module) => ({ default: module.WorkspacePage })))
@@ -51,6 +52,7 @@ export function App() {
       <Routes>
         <Route index element={publishedPath ? <Navigate to={publishedPath} replace /> : <HomePage />} />
         <Route path="open/github/:owner/:repo" element={deferred(<GitHubOpenPage />)} />
+        <Route path="open/remote" element={deferred(<RemoteWorkspaceOpenPage />)} />
         <Route element={deferred(<AppShell />)}>
           <Route path="workspace" element={deferred(<WorkspacePage />)} />
           <Route path="settings" element={deferred(<SettingsPage />)} />

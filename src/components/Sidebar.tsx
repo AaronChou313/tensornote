@@ -4,6 +4,7 @@ import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { NavLink } from 'react-router-dom'
 import type { NoteTreeItem } from '../content/noteTree'
 import { cn } from '../lib/cn'
+import { formatWorkspaceSource } from '../workspace/remote'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
@@ -156,13 +157,13 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           <details className="sidebar-workspace-menu" ref={workspaceMenu}>
             <summary className="sidebar-workspace-name" aria-label={`切换 Workspace：${session.manifest.workspace.name}`}>
               <span>{session.manifest.workspace.name.slice(0, 1).toUpperCase()}</span>
-              <div><strong>{session.manifest.workspace.name}</strong><span className="sidebar-workspace-meta"><small>{session.documents.length} Markdown files</small><em>{session.descriptor.type === 'bundled' ? 'Built-in' : session.descriptor.type === 'github' ? 'GitHub' : 'Local'}</em><em>{session.capabilities.write ? 'Editable' : 'Read only'}</em></span></div>
+              <div><strong>{session.manifest.workspace.name}</strong><span className="sidebar-workspace-meta"><small>{session.documents.length} Markdown files</small><em>{formatWorkspaceSource(session.descriptor.type)}</em><em>{session.capabilities.write ? '可编辑' : '只读'}</em></span></div>
               <CaretUpDown size={14} weight="bold" />
             </summary>
             <div className="sidebar-workspace-menu__popover">
               <button type="button" onClick={() => void refreshWorkspace()} disabled={refreshing}><ArrowClockwise size={15} className={refreshing ? 'is-spinning' : ''} />{refreshing ? '正在刷新…' : '刷新文件'}</button>
               {nativeWorkspaceId && hostAdapter.revealWorkspaceItem && <button type="button" onClick={() => void revealWorkspace()}><ArrowSquareOut size={15} />在文件管理器中显示</button>}
-              <button type="button" onClick={() => void switchWorkspace()}><FolderOpen size={15} />切换工作区</button>
+              <button type="button" onClick={() => void switchWorkspace()}><FolderOpen size={15} />切换知识库</button>
               {workspaceActionError && <p role="alert">{workspaceActionError}</p>}
             </div>
           </details>
@@ -182,7 +183,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
 
         <SidebarSection title="Files" className="sidebar-files">
           {session.capabilities.write && <div className="sidebar-file-actions"><button onClick={() => setFileDialog({ action: 'new-note' })} aria-label="新建笔记"><FilePlus size={14} /></button><button onClick={() => setFileDialog({ action: 'new-folder' })} aria-label="新建文件夹"><FolderPlus size={14} /></button></div>}
-          <nav className="workspace-tree" aria-label="Workspace 文件"><TreeChildren items={session.navigation} onAction={setFileDialog} onOpenNote={openNote} /></nav>
+          <nav className="workspace-tree" aria-label="知识库文件"><TreeChildren items={session.navigation} onAction={setFileDialog} onOpenNote={openNote} /></nav>
         </SidebarSection>
 
       </aside>

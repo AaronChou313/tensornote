@@ -20,7 +20,6 @@ export function AppShell() {
   const session = useWorkspaceStore((state) => state.session)
   const status = useWorkspaceStore((state) => state.status)
   const error = useWorkspaceStore((state) => state.error)
-  const openProvider = useWorkspaceStore((state) => state.openProvider)
   const profiles = useComputeStore((state) => state.profiles)
   const activeProfileId = useComputeStore((state) => state.activeProfileId)
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
@@ -30,13 +29,12 @@ export function AppShell() {
   const navigate = useNavigate()
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
   const previousPath = useRef(location.pathname)
-  const legacyOpenAttempted = useRef(false)
 
   const switchWorkspace = useCallback(async () => {
     const appState = useAppStore.getState()
     const dirtyNotes = Object.keys(appState.editorDirtyPaths).length
     if ((dirtyNotes > 0 || appState.labDirty) && !window.confirm(
-      `${dirtyNotes > 0 ? `${dirtyNotes} 篇笔记有未保存修改` : ''}${dirtyNotes > 0 && appState.labDirty ? '，并且 ' : ''}${appState.labDirty ? 'Python Lab 有未保存修改' : ''}。确定关闭当前 Workspace 吗？`,
+      `${dirtyNotes > 0 ? `${dirtyNotes} 篇笔记有未保存修改` : ''}${dirtyNotes > 0 && appState.labDirty ? '，并且 ' : ''}${appState.labDirty ? 'Python Lab 有未保存修改' : ''}。确定关闭当前知识库吗？`,
     )) return false
     await computeRuntime.shutdown()
     await useWorkspaceStore.getState().closeWorkspace()
@@ -46,13 +44,6 @@ export function AppShell() {
     navigate('/', { replace: true })
     return true
   }, [navigate])
-
-  useEffect(() => {
-    if (!session && status === 'idle' && (location.pathname === '/notes' || location.pathname.startsWith('/notes/')) && !legacyOpenAttempted.current) {
-      legacyOpenAttempted.current = true
-      void import('../workspace/providers/BundledWorkspaceProvider').then(({ BundledWorkspaceProvider }) => openProvider(new BundledWorkspaceProvider())).catch(() => undefined)
-    }
-  }, [location.pathname, openProvider, session, status])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -85,8 +76,8 @@ export function AppShell() {
     void computeRuntime.handleContextChange(profile, {
       workspaceId: session.descriptor.id,
       noteId: noteId ? decodeURIComponent(noteId) : undefined,
-      ...(session.descriptor.type === 'github' && session.descriptor.config?.owner && session.descriptor.config.repo && session.descriptor.revision
-        ? { workspaceSource: { provider: 'github' as const, repository: `${session.descriptor.config.owner}/${session.descriptor.config.repo}`, revision: session.descriptor.revision } }
+      ...(session.descriptor.trustKey && session.descriptor.config?.project && session.descriptor.revision
+        ? { workspaceSource: { provider: session.descriptor.type, repository: session.descriptor.config.project, revision: session.descriptor.revision } }
         : {}),
     })
   }, [location.pathname, profile, session])
@@ -114,8 +105,8 @@ export function AppShell() {
   }, [location.pathname, session])
 
   if (!session) {
-    if (status === 'idle' && location.pathname === '/workspace') return <Navigate to="/" replace />
-    return <main className="route-status-page"><span className="workspace-spinner" /><h1>{status === 'error' ? 'Workspace 打开失败' : '正在准备 Workspace'}</h1><p>{error || '正在读取 Markdown、索引和 Workspace 配置。'}</p>{status === 'error' && <Link to="/">返回 Workspace 首页</Link>}</main>
+    if (status === 'idle') return <Navigate to="/" replace />
+    return <main className="route-status-page"><span className="workspace-spinner" /><h1>{status === 'error' ? '知识库打开失败' : '正在准备知识库'}</h1><p>{error || '正在读取 Markdown、索引和知识库配置。'}</p>{status === 'error' && <Link to="/">返回知识库首页</Link>}</main>
   }
 
   return <div className={`app-workbench ${leftSidebar ? '' : 'app-workbench--sidebar-collapsed'}`}>

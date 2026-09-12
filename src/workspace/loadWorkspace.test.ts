@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { detectEnvironmentFiles, loadWorkspace } from './loadWorkspace'
 import type { WorkspaceEntry, WorkspaceProvider } from './types'
 
-function createProvider(type: 'local' | 'github', files: Record<string, string>): WorkspaceProvider {
+function createProvider(type: 'local' | 'github' | 'gitlab', files: Record<string, string>): WorkspaceProvider {
   const entries = Object.keys(files)
   const directories = new Set<string>()
   for (const path of entries) {
@@ -83,6 +83,13 @@ describe('loadWorkspace', () => {
 
     expect((await loadWorkspace(provider, [])).trusted).toBe(false)
     expect((await loadWorkspace(provider, ['github:demo/repo@abc123'])).trusted).toBe(true)
+  })
+
+  it('requires revision trust for every remote descriptor with a trust key', async () => {
+    const provider = createProvider('gitlab', { 'hello.md': note })
+    provider.descriptor.trustKey = 'gitlab:demo/repo@abc123'
+    expect((await loadWorkspace(provider, [])).trusted).toBe(false)
+    expect((await loadWorkspace(provider, ['gitlab:demo/repo@abc123'])).trusted).toBe(true)
   })
 
   it('keeps future-schema Markdown readable while disabling mutation capabilities', async () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { WorkspaceConflictError } from '../types'
-import { LocalWorkspaceProvider } from './LocalWorkspaceProvider'
+import { createLocalWorkspaceInParent, LocalWorkspaceProvider } from './LocalWorkspaceProvider'
 
 let clock = 100
 
@@ -55,7 +55,7 @@ class MemoryDirectory {
   async getDirectoryHandle(name: string, options?: { create?: boolean }) {
     const existing = this.entries.get(name)
     if (existing instanceof MemoryDirectory) return existing
-    if (!options?.create) throw new Error('Directory not found')
+    if (!options?.create) throw new DOMException('Directory not found', 'NotFoundError')
     const directory = new MemoryDirectory(name)
     this.entries.set(name, directory)
     return directory
@@ -75,6 +75,17 @@ function providerWithNote() {
 }
 
 describe('LocalWorkspaceProvider authoring', () => {
+  it('creates a real workspace below the selected parent and rejects collisions', async () => {
+    const parent = new MemoryDirectory('Knowledge')
+    const manifest = 'schemaVersion: 1\nworkspace:\n  name: Course Notes\n'
+    const provider = await createLocalWorkspaceInParent(parent as never, 'Course Notes', manifest)
+    await provider.open()
+
+    expect((await provider.list('')).map((entry) => entry.name)).toEqual(['assets', 'notes', 'tensornote.yaml'])
+    expect(await provider.readText('tensornote.yaml')).toBe(manifest)
+    await expect(createLocalWorkspaceInParent(parent as never, 'Course Notes', manifest)).rejects.toThrow('同名目录')
+  })
+
   it('writes with optimistic conflict protection', async () => {
     const provider = providerWithNote()
     await provider.open()

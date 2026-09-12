@@ -1,38 +1,53 @@
-# TensorNote 2.0 使用说明
+# TensorNote 2.1 使用说明
 
-## 1. 选择版本
+## 1. 从首页进入知识库
 
-Web 适合试读、分享公开 GitHub 知识库和远程 Jupyter；Desktop 适合长期管理本地 Markdown、编辑和运行本机 Python。浏览器开发服务器不是独立发行版。
+顶部 `Web版` 或 `桌面版` 标识说明当前 Host。“最近打开”最多保留 8 个知识库，可重新打开、逐项移除或清空记录。旧版内置示例记录会在升级后自动清理。
+
+首页有三个入口：
+
+- **打开本地知识库**：选择一个已有的 Markdown 知识库根目录。
+- **新建本地知识库**：输入名称、选择父目录并确认完整路径。TensorNote 会创建 `tensornote.yaml`、`notes/` 和 `assets/`，随后自动打开。
+- **打开在线知识库**：选择 GitHub、GitLab 或 Gitee，粘贴公开仓库首页 URL，可选填分支或 Ref。
+
+知识库名称不能使用 `/ \\ : * ? " < > |`、`.`、`..` 或 Windows 保留名称。若父目录中已有同名目录，TensorNote 会停止创建且不会覆盖内容。
 
 ## 2. Web
 
-打开在线站点后选择内置 Workspace，或在 GitHub 入口粘贴公开仓库 URL。分享时使用应用生成的链接；它会包含仓库和固定 revision，接收者可直接进入相同内容。
+在线版适合阅读和分享公开知识库，以及连接远程 Jupyter。GitHub、GitLab、Gitee 来源均为公开只读，无需账号或 Token；仓库 URL 必须是 `https://` 首页地址。远程目录和 revision 元数据会短时缓存，减少匿名 API 请求；固定 commit 的缓存时间更长。
 
-浏览器支持且你主动授权目录时，也可打开本地文件夹。权限由浏览器管理，刷新或重启后可能需要重新授权。在线站点不能启动你电脑上的 Python，也不能绕过 HTTPS Mixed Content。
+最新版 Chrome / Edge 支持打开或新建浏览器授权的本地目录。目录权限由浏览器管理，刷新或重启后可能需要重新选择。其他浏览器仍可使用在线知识库入口。
 
-运行 Jupyter Sidecar：设置 → 计算与 Jupyter → 远程运行 → 添加 Direct Jupyter、JupyterHub 或 BinderHub → 填写当前会话连接信息 → 运行诊断 → 对 GitHub 来源信任当前 revision。不要把 Token 写进 Markdown 或分享 URL。
+运行 Jupyter Sidecar：设置 → 计算与 Jupyter → 远程运行 → 添加 Direct Jupyter、JupyterHub 或 BinderHub → 填写当前会话连接信息 → 运行诊断 → 按提示信任当前远程 revision。在线页面不能启动你电脑上的 Python，也不能绕过 HTTPS Mixed Content。不要把 Token 写进 Markdown 或分享 URL。
 
 ## 3. Desktop
 
-从 GitHub Release 下载对应系统和 CPU 的安装包，核对 `SHA256SUMS` 后安装。首次打开选择知识库根目录；Markdown、附件和 `tensornote.yaml` 留在原目录。应用无需 Vite 或额外 TensorNote 服务。
+从 GitHub Release 下载对应系统和 CPU 的安装包，核对 `SHA256SUMS` 后安装。首页可直接打开已有知识库，也可选择父目录创建新知识库。桌面端只保存用户授权目录的内部标识，创建和文件操作始终限制在该授权范围内。Markdown、附件和 `tensornote.yaml` 留在原目录，无需 Vite 或额外 TensorNote 服务。
 
-在 Files 中按真实目录/文件名浏览；使用搜索或标签切换笔记；TopBar 的 Outline 在当前笔记内定位。编辑时 Properties 按需展开，保存使用磁盘冲突检查，未保存草稿保存在设备恢复区。
+顶部“使用说明”通过受限的系统外链能力打开浏览器。在 Files 中按真实目录/文件名浏览；使用搜索或标签切换笔记；Outline 在当前笔记内定位。保存使用磁盘冲突检查，未保存草稿保存在设备恢复区。
 
 运行 Jupyter Sidecar：设置 → 计算与 Jupyter → 本地运行。便捷连接可选择已有 Conda/uv/venv 环境或创建环境，确认完整落盘路径后启动 Jupyter；手动连接用于你自己启动的 Server。远程运行与 Web 相同。阅读与编辑不需要 Python。
 
-## 4. Sidecar
+## 4. 分享
 
-正文卡片打开统一 SidePanel，同一时刻显示一个 Sidecar。Derivation 展示完整 Markdown 推导；Jupyter 提供共享 Kernel 的多 Cell 执行。拖动左边缘调整宽度，关闭后正文位置不变，切换笔记会自动关闭。
+在线知识库的分享窗口只保留一个主操作：“复制链接”。
 
-编辑器的“实验/Sidecar”按钮可插入两种类型。旧 `python exec` Lab 仍可打开；新内容使用 `:::tensornote{...}`。
+- 默认链接跟随当前 Ref，适合持续更新的知识库。
+- 在笔记页分享时，链接会直接打开当前笔记；在概览页分享时打开知识库概览。
+- 展开“更多选项”并勾选“固定到当前版本”，可生成固定 commit 的可复现链接。
+- 旧的 `/open/github/:owner/:repo` 链接继续可用；新链接统一使用 `/open/remote`，覆盖 GitHub、GitLab 和 Gitee。
 
-## 5. Git 与同步
+本地知识库不会被 TensorNote 自动上传。若要分享，请先用 Git 工具将它托管为公开仓库，再从“打开在线知识库”进入并复制链接。
 
-TensorNote 2.0 不提供 Git 工作台或 Git Bridge。Workspace 是普通文件夹，可用 Git CLI、GitHub Desktop、Fork、SourceTree 等工具提交和同步。先保存 TensorNote 中的编辑，再在 Git 客户端操作。
+## 5. Sidecar 与 Git
+
+正文卡片打开统一 SidePanel，同一时刻显示一个 Sidecar。Derivation 展示完整 Markdown 推导；Jupyter 提供共享 Kernel 的多 Cell 执行。旧 `python exec` Lab 仍可读取；新内容使用 `:::tensornote{...}`。
+
+TensorNote 不提供 Git 工作台。知识库是普通文件夹：先保存编辑，再使用 Git CLI、GitHub Desktop、Fork、SourceTree 等工具提交和同步。
 
 ## 6. 智能体维护
 
-从 Release 解压 Agent Skill，把完整目录和明确的 Workspace 根目录交给智能体。智能体可以维护 Markdown、资源、链接、Frontmatter 和 Sidecar，并运行：
+从 Release 解压 Agent Skill，把完整目录和明确的知识库根目录交给智能体。智能体可以维护 Markdown、资源、链接、Frontmatter 和 Sidecar，并运行：
 
 ```sh
 npm ci --ignore-scripts

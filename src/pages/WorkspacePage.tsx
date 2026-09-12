@@ -30,7 +30,7 @@ export function WorkspacePage() {
       <div className="workspace-overview__inner">
         <header className="workspace-overview__header">
           {session.manifest.publishing.logo && <div className="workspace-public-logo"><WorkspaceImage src={session.manifest.publishing.logo} alt="" documentPath="tensornote.yaml" resolveAssetUrl={useWorkspaceStore.getState().provider?.resolveAssetUrl.bind(useWorkspaceStore.getState().provider)} /></div>}
-          <span className="workspace-kicker">Workspace 概览</span>
+          <span className="workspace-kicker">知识库概览</span>
           <h1>{session.manifest.publishing.title || session.manifest.workspace.name}</h1>
           {(session.manifest.publishing.description || session.manifest.workspace.description) && <p>{session.manifest.publishing.description || session.manifest.workspace.description}</p>}
           <div className="source-line">
@@ -55,7 +55,7 @@ export function WorkspacePage() {
         {session.overview ? <section className="workspace-readme note-prose" aria-label="知识库介绍">
           <MarkdownRenderer content={session.overview.content} labs={[]} documentPath={session.overview.path} knowledgeIndex={session.knowledgeIndex} resolveAssetUrl={provider?.resolveAssetUrl.bind(provider)} />
         </section> : <section className="workspace-documents">
-          <div className="section-heading"><h2>开始阅读</h2><span>{session.manifest.content.root || 'Workspace 根目录'}</span></div>
+          <div className="section-heading"><h2>开始阅读</h2><span>{session.manifest.content.root || '知识库根目录'}</span></div>
           <div className="document-list">
             {startingDocuments.length ? startingDocuments.map((note) => (
               <Link key={note.id} to={`/notes/${note.id}`}>
@@ -63,7 +63,7 @@ export function WorkspacePage() {
                 <span><strong>{note.frontmatter.title}</strong><small>{note.frontmatter.summary || note.frontmatter.section}</small></span>
                 <ArrowRight size={16} />
               </Link>
-            )) : <div className="workspace-empty-state"><span><FilePlus size={22} /></span><div><strong>这个 Workspace 还没有笔记</strong><p>创建第一篇 Markdown 笔记，内容仍会直接保存在所选文件夹中。</p></div>{session.capabilities.write && <Button variant="primary" size="sm" onClick={() => void createFirstNote()}>新建笔记</Button>}</div>}
+            )) : <div className="workspace-empty-state"><span><FilePlus size={22} /></span><div><strong>还没有笔记</strong><p>创建第一篇 Markdown 笔记，内容会直接保存在知识库文件夹中。</p></div>{session.capabilities.write && <Button variant="primary" size="sm" onClick={() => void createFirstNote()}>新建第一篇笔记</Button>}</div>}
           </div>
         </section>}
 

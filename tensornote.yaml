@@ -1,28 +1,27 @@
 schemaVersion: 1
 
 workspace:
-  name: AI Learning Notes
-  description: 从深度学习基础到 Transformer、ViT 与 CLIP 的可执行学习知识库
+  name: TensorNote Workspace Fixture
+  description: 用于应用与知识库 Skill 验证的最小测试数据
 
 content:
-  root: notes
+  root: fixtures/workspace/notes
 
 assets:
-  root: assets
+  root: fixtures/workspace/assets
 
 navigation:
   mode: filesystem
 
 features:
-  executable: true
+  executable: false
 
 environment:
-  files:
-    - requirements-jupyter.txt
+  files: []
 
 publishing:
-  title: AI Learning Notes
-  description: 从深度学习基础到 Transformer、ViT 与 CLIP 的可执行学习知识库
-  logo: assets/images/TensorNote_logo_wide.png
+  title: TensorNote Workspace Fixture
+  description: 用于应用与知识库 Skill 验证的最小测试数据
   accent: '#4f8061'
-  defaultNote: deep-learning-overview
+
+extensions: {}

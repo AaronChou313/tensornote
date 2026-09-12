@@ -4,6 +4,7 @@ import type {
   HostAdapter,
   HostCapabilities,
   HostDirectorySelection,
+  HostParentDirectorySelection,
   HostPlatformInfo,
   HostUpdateInfo,
   HostUpdateProgress,
@@ -37,6 +38,16 @@ export class TauriHostAdapter implements HostAdapter {
   async selectWorkspaceDirectory(): Promise<HostDirectorySelection | null> {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<HostDirectorySelection | null>('select_native_workspace')
+  }
+
+  async selectWorkspaceParentDirectory(): Promise<HostParentDirectorySelection | null> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<HostParentDirectorySelection | null>('select_native_workspace_parent')
+  }
+
+  async createWorkspaceDirectory(parentId: string, name: string, manifest: string): Promise<HostDirectorySelection> {
+    const { invoke } = await import('@tauri-apps/api/core')
+    return invoke<HostDirectorySelection>('create_native_workspace', { parentId, name, manifest })
   }
 
   async restoreWorkspaceDirectory(workspaceId: string): Promise<HostDirectorySelection> {

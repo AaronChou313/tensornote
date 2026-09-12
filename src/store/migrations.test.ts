@@ -41,4 +41,12 @@ describe('persisted settings migrations', () => {
     })
   })
 
+  it('removes retired bundled knowledge-base records and sorts recents', () => {
+    expect(migrateWorkspaceSettings({ recentWorkspaces: [
+      { id: 'bundled:ai', type: 'bundled', name: 'AI Learning Notes', openedAt: 30 },
+      { id: 'github:a/b', type: 'github', name: 'B', openedAt: 10 },
+      { id: 'gitlab:a/b', type: 'gitlab', name: 'A', openedAt: 20 },
+    ] }).recentWorkspaces.map((item) => item.id)).toEqual(['gitlab:a/b', 'github:a/b'])
+  })
+
 })
