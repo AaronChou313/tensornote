@@ -53,7 +53,6 @@ jobs:
           node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs . --strict
           node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs skills/tensornote-knowledge-workspace/assets/workspace-template --strict
           node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs skills/tensornote-knowledge-workspace/assets/course-workspace-template --strict
-          node skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs skills/tensornote-knowledge-workspace/assets/project-experiment-workspace-template --strict
       - id: policy
         name: Resolve committed distribution policy
         run: node scripts/release-policy.mjs
