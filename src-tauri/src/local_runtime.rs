@@ -112,17 +112,6 @@ pub struct EnvironmentPlanRequest {
     revision: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct DependencyInstallPlanRequest {
-    environment_id: String,
-    workspace_id: String,
-    dependency_files: Vec<String>,
-    manifest_path: Option<String>,
-    manifest_digest: Option<String>,
-    revision: Option<String>,
-}
-
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EnvironmentPlanDependency {
@@ -744,122 +733,6 @@ impl LocalRuntimeManager {
                     install_only: false,
                     jupyter_support_only: false,
                     existing_environment_id: None,
-                },
-            );
-        Ok(public)
-    }
-
-    fn plan_dependencies(
-        &self,
-        request: DependencyInstallPlanRequest,
-        workspace_root: &Path,
-    ) -> Result<EnvironmentPlan, String> {
-        if request.dependency_files.is_empty() || request.dependency_files.len() > 8 {
-            return Err("请选择 1–8 个 requirements 文件".into());
-        }
-        let environment = self
-            .environments
-            .lock()
-            .map_err(|_| "Runtime environment registry is unavailable")?
-            .get(&request.environment_id)
-            .cloned()
-            .ok_or("目标环境不存在，请重新检测")?;
-        let mut files = Vec::new();
-        let mut dependencies = Vec::new();
-        for relative in &request.dependency_files {
-            if !is_requirements_file(relative) {
-                return Err(format!("首期仅支持 requirements*.txt：{relative}"));
-            }
-            let path = secure_workspace_file(workspace_root, relative)?;
-            let source = fs::read(&path).map_err(error_string)?;
-            if source.len() > 2 * 1024 * 1024 {
-                return Err(format!("依赖文件过大：{relative}"));
-            }
-            dependencies.push(EnvironmentPlanDependency {
-                path: relative.clone(),
-                sha256: sha256_hex(&source),
-                size: source.len() as u64,
-            });
-            files.push(path);
-        }
-        let (manifest_file, manifest_sha256) =
-            if let Some(relative) = request.manifest_path.as_deref() {
-                let path = secure_workspace_file(workspace_root, relative)?;
-                let source = fs::read(&path).map_err(error_string)?;
-                (Some(path), Some(sha256_hex(&source)))
-            } else {
-                (None, None)
-            };
-        let (executable, manager_path) = if environment.public.manager == "uv" {
-            let tools = self
-                .tools
-                .lock()
-                .map_err(|_| "Runtime tool registry is unavailable")?;
-            let tool = tools
-                .get("uv")
-                .ok_or("该环境由 uv 管理，但当前未检测到 uv")?;
-            (
-                tool.executable.clone(),
-                tool.executable.to_string_lossy().into_owned(),
-            )
-        } else {
-            (
-                environment.python.clone(),
-                environment.python.to_string_lossy().into_owned(),
-            )
-        };
-        let id = opaque_id(
-            "dependency-plan",
-            &format!("{}:{}", request.environment_id, now_millis()),
-        );
-        let confirmation = format!("INSTALL {}", environment.public.name);
-        let target =
-            environment_root_from_python(&environment.python).ok_or("无法确定目标环境目录")?;
-        let steps = dependencies
-            .iter()
-            .map(|item| format!("安装 {}（SHA-256 {}…）", item.path, &item.sha256[..12]))
-            .chain(std::iter::once("保留现有环境；失败或取消不会删除它".into()))
-            .collect();
-        let public = EnvironmentPlan {
-            id: id.clone(),
-            kind: "install".into(),
-            manager: environment.public.manager.clone(),
-            name: environment.public.name.clone(),
-            python_version: environment.public.python_version.clone(),
-            target_label: environment.public.location.clone(),
-            target_path: target.to_string_lossy().into_owned(),
-            manager_executable_path: manager_path,
-            environment_id: Some(request.environment_id.clone()),
-            external_environment: !environment.public.managed,
-            packages: Vec::new(),
-            kernel_name: environment
-                .public
-                .kernel_name
-                .clone()
-                .unwrap_or_else(|| "python3".into()),
-            steps,
-            confirmation,
-            expires_at: now_millis() + 15 * 60 * 1000,
-            dependencies,
-            manifest_digest: request.manifest_digest,
-            manifest_sha256,
-            revision: request.revision,
-        };
-        self.plans
-            .lock()
-            .map_err(|_| "Runtime plan registry is unavailable")?
-            .insert(
-                id,
-                PlanRecord {
-                    public: public.clone(),
-                    target,
-                    executable,
-                    base_python: Some(environment.python),
-                    dependency_files: files,
-                    manifest_file,
-                    install_only: true,
-                    jupyter_support_only: false,
-                    existing_environment_id: Some(request.environment_id),
                 },
             );
         Ok(public)
@@ -1625,16 +1498,6 @@ pub fn local_runtime_plan_environment(
 }
 
 #[tauri::command]
-pub fn local_runtime_plan_dependencies(
-    manager: State<'_, LocalRuntimeManager>,
-    registry: State<'_, NativeWorkspaceRegistry>,
-    request: DependencyInstallPlanRequest,
-) -> Result<EnvironmentPlan, String> {
-    let root = registry.root(&request.workspace_id)?;
-    manager.plan_dependencies(request, &root)
-}
-
-#[tauri::command]
 pub fn local_runtime_plan_jupyter_support(
     manager: State<'_, LocalRuntimeManager>,
     environment_id: String,
@@ -1848,16 +1711,6 @@ fn conda_environment_pythons(conda: &Path) -> Result<Vec<PathBuf>, String> {
         .map(PathBuf::from)
         .map(|root| environment_python(&root))
         .collect())
-}
-
-fn is_requirements_file(path: &str) -> bool {
-    Path::new(path)
-        .file_name()
-        .and_then(|name| name.to_str())
-        .is_some_and(|name| {
-            let lower = name.to_ascii_lowercase();
-            lower.starts_with("requirements") && lower.ends_with(".txt")
-        })
 }
 
 fn read_selected_tools(app_data: &Path) -> HashMap<String, PathBuf> {
@@ -2506,14 +2359,6 @@ mod tests {
         );
         assert!(secure_workspace_file(temp.path(), "../requirements.txt").is_err());
         assert_eq!(sha256_hex(b"numpy==2.0\n").len(), 64);
-    }
-
-    #[test]
-    fn accepts_only_requirements_text_files_for_direct_install() {
-        assert!(is_requirements_file("chapter/requirements.txt"));
-        assert!(is_requirements_file("chapter/requirements-gpu.TXT"));
-        assert!(!is_requirements_file("chapter/environment.yml"));
-        assert!(!is_requirements_file("chapter/pyproject.toml"));
     }
 
     #[test]

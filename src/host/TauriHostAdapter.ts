@@ -1,5 +1,4 @@
 import type {
-  DependencyInstallPlanRequest,
   EnvironmentPlan,
   EnvironmentPlanRequest,
   HostAdapter,
@@ -73,11 +72,6 @@ export class TauriHostAdapter implements HostAdapter {
   async planLocalEnvironment(request: EnvironmentPlanRequest): Promise<EnvironmentPlan> {
     const { invoke } = await import('@tauri-apps/api/core')
     return invoke<EnvironmentPlan>('local_runtime_plan_environment', { request })
-  }
-
-  async planEnvironmentDependencies(request: DependencyInstallPlanRequest): Promise<EnvironmentPlan> {
-    const { invoke } = await import('@tauri-apps/api/core')
-    return invoke<EnvironmentPlan>('local_runtime_plan_dependencies', { request })
   }
 
   async planEnvironmentJupyterSupport(environmentId: string): Promise<EnvironmentPlan> {

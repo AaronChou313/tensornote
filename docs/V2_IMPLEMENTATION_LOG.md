@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 当前阶段：7
-- 最后完成：6 编辑与迁移
-- 当前工作：双宿主产品收口
+- 当前阶段：8
+- 最后完成：7 双宿主产品收口
+- 当前工作：稳定门与发行候选
 - 分支：`codex/v2-core-sidecar`
 - 基线：v1.18.0 发布后主线 `fcdfcc2`
 
@@ -18,9 +18,9 @@
 | 3 单笔记 Workbench | DONE | `ce979bc` |
 | 4 Sidecar 契约 | DONE | `e29668e` |
 | 5 统一 SidePanel | DONE | `ee1def3` |
-| 6 编辑与迁移 | DONE | 待提交 |
-| 7 双宿主收口 | IN_PROGRESS | |
-| 8 稳定与发行 | TODO | |
+| 6 编辑与迁移 | DONE | `6874ef0` |
+| 7 双宿主收口 | DONE | 待提交 |
+| 8 稳定与发行 | IN_PROGRESS | |
 
 ## 2026-09-12 接手记录
 
@@ -101,3 +101,13 @@
 - Skill 的课程模板 `--strict` 校验零错误零警告；仓库 Workspace 校验零错误零警告（旧 Lab 仅有兼容信息）。
 - `pnpm check` 通过：48 个测试文件、165 项测试、Lint、TypeScript 与生产构建。
 - `quick_validate.py` 已调用，但当前两个可用 Python runtime 均缺少其 PyYAML 依赖；阶段 8 使用隔离临时环境补跑。
+
+## 阶段 7 — 双宿主产品收口
+
+状态：DONE
+
+- README、中英文使用说明、架构、Host matrix、发行与平台契约全部改为 Web / Desktop 双宿主。
+- 删除 Local Web 启动包、Server/Test、package script，以及 Release Workflow 的 Local Web Job 和资产上传。
+- 删除 Git Bridge 与 Project Experiment 的当前产品文档、Schema 和 Skill 内容；保留 GitHub Workspace Provider 与 BinderHub Compute Connector。
+- Desktop Host 移除已经没有 UI 调用者的 Project Experiment requirements 独立安装命令；普通环境创建与 Jupyter 支持保留。
+- `pnpm check`、Static Web build/boundary、Rust fmt、Clippy 与 14 项 Rust 测试通过。

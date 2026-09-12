@@ -93,13 +93,13 @@ git switch -c feat/功能短名称
 - 修改 WikiLink、Tag、Backlink、Search v2 或图谱索引：编辑 `src/content/knowledgeIndex.ts`，并同步更新 `KnowledgePanel` / `KnowledgePage`。
 - 修改 Frontmatter 属性索引或 Database 查询契约：编辑 `src/content/propertyIndex.ts`；Database 页面位于 `src/pages/StructuredKnowledgePage.tsx`，并同步更新 [Structured Knowledge 指南](STRUCTURED_KNOWLEDGE.md)。
 - 修改 Local Git 协议：Bridge 位于 `scripts/git-bridge*.mjs`，浏览器客户端位于 `src/git/`，工作台状态和页面位于 `src/store/useGitStore.ts` 与 `src/pages/GitWorkspacePage.tsx`；同步更新 [Local Git 指南](GIT_AND_SYNC.md)。禁止把任意 Shell、任意仓库路径或远程凭据暴露给浏览器。
-- 修改 Python Lab：编辑 `src/components/LabDrawer.tsx`、`CodeCell.tsx` 或 `src/content/labParser.ts`。
+- 修改 Jupyter Sidecar：编辑 `src/components/LabDrawer.tsx / SidePanel`、`CodeCell.tsx` 或 `src/content/labParser.ts`。
 - 修改 Compute Profile、Scope、Session 生命周期或诊断：编辑 `src/compute/` 与 `src/store/useComputeStore.ts`；Jupyter 协议细节才进入 `src/jupyter/`。
 - 修改主题与界面状态：编辑 `src/store/useAppStore.ts` 和相应组件。
 - 修改工作台标签、Pane、历史或侧栏：编辑 `src/workbench/`；它们是用户 UI 状态，不能写入 Markdown 或 Provider。
 - 新增可见操作：先注册到 `src/commands/CommandRegistry.ts`；Markdown 变换只进入 `src/commands/editor.ts`，不在工具栏或快捷键处理器复制字符串逻辑。
 - 修改扩展平台：核心契约与生命周期位于 `src/extensions/`，管理界面位于 `src/components/extensions/`；本地插件格式与权限要求见 [Extension Platform 指南](EXTENSIONS.md)。
-- 修改 TensorNote Notebook 基础能力：更新 `requirements-jupyter.txt`。课程或实验依赖应放在对应 Workspace/Experiment 的 requirements 文件；仅维护本仓库可选示例时更新 `requirements-ml-example.txt`。
+- 修改 TensorNote Notebook 基础能力：更新 `requirements-jupyter.txt`。课程或实验依赖应放在对应 Workspace 的 requirements 文件；仅维护本仓库可选示例时更新 `requirements-ml-example.txt`。
 - 新增前端依赖：使用 `pnpm add <包名>` 或 `pnpm add -D <包名>`，同时提交 `package.json` 与 `pnpm-lock.yaml`。
 
 ### 2.3 开发中验证
@@ -125,7 +125,7 @@ pnpm test:performance
 - 明亮和暗色主题
 - 桌面和窄屏布局
 - 普通 Markdown 代码块、Mermaid、公式和 Callout
-- Python Lab 展开、编辑、运行与输出
+- Jupyter Sidecar 展开、编辑、运行与输出
 - 页面切换时 Kernel 生命周期
 - 标签/固定/拆分窗格、Command Palette、明暗主题和窄屏侧栏
 
@@ -230,7 +230,7 @@ gh release view v1.0.0
 提出新功能时，说明以下内容会更容易一次完成：
 
 1. 使用场景：想解决什么问题。
-2. 入口位置：主页、笔记页、Python Lab、设置或其他位置。
+2. 入口位置：主页、笔记页、Jupyter Sidecar、设置或其他位置。
 3. 预期行为：操作前后发生什么。
 4. 数据是否需要持久化，以及存放在 Markdown、浏览器还是本地文件。
 5. 验收方式：什么结果算完成。

@@ -1,220 +1,31 @@
-# TensorNote user guide
+# TensorNote 2.0 User Guide
 
-[中文（默认）](https://github.com/AaronChou313/tensornote/blob/main/docs/zh-CN/USER_GUIDE.md) · English
+## 1. Choose a host
 
-For version 1.18.0. Follow download → open → configure only what you need → daily use. Reading and editing Markdown require no Jupyter installation. Running Python requires a compute environment. TensorNote does not host your knowledge base or provide public compute resources.
+Web is for quick reading, public GitHub sharing, and remote Jupyter. Desktop is for long-term local Markdown authoring and local Python. The browser development server is not a separate edition.
 
-<a id="choose"></a>
-## 1. Choose your edition
+## 2. Web
 
-| | Online Web (GitHub Pages) | Local Web | Desktop |
-| --- | --- | --- | --- |
-| Get started | Open the website | Download Local Web; install Node.js 22+ | Install the package for your OS and architecture |
-| Open notes | Examples, public GitHub, local folders¹ | Examples, public GitHub, local folders¹ | Examples, public GitHub, native local folders |
-| Edit and save | Authorized local folders; GitHub/examples are read-only | Authorized local folders | Local folders |
-| Python | HTTPS Jupyter / JupyterHub / BinderHub | Local Jupyter or HTTPS remote services | Discover environments, create a basic environment, start Jupyter; remote connections also supported |
-| Git | No local Git integration | Optional Git Bridge and system Git | System Git; no Bridge |
-| Offline use | Cached pages do not imply full offline support; GitHub and remote compute need a network | Local app, notes and an installed local Python environment work offline | Local notes and an installed local Python environment work offline |
-| Best fit | Quick exploration, sharing, team compute | Browser workflow without a desktop installation | Daily knowledge management and local experiments |
+Open the online app and choose the built-in Workspace or paste a public repository URL under GitHub. Use the generated fixed-revision share link. A browser-authorized local folder can be opened when the browser supports it.
 
-¹ Local folder access requires Chrome/Edge with File System Access API support and your explicit folder selection and permission. Safari/Firefox users can read examples or GitHub; use Desktop for local editing. A browser's local folder is on the reader's computer, not the website server.
+For a Jupyter Sidecar, open Settings → Compute & Jupyter → Remote runtime, configure Direct Jupyter, JupyterHub, or BinderHub, run diagnostics, and trust the exact GitHub revision. Web cannot start Python on the reader's computer or bypass HTTPS mixed-content rules. Never place a token in Markdown or a share URL.
 
-All editions use portable Markdown, assets and `tensornote.yaml`. GitHub sources resolve to a fixed revision and remain read-only; clone or download a copy and open it locally to edit. Current Git operations are status, diff, stage and commit. **Push, Pull, Clone and branch switching are not implemented**; use a Git client for remote synchronization.
+## 3. Desktop
 
-## 2. Download and open
+Download the package for the correct OS and CPU, verify `SHA256SUMS`, install, and select a knowledge-folder root. Markdown, assets, and `tensornote.yaml` remain in that folder. No Vite or TensorNote service is required.
 
-### Online Web
+Files mirrors the filesystem. Search and tabs switch notes; TopBar Outline navigates within the current note. Properties opens only while editing. Saves use disk conflict checks and unsaved drafts stay in device recovery storage.
 
-Open [TensorNote online](https://aaronchou313.github.io/tensornote/) and select **AI Learning Notes** to read the example workspace. Enter `owner/repository` to open a public knowledge repository. No TensorNote account is required.
+For Jupyter, use Settings → Compute & Jupyter → Local runtime. Convenient connection selects or creates a Conda/uv/venv environment and shows its full path before launch. Manual connection uses a server you start. Remote runtime matches Web. Reading and editing need no Python.
 
-### Local Web
+## 4. Sidecars
 
-1. Download `TensorNote-local-web-1.18.0.tar.gz` from [GitHub Releases](https://github.com/AaronChou313/tensornote/releases) and extract it.
-2. Install Node.js 22 or newer. Initial downloads require a network. The package contains the compiled application: **no pnpm, npm install or frontend build is needed**.
-3. Open a terminal in the extracted `TensorNote-local-web` directory and run:
+A trigger opens the unified SidePanel. Derivation renders complete Markdown reasoning; Jupyter provides multiple Python cells sharing one Kernel. The panel is resizable, preserves the main reading position, and closes when the note changes.
 
-```sh
-node start.mjs
-```
+The editor inserts both Sidecar types. Legacy `python exec` Labs remain readable; new content uses `:::tensornote{...}`.
 
-4. Open `http://127.0.0.1:5173` in Chrome/Edge. Choose “打开本地 Workspace” (Open local Workspace), select your Markdown folder and allow read/write access.
-5. Keep the terminal running. Press `Ctrl+C` there to stop; run the same command next time.
+## 5. Git and agents
 
-Do not double-click `app/index.html`. If port 5173 is occupied, stop the other local web server first. Keep using the same address: `localhost` and `127.0.0.1` have separate browser permissions, settings and token storage.
+TensorNote 2.0 has no Git workbench or Git Bridge. Save edits, then use Git CLI or a dedicated Git client to commit and synchronize the ordinary Workspace folder.
 
-`TensorNote-web-1.18.0.tar.gz` is a Static Web deployment archive built for the `/tensornote/` path, not the Local Web launcher. GitHub's automatic “Source code” archives are for developers.
-
-### Desktop
-
-Choose the installer for your OS and architecture from Release Assets. macOS builds distinguish Apple Silicon (aarch64/arm64) and Intel (x64). The pipeline also provides Windows/Linux x64 packages; consult the release notes for actual installation testing coverage.
-
-1. Install and open TensorNote. On macOS, drag it into Applications before launching.
-2. Select “打开本地 Workspace” to open existing notes, or “新建 Workspace” to select an empty folder.
-3. Create a note in the file tree, write and save. Return through the recent workspaces list next time.
-4. Reading and writing require no Node.js, web server or Python setup.
-
-Use **Clear history** beside Recent Workspaces to remove all entries, or remove one entry with its trailing button. This only removes shortcuts stored on the current device; it does not delete workspace files, a GitHub repository, or revision trust. Reopening a GitHub link without a pinned revision resolves the branch's latest commit again. A shared URL containing a full commit revision remains fixed to that version.
-
-This GitHub community distribution does not have Apple Developer ID notarization or a trusted Windows publisher signature. Your OS may display an unidentified developer warning. Check the release source and `SHA256SUMS`, then use the OS-provided “Open Anyway” or “More info” process only if you trust that package. Organization-managed devices may block installation. Updater signature verification is separate from OS publisher signing. Do not disable system-wide security protection.
-
-## 3. Read, write and organize
-
-- Overview provides workspace entry points and statistics. Files preserves the filesystem hierarchy and directory names, places folders first, and naturally sorts by real directory and file names. Frontmatter `section` does not rename Files entries. Collapsing a section differs from hiding the whole sidebar.
-- Switch between reading, editing and split preview. Save writes changes to Markdown. Resolve unsaved drafts or external modification conflicts before overwriting.
-- WikiLinks, backlinks, tags and Properties connect knowledge. Images and attachments remain in the workspace folder.
-- Bundled examples are read-only. Open your own local copy to edit them.
-- Markdown is durable content. Lab outputs, Scratch code and Kernel memory are not automatically saved notes. Explicitly save code, export or copy important results.
-
-### Customize Overview (v1.6.2+)
-
-Place `README.md` at the workspace root to display its Markdown body on Overview, including relative images and links to notes. No TensorNote-specific editor is required. If `OVERVIEW.md` also exists, it takes priority, allowing a separate reading homepage. Names are case-insensitive. Keep this file at the workspace root even when `content.root` points to a subfolder. Without either file, Overview retains the generated note entry points.
-
-The workspace name and statistics remain above the custom content. Edit `workspace.description` in an existing `tensornote.yaml` to customize the short introduction. Code blocks on the homepage are displayed, never automatically executed. Refresh or reopen the workspace after editing externally.
-
-### Folders, outline and split scrolling (v1.6.2+)
-
-Ordinary Markdown without `section` preserves the physical directory name. Directories such as `images` with no Markdown appear as folders; referenced images render inside notes. The outline stays visible while reading on wide screens and scrolls independently when long. On narrow screens, open it with the context sidebar button. Split preview enables synchronized scrolling by default, mapping heading positions between source and preview instead of copying pixel distances. Documents without headings use proportional progress. Alignment between headings is approximate; turn synchronization off to browse independently.
-
-### Share a public GitHub workspace with one URL
-
-Replace `OWNER/REPO` with the public repository owner and name:
-
-```text
-https://aaronchou313.github.io/tensornote/#/open/github/OWNER/REPO
-```
-
-Recipients can immediately read the repository's default branch. Append `?ref=main` to choose a branch (URL-encode other branch names). Existing releases support this URL; v1.6.2 also adds a latest-content copy action to **Share Workspace**. Use the fixed Revision link in the same dialog for reproducible sharing. Links do not grant write access, automatically trust code, or contain Jupyter/GitHub tokens.
-
-<a id="compute"></a>
-## 4. Connect Jupyter when you need Python
-
-Open a workspace, then **Settings → Compute & Jupyter** (“设置 → 计算与 Jupyter”). Review the code before enabling execution. GitHub sources also require trust in the fixed revision; review again after the revision changes. Enter tokens only in the dedicated application field, never in notes, repositories or sharing links.
-
-### Online Web: use your own online compute service
-
-Use **Generic Jupyter** for an existing HTTPS Jupyter server, **JupyterHub** for a school or team platform, or **BinderHub** for temporary experiments from a public repository. TensorNote does not turn an arbitrary notebook website's sharing link into a Jupyter API endpoint.
-
-**Generic Jupyter**
-
-1. Obtain the actual Jupyter Server base address (for example `https://compute.example.org/user/me/`), your token and the internal kernel name from your provider.
-2. Add a Remote Server profile. Enter the address without `?token=`, then the token and kernel name separately.
-3. The service must allow the TensorNote Origin, `https://aaronchou313.github.io`, and forward Kernel WebSockets. The Origin excludes `/tensornote/`.
-4. Run connection diagnostics, then open an experiment card and run a simple cell first.
-
-**JupyterHub**
-
-1. Sign in to your own Hub account and obtain a revocable personal API token permitted by your organization.
-2. Add a JupyterHub profile with the HTTPS Hub base address and your token. Leave username blank for token-based identity discovery, or supply your own username. Set a named server if applicable.
-3. Both the Hub and the single-user server must allow the TensorNote Origin. Administrators must also enable compatible token WebSocket access. Signing into the Hub website alone does not guarantee cross-origin API access.
-4. Prepare the connection and run diagnostics. TensorNote can reuse an existing server; it only stops a server that it started and still owns during the current session.
-
-**BinderHub**
-
-1. Open a public GitHub workspace and review its fixed commit and environment files.
-2. Add a BinderHub profile with the platform's HTTPS address and a complete 40-character commit SHA. The current GitHub workspace can supply the repository and revision.
-3. Explicitly connect and wait for the build and launch. Diagnostics alone do not start a build.
-4. Public Binder can queue, time out or run out of capacity. Save important results elsewhere: temporary environments are reclaimed and do not write back to GitHub automatically.
-
-An online HTTPS page cannot directly connect to `http://127.0.0.1:8888`. Use Desktop or Local Web for local Python instead of disabling browser security checks.
-
-### Local Web: start your own local Jupyter
-
-Install basic packages in a separate Python environment; the initial installation needs a network:
-
-```sh
-python3 -m venv .venv
-# macOS / Linux
-source .venv/bin/activate
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-python -m pip install jupyter-server ipykernel numpy matplotlib
-python -m ipykernel install --user --name tensornote --display-name TensorNote
-python -m jupyter_server --no-browser --ServerApp.ip=127.0.0.1 --ServerApp.port=8888 --ServerApp.allow_origin=http://127.0.0.1:5173
-```
-
-On Windows, use your installed `python` if `python3` is unavailable. In the application's Local Python profile, enter `http://127.0.0.1:8888`, the token printed by Jupyter and kernel name `tensornote`. Keep the Jupyter terminal open. Do not publish token-bearing terminal screenshots or set `allow_origin` to `*`. Your Python environment, application package and knowledge folder can live in separate locations.
-
-### Desktop: use the runtime assistant
-
-1. Open **Settings → Compute & Jupyter → Local runtime**, then select an existing environment from the list.
-2. Select an environment marked Ready, then choose **Start and connect**. TensorNote starts local Jupyter and switches to its compute profile without exposing the random token.
-3. If no suitable environment exists, expand **Create isolated environment**. Conda and uv can create the selected Python 3.10–3.14 version; venv requires that exact Python version to be installed already.
-4. The confirmation view shows the manager, Python version, base packages and full target path. Managed environments live under TensorNote application data, outside the workspace.
-5. A macOS app launched from Finder may not inherit the terminal PATH. TensorNote checks common Miniconda, Anaconda, Miniforge and Mambaforge locations. If Conda is still missing, use **Choose file** on the Conda manager card.
-6. The base environment does not include the full PyTorch/CUDA stack. Exiting TensorNote stops servers it launched without touching independently started servers. Only TensorNote-managed environments can be deleted here.
-
-Use **Add environment or connection → Existing Jupyter Server** for a server you started yourself. Use **Remote runtime** for another machine, JupyterHub or Binder; select it from the connection list and edit advanced fields in its details dialog. Online Web is remote-only; Local Web offers local manual connection and remote runtime.
-
-### If the connection fails
-
-Follow the diagnostics order: address/protocol → running server → token → CORS Origin → available kernel → WebSocket/proxy. Fix one issue and retry; repeatedly creating profiles will not fix server configuration. You can copy a redacted diagnostic report, but review it for private information before sharing.
-
-## 5. Enable Git when needed
-
-### Desktop
-
-Install system Git and open a knowledge folder that is already a Git repository. Use the Git page to inspect status and diffs, stage files, enter a message and commit. No Bridge is needed.
-
-### Local Web
-
-Check that `git --version` works in a terminal. Use an existing repository or run `git init` in a new knowledge folder. Open another terminal in the **extracted application directory**:
-
-```sh
-node scripts/git-bridge.mjs --workspace "/absolute/path/to/your-vault"
-```
-
-Replace the example with the **Git root of the knowledge folder currently open in your browser**, not the application package directory. Connect to `http://127.0.0.1:4318` on the Git page. The Bridge listens only on loopback and checks the browser Origin; defaults allow `http://127.0.0.1:5173` and `http://localhost:5173`. Closing its terminal disables Git integration without stopping local reading or editing.
-
-For a custom Web Origin, set `TENSORNOTE_ORIGIN` to that complete Origin before starting the Bridge; do not use a wildcard. Source developers can alternatively run `pnpm git:bridge -- --workspace "..."`.
-
-### A commit is not a sync
-
-Recommended sequence: save notes → inspect Diff → stage selected files → Commit → Push using a Git client. On another device, Pull first, then open or refresh the workspace. Configure author identity in the knowledge repository if needed:
-
-```sh
-git config user.name "Your Name"
-git config user.email "you@example.com"
-```
-
-Manage remotes, authentication, Push/Pull, branches and conflicts in your Git client. TensorNote does not store your GitHub password or silently overwrite conflicts. The Bridge and Jupyter are separate optional services: one manages local Git; the other runs Python.
-
-## 6. Give an agent the knowledge workspace skill
-
-Download `TensorNote-agent-skill-1.18.0.tar.gz` from the same release. Extract it and give a skill-capable agent `tensornote-knowledge-workspace/SKILL.md` together with its containing directory. Do not copy only the title or omit referenced files. Explicitly identify your knowledge folder so the agent does not edit TensorNote's application source by mistake.
-
-Suggested request: “Review and update this knowledge folder using the supplied skill. Preserve Schema v1, stable note IDs, WikiLinks, executable cell metadata and relative asset paths. Read existing content first, run the bundled validator after changes, summarize your edits and never write tokens into files.”
-
-Install the skill's own dependencies from its directory, then run its standalone validator:
-
-```sh
-npm ci
-node scripts/validate-workspace.mjs "/absolute/path/to/your-vault" --strict
-```
-
-The agent maintains portable Markdown through file access. This is not a remote interface exposing arbitrary Desktop shell commands. Format rules and maintenance instructions ship in the skill's references and templates.
-
-Use an Inline Lab for a short exercise contained in one note, and a Project Experiment for multiple scripts, dependency groups, notebooks, training jobs or artifacts. The Skill includes minimal and full manifest templates. Strict validation checks referenced files, environment inheritance, presets, step graphs, parameters, artifacts and download declarations. A manifest describes content only; it does not authorize the agent or TensorNote to install packages, download models or start training automatically.
-
-On Desktop, the Experiment Environment tab lists `requirements*.txt` files declared by the manifest and additional files detected directly in the experiment working directory. Select the exact target Python environment, then install one file or a checked set. TensorNote shows the environment path and file digests and requires a confirmation phrase. External environments are modified in place and cannot be rolled back automatically. The selected environment is shared with the Run tab.
-
-## 7. Update, back up and report issues
-
-- Save notes and back up the whole knowledge folder, including assets and `tensornote.yaml`, before updating. Keep it separate from the application installation.
-- Local Web: stop the server, extract the new version into a new directory, run its `node start.mjs`, and authorize the existing knowledge folder again. Do not store personal notes inside `app/`.
-- Desktop: check for updates in Settings or download the correct architecture's new installer. Do not forcibly replace the application while it is writing or executing.
-- Online: reload the website. If stale cache causes style problems, save local drafts first, then refresh or clear this site's cache. Clearing site data may remove device preferences, permissions and session tokens, but does not delete Markdown in your folder.
-- If the sidebar is missing, check the sidebar toggle and window width. Version 1.6.1 fixes conflicting sidebar transform rules shared by Web and Desktop. For remaining issues, include version, OS, window dimensions and a screenshot without private content.
-- Report reproducible issues through [GitHub Issues](https://github.com/AaronChou313/tensornote/issues). Do not upload private workspaces, tokens or credentials.
-
-## Server-side references
-
-[Jupyter Server](https://jupyter-server.readthedocs.io/en/latest/operators/public-server.html) · [JupyterHub REST API](https://jupyterhub.readthedocs.io/en/stable/howto/rest.html) · [Binder usage limits](https://mybinder.readthedocs.io/en/latest/about/user-guidelines.html)
-
-Refreshing a workspace overview returns to Home; reopen it from Recent. Browser folder permission may need to be granted again.
-
-### Running project experiments on Web
-
-Choose a Compute Profile under Settings → Compute & Jupyter and set **Jupyter Workspace path** to the knowledge-base root as seen by the Jupyter process. The experiment page verifies that directory and all referenced scripts inside the kernel before confirmation. `python`, `python-module`, and notebooks with `nbformat`/`nbclient` are supported; use Desktop or a compatible remote runtime for `torchrun`. Git Bridge is unrelated to experiment execution and remains Git-only.
-
-### Opening Binder from Online Web
-
-Open a public workspace through a pinned GitHub reader link. The experiment page checks for Binder environment metadata and offers “Open Binder” when compatible. Initial builds may take several minutes; the environment and files are temporary, so download anything you need to keep. The link is pinned to the full commit and carries no token or local settings. Reading remains available when Binder is not configured.
+The release Agent Skill lets a compatible agent maintain Markdown, assets, links, Frontmatter, and Sidecars and run its deterministic validator. It needs neither TensorNote nor Jupyter and grants no install, execution, network, or Git-write authority.

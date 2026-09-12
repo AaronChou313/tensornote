@@ -86,15 +86,6 @@ export interface EnvironmentPlanRequest {
   revision?: string
 }
 
-export interface DependencyInstallPlanRequest {
-  environmentId: string
-  workspaceId: string
-  dependencyFiles: string[]
-  manifestPath?: string
-  manifestDigest?: string
-  revision?: string
-}
-
 export interface EnvironmentPlanDependency {
   path: string
   sha256: string
@@ -182,7 +173,6 @@ export interface HostAdapter {
   discoverLocalRuntime?(workspaceId?: string): Promise<RuntimeDiscovery>
   selectLocalRuntimeTool?(kind: 'uv' | 'conda'): Promise<boolean>
   planLocalEnvironment?(request: EnvironmentPlanRequest): Promise<EnvironmentPlan>
-  planEnvironmentDependencies?(request: DependencyInstallPlanRequest): Promise<EnvironmentPlan>
   planEnvironmentJupyterSupport?(environmentId: string): Promise<EnvironmentPlan>
   applyLocalEnvironment?(planId: string, confirmation: string): Promise<RuntimeOperation>
   getLocalRuntimeOperation?(operationId: string): Promise<RuntimeOperation>

@@ -1,24 +1,17 @@
-# TensorNote Platform Contracts v1
+# TensorNote 2.0 平台契约
 
-TensorNote v1.0.0 冻结首个可长期兼容的平台基线。应用内实现仍可演进，但 1.x 不改变这里已经公开的字段含义、安全默认值和数据归属。TypeScript 集成应从 `src/platform/index.ts` 导入稳定 API，避免依赖内部目录。
+`src/platform/index.ts` 是公共 TypeScript 边界。Markdown、附件与 `tensornote.yaml` 是可迁移事实来源；设置、Secret、草稿和运行状态不属于 Workspace 内容。
 
-## 1. 版本与兼容规则
+## Host 与 Deployment
 
-| 契约 | 当前版本 | 稳定保证 |
-| --- | --- | --- |
-| Workspace Repository Schema | v1 | 已知字段、安全默认值与兼容降级 |
-| WorkspaceProvider API | v1 | 文件、资产、能力与冲突边界 |
-| ComputeProvider API | v1 | 连接、Session、执行、控制与诊断 |
-| ComputeConnector API | v1 | 获取标准 Compute Endpoint、生命周期、进度与清理 |
-| Extension API | v1 | Manifest、权限、生命周期与贡献点 |
-| Executable Markdown Syntax | v1 | 可移植 Python Fence 元数据 |
-| Settings / Secret Model | v1 | 内容、偏好、恢复状态与 Secret 分类 |
+正式 Host 只有 `web` 与 `desktop`。Static、Self-hosted 和 Development 是 Web 的部署元数据，只决定 Router、base path 与 PWA，不授予产品能力。
 
-1.x 可以增加可选字段、可选方法、新 Provider 或新贡献点。既有调用者无法安全忽略的字段删除、重命名、类型变化或行为变化属于破坏性变更，必须进入新的主版本并提供迁移说明。
+- Web 以阅读和分享为主，可使用 GitHub Workspace Provider；浏览器明确授权时可读写本地目录。只能连接兼容的远程 HTTPS Compute。
+- Desktop 负责本地创作与运行，可通过 Host 能力访问原生目录、发现/创建环境并启动本机 Jupyter，也可连接远程 Compute。
 
-## 2. Workspace Repository Schema v1
+## Workspace Repository Schema v1
 
-Workspace 根目录可选包含 `tensornote.yaml`：
+根目录可选包含：
 
 ```yaml
 schemaVersion: 1
@@ -34,105 +27,47 @@ navigation:
 features:
   executable: false
 environment:
-  files:
-    - requirements.txt
-extensions: {}
+  files: [requirements.txt]
+publishing:
+  title: My Workspace
+  description: Public description
 ```
 
-- 没有配置文件时仍可作为普通 Markdown Workspace 打开，默认禁止执行。
-- 未声明版本的旧配置只在内存中迁移，不自动改写用户文件。
-- 高于当前版本的配置只读取已知字段，并强制关闭写入、Git 与执行。
-- 未知字段安全忽略；扩展数据放在 `extensions`。Token、密码和云端密钥不得写入配置。
+没有 Manifest 时仍可阅读，执行默认关闭。未来 Schema 只读且不可执行；未知字段保留。Token、密码、Cookie、私钥和 API Key 不得写入 Workspace。
 
-## 3. WorkspaceProvider API v1
+## Workspace Provider v1
 
-Provider 负责列目录、读取文本和二进制、报告文件状态与来源能力；可写 Provider 还可以实现写入、创建目录、移动、复制、删除与监听。UI 只能根据 `WorkspaceCapabilities` 决定入口，不通过来源类型绕过 Provider。
+Provider 负责列目录、读文本/二进制、解析资源 URL，并声明写入、移动、复制、删除、监听等能力。UI 只根据 capability 显示操作。写入使用预期修改时间/大小检测冲突，不能把权限、越界或 I/O 错误伪装成不存在。
 
-v1.6 可选导出 `WorkspaceNotFoundError` 表示路径不存在；权限拒绝、越界或 I/O 错误不能伪装为不存在。已有 v1 Provider 的 `not found` 错误消息仍兼容。Native IPC 在适配层将跨平台缺失错误映射为该类型，不让 UI 解析系统语言。
+GitHub Provider 绑定解析后的完整 commit SHA。分享链接可以用分支发现最新 revision，但实际阅读与执行信任必须固定到 SHA。2.0 不含 Git Workspace 或 Git 操作 API。
 
-写入必须支持预期文件状态；基线不匹配时抛出 `WorkspaceConflictError`，由用户选择重新载入或明确覆盖。新增 Provider 可以只实现读取能力，但不得伪造写入、Git 或执行能力。
+## Compute Provider v1
 
-## 4. ComputeProvider API v1
+Compute Provider 提供连接、Kernel 查询、Session、执行、Interrupt、Restart、诊断与关闭。Compute Connector 可将 Direct Jupyter、JupyterHub、BinderHub 解析成临时连接；Token 与 Lease 只存在会话/内存中。
 
-ComputeProvider 接受不含知识内容的连接配置与执行上下文，建立可关闭的 Session，并提供 Kernel 查询、代码执行、Interrupt、Restart 和连接诊断。`ComputeRuntime` 根据 per-note、per-workspace 或 manual scope 管理 Session 生命周期。
+执行需要同时满足：Workspace 显式许可、Provider 可用，以及 GitHub 来源对当前完整 revision 的信任。连接成功不能隐式授予执行权。Desktop 环境发现和启动属于 Host 能力，不属于 Workspace 或 Compute Provider。
 
-Jupyter 是首个 Provider，但不是 UI 的固定依赖。新增 Provider 必须保持输出事件、错误、取消和关闭语义，不得静默安装环境或绕过 Workspace 执行授权。
+## Sidecar Markdown v2
 
-Desktop 的本地运行时发现和环境准备属于 Host 能力，不属于 ComputeProvider。Runtime Discovery 可通过可选字段报告工具可执行路径、环境 Python 路径、管理器诊断和托管环境根目录；旧 Host 忽略这些字段仍保持兼容。用户选择的 Conda/uv 路径是设备设置，不写入 Workspace。依赖安装必须绑定 Workspace 授权根、明确目标环境、Manifest 与依赖文件摘要，并在执行前确认；现有外部环境失败时不得被删除。
+Sidecar 只有两种内建类型：`derivation` 与 `jupyter`。
 
-Compute Profile 可用可选的 `runtimeLocation` 标记本地或远程入口；旧 Profile 缺少该字段时根据 Connector 与 URL 兼容归类。该字段只组织设置界面，不改变 Connector、Provider 或执行授权。
-
-### 4.1 ComputeConnector API v1（v1.5.0）
-
-ComputeConnector 位于 Profile 与 ComputeProvider 之间，只负责把 Generic Jupyter、JupyterHub 或 BinderHub 解析为临时的标准 `ComputeConnectionConfig`。它不读取 Markdown，不直接执行代码，也不改变 ComputeProvider v1。
-
-- `direct` 校验现有 Jupyter URL；TensorNote 只关闭自己创建的 Kernel，不停止外部 Server。
-- `jupyterhub` 用当前用户的有限权限 Token 读取身份和 Server 状态；可连接已有 Server，或启动并只清理本次由 TensorNote 创建的 Server。
-- `binderhub` 只接受公开 GitHub `owner/repository` 与完整 40 位 commit SHA；build/launch 返回的 Token 只存在运行时 Lease，断开后请求释放临时 Server。
-- Connector 必须报告 checking、spawning/building、ready、stopping 或 error 等进度，并声明外部/TensorNote 所有权与 persistent/provider-managed/temporary 持久性。
-- Connector Profile 可以作为浏览器偏好保存，但 Hub API Token、Binder 临时 Token、已解析 Server URL 与 Lease 不得持久化或写入 Workspace。
-
-远程 URL 在非 Loopback 场景必须使用 HTTPS。公开 Workspace 的执行仍需同时通过 Workspace execution permission 与固定 GitHub Revision trust；连接成功不能隐式授予执行权。
-
-## 5. Extension API v1
-
-Extension API v1 包含 Command、View、Sidebar、Markdown Processor、CodeMirror Extension、Settings、Status Bar Item、Workspace Provider 与 Compute Provider 贡献。Manifest 声明 `apiVersion`、最低 TensorNote 版本和所需权限。
-
-省略 `apiVersion` 的旧扩展按 v1 兼容；声明未来主版本时 Runtime 明确拒绝。扩展停用必须清理所有贡献。高风险能力继续受 `workspace:write`、`network`、`compute` 与 `secret` 等权限约束。
-
-## 6. Executable Markdown Syntax v1
-
-普通 Python Fence 只展示源码。只有带 `exec` 的 Fence 才进入 Lab：
-
-````markdown
-```python exec lab="linear-regression" cell="1" title="Create data" difficulty="basic"
-import numpy as np
-x = np.arange(8)
+```markdown
+:::tensornote{type="derivation" id="attention-scale" title="完整推导"}
+普通 Markdown 与公式。
+:::
 ```
 
-```python exec lab="linear-regression" cell="2" title="Fit" difficulty="basic"
-print(x.mean())
-```
-````
+Jupyter Sidecar 的正文包含一个或多个 `python` Fence，可带 Cell `title`，并在一个 Kernel 中按顺序执行。指令必须具有笔记内唯一的稳定 `id`；无效或未知指令保留原文并报告诊断。
 
-- `lab` 标识同一实验；`cell` 是从 1 开始的排序号。
-- `title` 是 Cell 标题；`difficulty` 支持 `basic`、`medium`、`heavy`。
-- 同一 `lab` 的多个 Fence 合并成一张 Lab Card。未知属性安全忽略。
-- 不支持在 Cell 内嵌套 Markdown Fence。脱离 TensorNote 时内容仍是普通可读 Python 代码块。
+旧 `python exec lab="..."` Syntax v1 继续可读，通过 legacy adapter 映射成 Jupyter Sidecar。2.0 不开放 Sidecar Registry、第三方 Sidecar 类型或运行时插件。
 
-## 7. Settings / Secret Model v1
+## UI 与数据生命周期
 
-| 数据 | 位置 | 生命周期 |
-| --- | --- | --- |
-| Markdown、Assets、`tensornote.yaml` | Workspace 文件 | 可移植、可 Git 管理 |
-| 主题、编辑器、Compute Profile、Workspace 执行授权 | 浏览器持久存储 | 当前浏览器，具备版本迁移 |
-| Dirty 草稿恢复 | IndexedDB，失败时 localStorage | Workspace/路径隔离，默认 30 天过期 |
-| Jupyter / JupyterHub Token 与扩展 Secret | `sessionStorage` 或运行时内存 | 当前浏览器会话，关闭后清除 |
-| BinderHub 临时 Token 与 Connector Lease | 运行时内存 | 断开或关闭应用时清除 |
-| Pane、Dialog、活动 Lab 等短期 UI | 运行时状态 | 刷新或切换 Workspace 时清理 |
+- Workbench 同时只有一个活动笔记；Tabs 是打开记录与切换入口。
+- SidePanel 同时只有一个活动 Sidecar；切换笔记关闭，宽度偏好可持久化。
+- Outline 来自 Heading Index，以 TopBar Popover 展示；Properties 只在编辑态按需出现。
+- 主题、编辑器和 Compute Profile 属于设备偏好；Token 只进 session storage/内存；Dirty 草稿进设备恢复存储；活动面板属于短期 UI。
 
-本机执行授权不会改写 `tensornote.yaml`，也不会替代 GitHub 固定 Revision 的信任检查。诊断信息不得包含 Markdown 正文或未脱敏 Secret。
+## 智能体接口
 
-## 公开发布投影（v1.4.0）
-
-Workspace Schema v1 允许新增可选 `publishing` 块，其中只有 `title`、`description`、Workspace 相对 `logo`、六位十六进制 `accent` 与稳定 `defaultNote` ID。该块是向后兼容的展示元数据，不改变 WorkspaceProvider API v1、执行权限、GitHub Revision trust 或 Settings/Secret 分类。
-
-公开分享 URL 必须绑定 GitHub Provider 实际解析的完整 commit SHA；分支名只能用于首次发现。Repository-owned Pages 仍实例化既有 GitHubWorkspaceProvider，不复制或提升来源能力。Desktop 深链只允许同一固定 GitHub 来源格式，不接受本地路径、Shell、Token、Compute Profile 或授权状态。
-
-## 8. 发布承诺
-
-v1.0.0 Release Gate 包含全量测试、Lint、Local/Static 构建、性能门、生产依赖审计、PWA 版本一致性和关键浏览器流程。最终试用确认后以 Apache License 2.0 创建 Git Tag 与 GitHub Release；后续 1.x 必须保持这些契约向后兼容。
-
-v1.6.0 为 `HostAdapter` 增加可选的 update check、download/install progress 与 relaunch 方法。Web Adapter 保持 `autoUpdate: false`；Desktop 只有在签名 Release 配置存在时才消费 Updater。此增量不改变 Workspace、Compute、Extension 或 Settings v1 数据格式。
-
-## 9. 智能体接口
-
-`skills/tensornote-knowledge-workspace/` 将本页的运行时契约转换为智能体可执行的撰写、配置、运行和校验流程。Skill 不另定义内容格式：它必须继续使用 Workspace Schema v1、Executable Markdown Syntax v1 和 Settings / Secret Model v1。
-
-仓库级 `AGENTS.md` 负责自动路由；Skill 的 references 提供按需规格，assets 提供可复制模板，`validate-workspace.mjs` 提供确定性检查。完整安装与调用方式见[智能体接口与 Skill 使用说明](AGENT_INTEGRATION.md)。
-
-## 10. Project Experiment Manifest v1
-
-Project Experiment Manifest v1 是独立于 Workspace Schema v1 的可移植声明，用于多文件脚本、Notebook、结构化训练步骤、环境和产物。它不修改 Workspace Provider API v1、Compute Provider API v1 或 Executable Markdown Syntax v1；1.x 中新增 Runner 或可选字段必须保持旧清单可读。
-
-笔记通过 `tensornote-experiment` Fence 引用 Workspace 内的 `tensornote.experiment.yaml`。解析和索引没有执行、网络或写入副作用；未来 Manifest 版本只读。运行能力必须经独立 Experiment Runner capability、Workspace 执行授权、GitHub commit trust、环境或运行计划审核和用户确认。Desktop 运行状态保存在应用数据目录；Local Web 只运行路径映射通过的 Jupyter 子集；Pages 的 Binder 入口固定完整 commit SHA。完整格式见 [Project Experiment Manifest v1](PROJECT_EXPERIMENT_MANIFEST_V1.md)。
+`skills/tensornote-knowledge-workspace/` 使用同一 Schema 与 Sidecar 指令，不定义第二种知识库格式。模板和 Validator 可独立于应用运行；Skill 不授予安装依赖、执行代码、联网或改写 Git 历史的权限。
