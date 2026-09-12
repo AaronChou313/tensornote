@@ -2,8 +2,8 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Lab } from '../types'
-import { useAppStore } from '../store/useAppStore'
 import { useComputeStore } from '../store/useComputeStore'
+import { useSidecarStore } from '../sidecar/useSidecarStore'
 import { LabCard } from './LabCard'
 
 const lab: Lab = {
@@ -15,7 +15,7 @@ const lab: Lab = {
 
 describe('LabCard', () => {
   beforeEach(() => {
-    useAppStore.setState({ activeLabId: null, activeLabNoteId: null })
+    useSidecarStore.setState({ activeSidecarId: null, activeNoteId: null, isOpen: false })
     useComputeStore.setState({ scratchOpen: true })
   })
 
@@ -23,7 +23,7 @@ describe('LabCard', () => {
     render(<LabCard lab={lab} noteId="note-a" />)
     fireEvent.click(screen.getByRole('button', { name: /Demo/ }))
 
-    expect(useAppStore.getState()).toMatchObject({ activeLabId: 'demo', activeLabNoteId: 'note-a' })
+    expect(useSidecarStore.getState()).toMatchObject({ activeSidecarId: 'demo', activeNoteId: 'note-a', isOpen: true })
     expect(useComputeStore.getState().scratchOpen).toBe(false)
   })
 })

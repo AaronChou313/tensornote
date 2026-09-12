@@ -8,9 +8,12 @@ import { useAppStore } from '../store/useAppStore'
 import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import type { LabCell } from '../types'
+import type { DerivationSidecar } from '../sidecar/types'
+import { useSidecarStore } from '../sidecar/useSidecarStore'
 import { canExecuteWorkspace, resolveWorkspaceExecutionPolicy } from '../workspace/executionPolicy'
 import { Button } from './ui/Button'
 import { CodeCell, type CodeCellState } from './CodeCell'
+import { MarkdownRenderer } from './MarkdownRenderer'
 
 function initialCellState(cell: LabCell): CodeCellState {
   return { code: cell.code, outputs: [], executionCount: null, running: false }
@@ -36,35 +39,50 @@ function scratchCell(order: number): LabCell {
   }
 }
 
-export function LabDrawer() {
-  const activeLabId = useAppStore((state) => state.activeLabId)
-  const activeLabNoteId = useAppStore((state) => state.activeLabNoteId)
-  const labOpenNonce = useAppStore((state) => state.labOpenNonce)
+export function SidePanel() {
+  const activeSidecarId = useSidecarStore((state) => state.activeSidecarId)
+  const activeNoteId = useSidecarStore((state) => state.activeNoteId)
   const scratchOpen = useComputeStore((state) => state.scratchOpen)
   const session = useWorkspaceStore((state) => state.session)
-  const allLabs = useMemo(
-    () => session?.documents.flatMap((note) => note.labs.map((lab) => ({ ...lab, noteId: note.id }))) ?? [],
+  const allSidecars = useMemo(
+    () => session?.documents.flatMap((note) => note.sidecars.map((sidecar) => ({ ...sidecar, noteId: note.id }))) ?? [],
     [session],
   )
-  const lab = useMemo(
-    () => allLabs.find((item) => item.id === activeLabId && (!activeLabNoteId || item.noteId === activeLabNoteId)),
-    [activeLabId, activeLabNoteId, allLabs],
+  const sidecar = useMemo(
+    () => allSidecars.find((item) => item.id === activeSidecarId && item.noteId === activeNoteId),
+    [activeNoteId, activeSidecarId, allSidecars],
   )
 
   if (!session) return null
   if (scratchOpen) {
     return <ComputeLabDrawer key={`${session.descriptor.id}:scratch`} lab={{ id: 'scratch', title: 'Scratch Lab', difficulty: 'basic', cells: [scratchCell(1)], scratch: true }} />
   }
-  if (!lab) return null
-  return <ComputeLabDrawer key={`${session.descriptor.id}:${lab.noteId ?? 'unknown'}:${lab.id}:${labOpenNonce}`} lab={lab} />
+  if (!sidecar) return null
+  if (sidecar.type === 'derivation') return <DerivationPanel sidecar={sidecar} />
+  return <ComputeLabDrawer key={`${session.descriptor.id}:${sidecar.noteId}:${sidecar.id}`} lab={{ ...sidecar, difficulty: 'basic' }} />
+}
+
+function DerivationPanel({ sidecar }: { sidecar: DerivationSidecar }) {
+  const close = useSidecarStore((state) => state.close)
+  const width = useSidecarStore((state) => state.width)
+  const setWidth = useSidecarStore((state) => state.setWidth)
+  const startResize = (event: React.PointerEvent) => {
+    event.currentTarget.setPointerCapture(event.pointerId)
+    const onMove = (moveEvent: PointerEvent) => setWidth(window.innerWidth - moveEvent.clientX)
+    const onUp = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp) }
+    window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp)
+  }
+  return <aside className="lab-drawer side-panel" style={{ width: `min(${width}px, 100vw)` }} aria-label={`${sidecar.title} 推导`}>
+    <div className="lab-drawer__resize" onPointerDown={startResize} aria-hidden="true" />
+    <header className="lab-drawer__header"><div className="min-w-0 flex-1"><p>DERIVATION SIDECAR</p><h2>{sidecar.title}</h2><span>随笔记保存的 Markdown 推导</span></div><Button variant="ghost" size="icon" onClick={close} aria-label="关闭推导"><X size={18} /></Button></header>
+    <div className="lab-drawer__body side-panel__derivation note-prose"><MarkdownRenderer content={sidecar.markdown} labs={[]} /></div>
+  </aside>
 }
 
 function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const location = useLocation()
-  const setActiveLabId = useAppStore((state) => state.setActiveLabId)
-  const openLab = useAppStore((state) => state.openLab)
-  const pendingLabAction = useAppStore((state) => state.pendingLabAction)
-  const setPendingLabAction = useAppStore((state) => state.setPendingLabAction)
+  const closeSidecar = useSidecarStore((state) => state.close)
+  const openSidecar = useSidecarStore((state) => state.open)
   const setLabDirty = useAppStore((state) => state.setLabDirty)
   const setSettingsOpen = useAppStore((state) => state.setSettingsOpen)
   const editorDirtyPaths = useAppStore((state) => state.editorDirtyPaths)
@@ -95,7 +113,8 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
       ? { workspaceSource: { provider: 'github' as const, repository: `${session.descriptor.config.owner}/${session.descriptor.config.repo}`, revision: session.descriptor.revision } }
       : {}),
   }), [session, sourceNote?.id])
-  const [width, setWidth] = useState(660)
+  const width = useSidecarStore((state) => state.width)
+  const setWidth = useSidecarStore((state) => state.setWidth)
   const [labCells, setLabCells] = useState(lab.cells)
   const [cells, setCells] = useState<Record<string, CodeCellState>>(() =>
     Object.fromEntries(lab.cells.map((cell) => [cell.id, initialCellState(cell)])),
@@ -103,7 +122,6 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
   const [error, setError] = useState<string | null>(null)
   const cellsRef = useRef(cells)
   const labCellsRef = useRef(labCells)
-  const consumedPendingActionRef = useRef<typeof pendingLabAction>(null)
   const running = Object.values(cells).some((cell) => cell.running)
   const labDirty = lab.scratch
     ? labCells.some((cell) => Boolean(cells[cell.id]?.code.trim()))
@@ -171,18 +189,6 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
 
   const runAll = useCallback(() => runRange(labCellsRef.current), [runRange])
 
-  useEffect(() => {
-    if (!pendingLabAction) {
-      consumedPendingActionRef.current = null
-      return
-    }
-    if (consumedPendingActionRef.current === pendingLabAction) return
-    if (pendingLabAction.labId !== lab.id || pendingLabAction.action !== 'runAll') return
-    consumedPendingActionRef.current = pendingLabAction
-    setPendingLabAction(null)
-    void runAll()
-  }, [lab.id, pendingLabAction, runAll, setPendingLabAction])
-
   const restart = async () => {
     setError(null)
     try { await computeRuntime.restart() } catch (reason) { setError(reason instanceof Error ? reason.message : 'Kernel 重启失败') }
@@ -230,7 +236,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
         expectedSize: sourceNote.sourceSize,
       })
       setScratchOpen(false)
-      if (saved.labs.some((savedLab) => savedLab.id === scratchId)) openLab(saved.id, scratchId)
+      if (saved.sidecars.some((savedSidecar) => savedSidecar.id === scratchId)) openSidecar(saved.id, scratchId)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '无法把 Scratch Lab 插入笔记')
     }
@@ -256,7 +262,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
     const message = lab.scratch ? 'Scratch Lab 仍有临时代码，确定关闭吗？' : '实验代码还有未保存到 Markdown 的修改，确定关闭吗？'
     if (labDirty && !window.confirm(message)) return
     if (lab.scratch) setScratchOpen(false)
-    else setActiveLabId(null)
+    else closeSidecar()
   }
 
   const openComputeSettings = () => {
@@ -265,7 +271,7 @@ function ComputeLabDrawer({ lab }: { lab: ActiveLab }) {
 
   const startResize = (event: React.PointerEvent) => {
     event.currentTarget.setPointerCapture(event.pointerId)
-    const onMove = (moveEvent: PointerEvent) => setWidth(Math.min(820, Math.max(500, window.innerWidth - moveEvent.clientX)))
+    const onMove = (moveEvent: PointerEvent) => setWidth(window.innerWidth - moveEvent.clientX)
     const onUp = () => {
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)

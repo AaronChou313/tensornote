@@ -68,6 +68,7 @@ function NotePreview({ note, provider }: { note: Note; provider: WorkspaceProvid
       <MarkdownRenderer
         content={note.renderedContent}
         labs={note.labs}
+        sidecars={note.sidecars}
         documentTitle={note.frontmatter.title}
         documentPath={note.path}
         resolveAssetUrl={(path, fromDocument) => provider.resolveAssetUrl(path, fromDocument)}

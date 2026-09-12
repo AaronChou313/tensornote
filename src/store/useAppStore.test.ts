@@ -15,10 +15,6 @@ describe('app workspace UI state', () => {
       publishOpen: true,
       settingsOpen: true,
       settingsSection: 'compute',
-      activeLabId: 'lab-1',
-      activeLabNoteId: 'note-1',
-      labOpenNonce: 4,
-      pendingLabAction: { labId: 'lab-1', action: 'runAll' },
       kernelStatus: 'busy',
       editorDirtyPath: 'notes/a.md',
       editorDirtyPaths: { 'notes/a.md': true },
@@ -40,10 +36,6 @@ describe('app workspace UI state', () => {
       publishOpen: false,
       settingsOpen: false,
       settingsSection: 'appearance',
-      activeLabId: null,
-      activeLabNoteId: null,
-      labOpenNonce: 0,
-      pendingLabAction: null,
       kernelStatus: 'offline',
       editorDirtyPath: null,
       editorDirtyPaths: {},
@@ -52,12 +44,9 @@ describe('app workspace UI state', () => {
     })
   })
 
-  it('keeps settings section in memory and remounts a requested lab on every open', () => {
+  it('keeps the requested settings section in memory', () => {
     const store = useAppStore.getState()
     store.setSettingsOpen(true, 'compute')
-    store.openLab('note-2', 'lab-2')
-    store.openLab('note-2', 'lab-2')
-
-    expect(useAppStore.getState()).toMatchObject({ settingsOpen: true, settingsSection: 'compute', activeLabId: 'lab-2', activeLabNoteId: 'note-2', labOpenNonce: 6 })
+    expect(useAppStore.getState()).toMatchObject({ settingsOpen: true, settingsSection: 'compute' })
   })
 })

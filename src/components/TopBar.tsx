@@ -5,11 +5,11 @@ import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { Button } from './ui/Button'
 import { useComputeStore } from '../store/useComputeStore'
 import { WorkbenchTopTools } from './workbench/WorkbenchTabs'
+import { useSidecarStore } from '../sidecar/useSidecarStore'
 
 export function TopBar() {
   const kernelStatus = useAppStore((state) => state.kernelStatus)
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
-  const setActiveLabId = useAppStore((state) => state.setActiveLabId)
   const setSettingsOpen = useAppStore((state) => state.setSettingsOpen)
   const setPublishOpen = useAppStore((state) => state.setPublishOpen)
   const setScratchOpen = useComputeStore((state) => state.setScratchOpen)
@@ -34,7 +34,7 @@ export function TopBar() {
           )
         )}
         <Button variant="ghost" size="icon" className="publish-trigger" onClick={() => setPublishOpen(true)} aria-label="分享 Workspace" title="分享与发布"><ShareNetwork size={18} /></Button>
-        <Button variant="ghost" size="icon" className="scratch-trigger" onClick={() => { setActiveLabId(null); setScratchOpen(true) }} aria-label="打开 Scratch Lab" title="Scratch Lab"><Flask size={18} /></Button>
+        <Button variant="ghost" size="icon" className="scratch-trigger" onClick={() => { useSidecarStore.getState().close(); setScratchOpen(true) }} aria-label="打开 Scratch Lab" title="Scratch Lab"><Flask size={18} /></Button>
         <Button className="settings-trigger" variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} aria-label="打开设置" title="设置"><Gear size={18} /><span className={`settings-trigger__status kernel-dot kernel-dot--${kernelStatus}`} /></Button>
       </div>
     </header>

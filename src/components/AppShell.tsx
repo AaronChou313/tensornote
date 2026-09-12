@@ -10,12 +10,12 @@ import { activeComputeProfile, useComputeStore } from '../store/useComputeStore'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { SettingsDialog } from './workbench/SettingsDialog'
 import { PublishDialog } from './publishing/PublishDialog'
+import { useSidecarStore } from '../sidecar/useSidecarStore'
 
-const LabDrawer = lazy(() => import('./LabDrawer').then((module) => ({ default: module.LabDrawer })))
+const SidePanel = lazy(() => import('./LabDrawer').then((module) => ({ default: module.SidePanel })))
 
 export function AppShell() {
   const setSearchOpen = useAppStore((state) => state.setSearchOpen)
-  const setActiveLabId = useAppStore((state) => state.setActiveLabId)
   const setKernelStatus = useAppStore((state) => state.setKernelStatus)
   const session = useWorkspaceStore((state) => state.session)
   const status = useWorkspaceStore((state) => state.status)
@@ -73,11 +73,11 @@ export function AppShell() {
 
   useEffect(() => {
     if (previousPath.current === location.pathname) return
-    setActiveLabId(null)
+    useSidecarStore.getState().syncNote(location.pathname.match(/^\/notes\/([^/]+)/)?.[1] ? decodeURIComponent(location.pathname.match(/^\/notes\/([^/]+)/)![1]) : null)
     setScratchOpen(false)
     window.scrollTo({ top: 0 })
     previousPath.current = location.pathname
-  }, [location.pathname, setActiveLabId, setScratchOpen])
+  }, [location.pathname, setScratchOpen])
 
   useEffect(() => {
     if (!session) return
@@ -124,6 +124,6 @@ export function AppShell() {
     <SearchDialog />
     <SettingsDialog />
     <PublishDialog />
-    <Suspense fallback={null}><LabDrawer /></Suspense>
+    <Suspense fallback={null}><SidePanel /></Suspense>
   </div>
 }

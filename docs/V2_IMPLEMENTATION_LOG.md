@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 当前阶段：5
-- 最后完成：4 Sidecar 内容契约
-- 当前工作：统一 SidePanel
+- 当前阶段：6
+- 最后完成：5 统一 SidePanel
+- 当前工作：编辑与迁移
 - 分支：`codex/v2-core-sidecar`
 - 基线：v1.18.0 发布后主线 `fcdfcc2`
 
@@ -16,9 +16,9 @@
 | 1 Host 契约 | DONE | `5d6c1aa` |
 | 2 核心收缩 | DONE | `1c150e5` |
 | 3 单笔记 Workbench | DONE | `ce979bc` |
-| 4 Sidecar 契约 | DONE | 待提交 |
-| 5 统一 SidePanel | IN_PROGRESS | |
-| 6 编辑与迁移 | TODO | |
+| 4 Sidecar 契约 | DONE | `e29668e` |
+| 5 统一 SidePanel | DONE | 待提交 |
+| 6 编辑与迁移 | IN_PROGRESS | |
 | 7 双宿主收口 | TODO | |
 | 8 稳定与发行 | TODO | |
 
@@ -79,3 +79,13 @@
 - 旧 `python exec` Lab 通过 `legacyLabToSidecar` 适配为 Jupyter Sidecar，继续兼容 Workspace Schema v1。
 - 新增独立 Sidecar Store，只保存宽度偏好；切换笔记会关闭活动 Sidecar。
 - 48 个测试文件、164 项测试、Lint 与 TypeScript 通过。
+
+## 阶段 5 — 统一 SidePanel
+
+状态：DONE
+
+- 正文中的 Derivation 与 Jupyter 指令统一渲染为 Sidecar 入口卡片；旧 Lab 卡也打开同一个 SidePanel 状态。
+- 单一右侧面板按活动 Sidecar 替换内容；推导使用安全 Markdown 渲染，Jupyter 复用现有 Kernel、执行权限、输出与保存链路。
+- 面板宽度限制为 400～850px 并持久保存；切换笔记自动关闭，正文滚动容器不会被替换。
+- Scratch Lab 继续作为临时 Jupyter 工作区，但与普通 Sidecar 互斥显示。
+- `pnpm check` 通过：48 个测试文件、164 项测试、Lint、TypeScript 与生产构建。

@@ -5,7 +5,6 @@ import { migrateAppPreferences } from './migrations'
 
 type Theme = 'light' | 'dark'
 export type EditorMode = 'read' | 'edit'
-export type PendingLabAction = { labId: string; action: 'runAll' } | null
 export type SettingsSection = 'appearance' | 'editor' | 'compute' | 'about'
 
 interface AppState {
@@ -19,10 +18,6 @@ interface AppState {
   settingsOpen: boolean
   settingsSection: SettingsSection
   newNoteRequestNonce: number
-  activeLabId: string | null
-  activeLabNoteId: string | null
-  labOpenNonce: number
-  pendingLabAction: PendingLabAction
   kernelStatus: KernelStatus
   editorDirtyPath: string | null
   editorDirtyPaths: Record<string, true>
@@ -37,9 +32,6 @@ interface AppState {
   setPublishOpen: (open: boolean) => void
   setSettingsOpen: (open: boolean, section?: SettingsSection) => void
   requestNewNote: () => void
-  setActiveLabId: (id: string | null) => void
-  openLab: (noteId: string | null, labId: string) => void
-  setPendingLabAction: (action: PendingLabAction) => void
   setKernelStatus: (status: KernelStatus) => void
   setEditorDirtyPath: (path: string | null) => void
   setEditorDirty: (path: string, dirty: boolean) => void
@@ -63,10 +55,6 @@ export const useAppStore = create<AppState>()(
       settingsOpen: false,
       settingsSection: 'appearance',
       newNoteRequestNonce: 0,
-      activeLabId: null,
-      activeLabNoteId: null,
-      labOpenNonce: 0,
-      pendingLabAction: null,
       kernelStatus: 'offline',
       editorDirtyPath: null,
       editorDirtyPaths: {},
@@ -81,9 +69,6 @@ export const useAppStore = create<AppState>()(
       setPublishOpen: (publishOpen) => set({ publishOpen }),
       setSettingsOpen: (settingsOpen, section) => set((state) => ({ settingsOpen, ...(section ? { settingsSection: section } : {}), ...(settingsOpen ? {} : { settingsSection: state.settingsSection }) })),
       requestNewNote: () => set((state) => ({ newNoteRequestNonce: state.newNoteRequestNonce + 1 })),
-      setActiveLabId: (activeLabId) => set({ activeLabId, ...(activeLabId ? {} : { activeLabNoteId: null }) }),
-      openLab: (activeLabNoteId, activeLabId) => set((state) => ({ activeLabId, activeLabNoteId, labOpenNonce: state.labOpenNonce + 1 })),
-      setPendingLabAction: (pendingLabAction) => set({ pendingLabAction }),
       setKernelStatus: (kernelStatus) => set({ kernelStatus }),
       setEditorDirtyPath: (editorDirtyPath) => set({ editorDirtyPath, editorDirtyPaths: editorDirtyPath ? { [editorDirtyPath]: true } : {} }),
       setEditorDirty: (path, dirty) => set((state) => {
@@ -99,10 +84,6 @@ export const useAppStore = create<AppState>()(
         publishOpen: false,
         settingsOpen: false,
         settingsSection: 'appearance',
-        activeLabId: null,
-        activeLabNoteId: null,
-        labOpenNonce: 0,
-        pendingLabAction: null,
         kernelStatus: 'offline',
         editorDirtyPath: null,
         editorDirtyPaths: {},
