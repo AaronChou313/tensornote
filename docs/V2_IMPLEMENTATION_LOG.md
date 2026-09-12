@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 当前阶段：8
-- 最后完成：7 双宿主产品收口
-- 当前工作：稳定门与发行候选
+- 当前阶段：完成
+- 最后完成：8 稳定门与发行候选
+- 当前工作：推送与 GitHub Release
 - 分支：`codex/v2-core-sidecar`
 - 基线：v1.18.0 发布后主线 `fcdfcc2`
 
@@ -19,8 +19,8 @@
 | 4 Sidecar 契约 | DONE | `e29668e` |
 | 5 统一 SidePanel | DONE | `ee1def3` |
 | 6 编辑与迁移 | DONE | `6874ef0` |
-| 7 双宿主收口 | DONE | 待提交 |
-| 8 稳定与发行 | IN_PROGRESS | |
+| 7 双宿主收口 | DONE | `8df82dc` |
+| 8 稳定与发行 | DONE | 待提交 |
 
 ## 2026-09-12 接手记录
 
@@ -111,3 +111,15 @@
 - 删除 Git Bridge 与 Project Experiment 的当前产品文档、Schema 和 Skill 内容；保留 GitHub Workspace Provider 与 BinderHub Compute Connector。
 - Desktop Host 移除已经没有 UI 调用者的 Project Experiment requirements 独立安装命令；普通环境创建与 Jupyter 支持保留。
 - `pnpm check`、Static Web build/boundary、Rust fmt、Clippy 与 14 项 Rust 测试通过。
+
+## 阶段 8 — 稳定门与发行候选
+
+状态：DONE
+
+- 应用、Tauri、Cargo、Agent Skill 与发布模板版本统一为 `2.0.0`；新增中英文 Release Notes 与迁移说明。
+- `pnpm check` 通过：47 个测试文件、164 项测试、Lint、TypeScript 与生产构建。
+- 性能测试 3 项通过；生产依赖审计无已知漏洞；Release 与 Publication Validator 通过。
+- Static Web build 与无 Tauri IPC 边界通过；Rust fmt、Clippy 与 14 项测试通过。
+- Skill `quick_validate.py` 在隔离临时 Python 环境通过；两个模板 strict 零错误零警告，仓库 Workspace 零错误零警告。
+- 本机 Apple Silicon Desktop release build 成功：`TensorNote.app` 与 `TensorNote_2.0.0_aarch64.dmg`。
+- GitHub 推送、Tag、跨平台 Workflow、附件校验与 Release 可见性在本提交之后记录。

@@ -141,3 +141,7 @@ v1.6.1 保留为历史稳定版；其 Tag `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56
 本机使用独立 bundle id 的 TensorNote QA 和 `/tmp/tensornote-ux-vault` 测试，避免重启用户正在编辑且未保存的 TensorNote 窗口。验证 README 相对图片和库内链接、中文目录、长文浮动上下文栏、双栏双向同步和关闭同步；同步覆盖章节间插值，并非每个段落像素精确匹配。用户课程目录只读检查，未改写用户笔记。
 
 验证：`pnpm check` 最终 180 项测试通过；性能测试 3 项通过；生产依赖审计无已知漏洞；Static Web 构建及无 Tauri IPC 边界检查通过；`pnpm check:desktop` 含 14 项 Rust 测试通过；macOS arm64 应用构建成功。公开仓库直达 URL 及分享窗口在本地 Web 实测通过，仍显示 Revision 信任要求。代码已推送 main、打 v1.6.2 Tag 并公开 Release；既有 v1.6.1 发行资产未改动。正式 Apple Silicon 下载包已解压启动并核对版本和阅读布局。用户实际课程目录在候选桌面与已部署在线版均只读验证，中文章节及图片文件夹显示正确。
+
+## TensorNote 2.0 候选（2026-09-12）
+
+`codex/v2-core-sidecar` 从 v1.18.0 发布后主线开始，完成核心收缩、Web/Desktop Host 契约、单笔记 Workbench、Derivation/Jupyter Sidecar、统一 SidePanel、编辑/Outline、双宿主文档与 Skill 迁移。实施来源、阶段和验证以 `docs/V2_CORE_SIDECAR_PRODUCT_SPEC.md`、`docs/V2_IMPLEMENTATION_PLAN.md`、`docs/V2_IMPLEMENTATION_LOG.md` 为准。2.0 Tag/Release 状态必须按 GitHub 实时检查，不从本段推断。
