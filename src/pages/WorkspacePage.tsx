@@ -22,7 +22,7 @@ export function WorkspacePage() {
   const createFirstNote = async () => {
     const path = joinWorkspacePath(session.manifest.content.root, 'welcome.md')
     const note = await createNote(path, createDocumentTemplate('welcome', 'Welcome'))
-    navigate(`/notes/${note.id}`)
+    navigate(`/notes/${encodeURIComponent(note.id)}`)
   }
 
   return (
@@ -58,7 +58,7 @@ export function WorkspacePage() {
           <div className="section-heading"><h2>开始阅读</h2><span>{session.manifest.content.root || '知识库根目录'}</span></div>
           <div className="document-list">
             {startingDocuments.length ? startingDocuments.map((note) => (
-              <Link key={note.id} to={`/notes/${note.id}`}>
+              <Link key={note.id} to={`/notes/${encodeURIComponent(note.id)}`}>
                 <span className="document-icon"><FileText size={17} /></span>
                 <span><strong>{note.frontmatter.title}</strong><small>{note.frontmatter.summary || note.frontmatter.section}</small></span>
                 <ArrowRight size={16} />

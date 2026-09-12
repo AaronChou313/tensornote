@@ -33,8 +33,8 @@ Read multiple references when a request spans those concerns. Do not infer execu
 - Keep Markdown, assets, and `tensornote.yaml` as the portable source of truth. Do not create a private content database.
 - Never write tokens, passwords, cookies, private keys, or extension secrets into Workspace files, examples, logs, screenshots, or Git.
 - Keep `schemaVersion: 1`. Treat a future schema as read-only and non-executable.
-- Use stable unique note IDs. Do not change an existing `id` merely to improve wording.
-- Use normal Markdown constructs. TensorNote-specific executable metadata must degrade to readable Python fences elsewhere.
+- Treat the normalized relative path as file identity. Treat an explicit Frontmatter `id` as semantic knowledge identity; explicit IDs must be globally unique, while duplicate filenames in different directories are valid. Do not change an existing `id` merely to improve wording.
+- TensorNote has exactly two Sidecar types: `derivation` is non-executable rich Markdown supplement; `jupyter` is executable Python cells. Use normal Markdown constructs and keep executable metadata readable elsewhere.
 - Require explicit Workspace execution permission. A GitHub Workspace additionally requires trust for the current commit revision.
 - Do not silently install packages, start remote services, execute labs, or mutate Git history. Explain the required action or perform it only when the user authorizes it.
 - Make examples deterministic, bounded, CPU-safe by default, and safe to rerun.

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { detectEnvironmentFiles, loadWorkspace } from './loadWorkspace'
 import type { WorkspaceEntry, WorkspaceProvider } from './types'
+import { readFile } from 'node:fs/promises'
 
 function createProvider(type: 'local' | 'github' | 'gitlab', files: Record<string, string>): WorkspaceProvider {
   const entries = Object.keys(files)
@@ -170,4 +171,37 @@ it('prefers a dedicated root overview and refreshes edited introductions', async
   expect((await loadWorkspace(provider, [])).overview?.content).toContain('Custom introduction')
   files['OVERVIEW.md'] = '# Updated introduction'
   expect((await loadWorkspace(provider, [])).overview?.content).toContain('Updated introduction')
+})
+
+it('opens duplicate Markdown filenames using path identities', async () => {
+  const paths = ['README.md', 'chapter1/README.md', 'chapter2/README.md', 'sources/README.md']
+  const files = Object.fromEntries(await Promise.all(paths.map(async (path) => [path, await readFile(new URL(`__fixtures__/duplicate-filenames/${path}`, import.meta.url), 'utf8')])))
+  const session = await loadWorkspace(createProvider('local', files), [])
+
+  expect(session.documents).toHaveLength(4)
+  expect(new Set(session.documents.map((item) => item.id)).size).toBe(4)
+  expect(session.documents.map((item) => item.id)).toEqual(expect.arrayContaining(paths.map((path) => `path:${path}`)))
+  expect(session.documents.map((item) => item.identitySource)).toEqual(['path', 'path', 'path', 'path'])
+  expect(session.knowledgeIndex.resolveReference('README')).toBeUndefined()
+  expect(session.knowledgeIndex.resolveReference('chapter1/README')?.note.path).toBe('chapter1/README.md')
+})
+
+it('uses only root overview files and prefers OVERVIEW.md', async () => {
+  const session = await loadWorkspace(createProvider('local', {
+    'README.md': '# Root README',
+    'OVERVIEW.md': '# Root Overview',
+    'foo/README.md': '# Child README',
+    'bar/OVERVIEW.md': '# Child Overview',
+  }), [])
+  expect(session.overview?.path).toBe('OVERVIEW.md')
+  expect(session.overview?.content).toContain('Root Overview')
+  expect(session.documents.map((item) => item.path)).toContain('README.md')
+})
+
+it('rejects duplicate explicit Frontmatter ids while allowing duplicate filenames', async () => {
+  const duplicate = '---\nid: shared\ntitle: Shared\n---\n# Shared'
+  await expect(loadWorkspace(createProvider('local', {
+    'chapter1/README.md': duplicate,
+    'chapter2/README.md': duplicate,
+  }), [])).rejects.toThrow('重复的文档 id: shared')
 })

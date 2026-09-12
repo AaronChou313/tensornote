@@ -4,6 +4,7 @@ import type { Heading, Note, NoteFrontmatter } from '../types'
 import { extractLabs } from './labParser'
 import { legacyLabToSidecar } from '../sidecar/legacyLabAdapter'
 import { parseSidecarDirectives } from '../sidecar/parser'
+import { normalizeWorkspacePath } from '../workspace/path'
 
 if (!globalThis.Buffer) globalThis.Buffer = Buffer
 
@@ -49,10 +50,11 @@ function extractInlineTags(content: string) {
 }
 
 function normalizeFrontmatter(data: Record<string, unknown>, path: string): NoteFrontmatter {
-  const fallbackId = path.split('/').pop()?.replace(/\.md$/, '') ?? 'note'
+  const fallbackTitle = path.split('/').pop()?.replace(/\.md$/i, '') ?? 'note'
+  const explicitId = typeof data.id === 'string' && data.id.trim() ? data.id.trim() : undefined
   return {
-    id: String(data.id ?? fallbackId),
-    title: String(data.title ?? fallbackId),
+    id: explicitId ?? `path:${normalizeWorkspacePath(path)}`,
+    title: String(data.title ?? fallbackTitle),
     aliases: normalizeStringList(data.aliases ?? data.alias),
     section: String(data.section ?? '未分类'),
     order: Number(data.order ?? 0),
@@ -65,6 +67,7 @@ function normalizeFrontmatter(data: Record<string, unknown>, path: string): Note
 export function parseDocument(path: string, raw: string, source?: { modifiedAt?: number; size?: number }): Note {
   const parsed = matter(raw)
   const frontmatter = normalizeFrontmatter(parsed.data, path)
+  const explicitId = typeof parsed.data.id === 'string' && parsed.data.id.trim() ? parsed.data.id.trim() : undefined
   const parsedSidecars = parseSidecarDirectives(parsed.content)
   const { labs, renderedContent } = extractLabs(parsedSidecars.renderedContent)
   const headings = getHeadings(parsed.content)
@@ -73,6 +76,8 @@ export function parseDocument(path: string, raw: string, source?: { modifiedAt?:
 
   return {
     id: frontmatter.id,
+    identitySource: explicitId ? 'frontmatter' : 'path',
+    ...(explicitId ? { explicitId } : {}),
     path,
     directory,
     frontmatter,

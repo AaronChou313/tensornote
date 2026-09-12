@@ -22,6 +22,7 @@ import {
   Minus,
   NotePencil,
   Paragraph,
+  Plus,
   Quotes,
   SlidersHorizontal,
   Table,
@@ -54,6 +55,8 @@ import { NoteProgress } from './NoteProgress'
 import { editorCommandLabels, transformEditorCommand, type EditorCommandId } from '../editor/markdownTransforms'
 import { draftRecovery, type DraftRecoveryRecord } from '../recovery/draftRecovery'
 import { LabInsertDialog } from './LabInsertDialog'
+import { deleteSidecarSource, replaceSidecarSource, sourceLineAtOffset } from '../sidecar/parser'
+import type { Sidecar } from '../sidecar/types'
 
 function NotePreview({ note, provider }: { note: Note; provider: WorkspaceProvider }) {
   const session = useWorkspaceStore((state) => state.session)
@@ -85,14 +88,14 @@ function PropertiesPanel({ raw, onChange, onClose }: { raw: string; onChange: (r
   const update = (patch: Partial<DocumentProperties>) => onChange(updateDocumentProperties(raw, { ...properties, ...patch }))
 
   return (
-    <aside className="properties-panel" aria-label="Markdown Properties">
-      <header><div><span>Frontmatter</span><h2>Document properties</h2></div><Button variant="ghost" size="icon" onClick={onClose} aria-label="关闭属性"><X size={17} /></Button></header>
+    <aside className="properties-panel" aria-label="Markdown 属性">
+      <header><div><span>Frontmatter</span><h2>文档属性</h2></div><Button variant="ghost" size="icon" onClick={onClose} aria-label="关闭属性"><X size={17} /></Button></header>
       <div className="properties-panel__body">
-        <label><span>Title</span><input value={properties.title} onChange={(event) => update({ title: event.target.value })} /></label>
-        <label><span>Aliases</span><input value={properties.aliases.join(', ')} onChange={(event) => update({ aliases: event.target.value.split(',') })} placeholder="alternate title, abbreviation" /></label>
-        <label><span>Section</span><input value={properties.section} onChange={(event) => update({ section: event.target.value })} /></label>
-        <label><span>Tags</span><input value={properties.tags.join(', ')} onChange={(event) => update({ tags: event.target.value.split(',') })} placeholder="tag-one, tag-two" /></label>
-        <label><span>Summary</span><textarea value={properties.summary} onChange={(event) => update({ summary: event.target.value })} rows={5} /></label>
+        <label><span>标题</span><input value={properties.title} onChange={(event) => update({ title: event.target.value })} /></label>
+        <label><span>别名</span><input value={properties.aliases.join(', ')} onChange={(event) => update({ aliases: event.target.value.split(',') })} placeholder="alternate title, abbreviation" /></label>
+        <label><span>分区</span><input value={properties.section} onChange={(event) => update({ section: event.target.value })} /></label>
+        <label><span>标签</span><input value={properties.tags.join(', ')} onChange={(event) => update({ tags: event.target.value.split(',') })} placeholder="tag-one, tag-two" /></label>
+        <label><span>摘要</span><textarea value={properties.summary} onChange={(event) => update({ summary: event.target.value })} rows={5} /></label>
         <p>属性仍会写回 Markdown Frontmatter，不创建额外数据库。</p>
       </div>
     </aside>
@@ -139,7 +142,7 @@ function FormattingIcon({ id }: { id: EditorCommandId }) {
   return <TextT {...props} />
 }
 
-function FormattingToolbar({ codeLanguage, onCodeLanguageChange, onCommand, onInsertLab }: { codeLanguage: string; onCodeLanguageChange: (language: string) => void; onCommand: (id: EditorCommandId) => void; onInsertLab: () => void }) {
+function FormattingToolbar({ codeLanguage, sidecars, onCodeLanguageChange, onCommand, onNewSidecar, onEditSidecar }: { codeLanguage: string; sidecars: Sidecar[]; onCodeLanguageChange: (language: string) => void; onCommand: (id: EditorCommandId) => void; onNewSidecar: () => void; onEditSidecar: (sidecar: Sidecar) => void }) {
   const toolbarRef = useRef<HTMLDivElement>(null)
   const overflowRef = useRef<HTMLDetailsElement>(null)
   const [visibleCount, setVisibleCount] = useState(toolbarFormattingCommands.length)
@@ -149,7 +152,7 @@ function FormattingToolbar({ codeLanguage, onCodeLanguageChange, onCommand, onIn
     if (!toolbar) return
     const update = () => {
       const width = toolbar.clientWidth
-      const fixedWidth = 300
+      const fixedWidth = 350
       const commandWidth = 34
       const withoutOverflow = Math.max(0, Math.floor((width - fixedWidth) / commandWidth))
       setVisibleCount(withoutOverflow >= toolbarFormattingCommands.length ? toolbarFormattingCommands.length : Math.max(0, Math.floor((width - fixedWidth - 38) / commandWidth)))
@@ -169,7 +172,7 @@ function FormattingToolbar({ codeLanguage, onCodeLanguageChange, onCommand, onIn
     <label className="formatting-toolbar__style"><span className="sr-only">文本样式</span><select value="" onChange={(event) => { if (event.target.value) onCommand(event.target.value as EditorCommandId) }} aria-label="文本样式"><option value="" disabled>正文 / 标题</option>{textStyleCommands.map((id) => <option key={id} value={id}>{editorCommandLabels[id]}</option>)}</select></label>
     <div className="formatting-toolbar__commands">{visible.map((id) => commandButton(id))}</div>
     <label className="formatting-toolbar__language"><span className="sr-only">代码块语言</span><select value={codeLanguage} onChange={(event) => onCodeLanguageChange(event.target.value)} aria-label="代码块语言">{codeLanguages.map((language) => <option key={language} value={language}>{language}</option>)}</select></label>
-    <button className="formatting-toolbar__lab" type="button" onClick={onInsertLab} aria-label="插入可执行实验" title="插入包含一个或多个 Cell 的 Python 实验"><Flask size={16} weight="duotone" /><span>实验</span></button>
+    <details className="formatting-toolbar__sidecars"><summary className="formatting-toolbar__lab" aria-label="管理侧栏内容" title="插入推导、补充内容或可执行 Python 实验"><Flask size={16} weight="duotone" /><span>侧栏内容</span></summary><div><button type="button" onClick={(event) => { onNewSidecar(); event.currentTarget.closest('details')?.removeAttribute('open') }}><Plus size={15} />新建侧栏内容</button>{sidecars.length > 0 && <><small>当前笔记</small>{sidecars.map((sidecar) => <button type="button" key={sidecar.id} onClick={(event) => { onEditSidecar(sidecar); event.currentTarget.closest('details')?.removeAttribute('open') }}>{sidecar.type === 'jupyter' ? '▶' : '∑'} {sidecar.title}</button>)}</>}</div></details>
     {overflow.length > 0 && <details ref={overflowRef} className="formatting-toolbar__more"><summary aria-label="显示未容纳的 Markdown 格式工具" title="更多格式"><CaretDown size={17} weight="bold" /></summary><div>{overflow.map((id) => commandButton(id, true))}</div></details>}
   </div>
 }
@@ -193,7 +196,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
   const [externalStat, setExternalStat] = useState<WorkspaceFileStat | null>(null)
   const [recoveredDraft, setRecoveredDraft] = useState<DraftRecoveryRecord | null>(null)
   const [codeLanguage, setCodeLanguage] = useState('python')
-  const [labInitialCode, setLabInitialCode] = useState<string | null>(null)
+  const [sidecarEditor, setSidecarEditor] = useState<{ initialCode: string; existing?: Sidecar } | null>(null)
   const viewRef = useRef<EditorView | null>(null)
   const headingRequest = useWorkbenchStore((state) => state.headingRequest)
   useEffect(() => {
@@ -339,7 +342,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
       setExternalStat(null)
       setRecoveredDraft(null)
       await draftRecovery.clear(workspaceId, note.path)
-      setMessage('Saved')
+      setMessage('已保存')
     } catch (reason) {
       setMessage(reason instanceof WorkspaceConflictError ? '外部文件已变化，请先选择重新载入或保留当前内容。' : reason instanceof Error ? reason.message : '保存失败')
     } finally {
@@ -370,7 +373,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
     setExternalStat(null)
     setRecoveredDraft(null)
     await draftRecovery.clear(workspaceId, note.path)
-    setMessage('Reloaded from disk')
+    setMessage('已从磁盘重新载入')
   }
 
   const keepEditing = () => {
@@ -406,20 +409,45 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
     view.focus()
   }
 
-  const openLabInsert = () => {
+  const openSidecarInsert = () => {
     const selection = viewRef.current?.state.selection.main
-    setLabInitialCode(selection ? editableBody.slice(selection.from, selection.to) : '')
+    setSidecarEditor({ initialCode: selection ? editableBody.slice(selection.from, selection.to) : '' })
   }
 
-  const insertLab = (markdown: string) => {
+  const saveSidecar = (markdown: string) => {
+    const existing = sidecarEditor?.existing
+    if (existing) {
+      changeBody(replaceSidecarSource(editableBody, existing.source, markdown))
+      setSidecarEditor(null)
+      setMessage('已更新侧栏内容；保存笔记后写回 Markdown。')
+      return
+    }
     const selection = viewRef.current?.state.selection.main ?? { from: editableBody.length, to: editableBody.length }
     const before = editableBody.slice(0, selection.from)
     const after = editableBody.slice(selection.to)
     const prefix = before && !before.endsWith('\n\n') ? before.endsWith('\n') ? '\n' : '\n\n' : ''
     const suffix = after && !after.startsWith('\n\n') ? after.startsWith('\n') ? '\n' : '\n\n' : '\n'
     insertAtCursor(`${prefix}${markdown}${suffix}`)
-    setLabInitialCode(null)
+    setSidecarEditor(null)
     setMessage('已插入 Sidecar；保存后可从阅读视图中的入口打开。')
+  }
+
+  const deleteSidecar = () => {
+    const existing = sidecarEditor?.existing
+    if (!existing) return
+    changeBody(deleteSidecarSource(editableBody, existing.source))
+    setSidecarEditor(null)
+    setMessage('已删除侧栏内容；保存笔记后写回 Markdown。')
+  }
+
+  const revealDiagnostic = (offset: number) => {
+    setMode('edit')
+    requestAnimationFrame(() => {
+      const view = viewRef.current
+      if (!view) return
+      view.dispatch({ selection: { anchor: Math.min(offset, view.state.doc.length) }, effects: EditorView.scrollIntoView(Math.min(offset, view.state.doc.length), { y: 'center' }) })
+      view.focus()
+    })
   }
 
   const upload = async (file: File) => {
@@ -456,22 +484,22 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
           {mode !== 'read' && <>
             <Button variant="ghost" size="icon" onClick={() => viewRef.current && undo(viewRef.current)} aria-label="撤销"><ArrowCounterClockwise size={17} /></Button>
             <Button variant="ghost" size="icon" onClick={() => viewRef.current && redo(viewRef.current)} aria-label="重做"><ArrowClockwise size={17} /></Button>
-            <Button variant="ghost" size="sm" onClick={() => uploadRef.current?.click()}><UploadSimple size={15} />Asset</Button>
-            <Button variant={propertiesOpen ? 'secondary' : 'ghost'} size="sm" onClick={() => setPropertiesOpen((value) => !value)} aria-expanded={propertiesOpen} aria-controls="document-properties"><SlidersHorizontal size={15} />Properties</Button>
+            <Button variant="ghost" size="sm" onClick={() => uploadRef.current?.click()}><UploadSimple size={15} />附件</Button>
+            <Button variant={propertiesOpen ? 'secondary' : 'ghost'} size="sm" onClick={() => setPropertiesOpen((value) => !value)} aria-expanded={propertiesOpen} aria-controls="document-properties"><SlidersHorizontal size={15} />属性</Button>
           </>}
-          <span className={`save-state ${dirty ? 'save-state--dirty' : ''}`}>{dirty ? 'Unsaved' : message || 'Saved'}</span>
-          <Button variant="primary" size="sm" onClick={() => void save()} disabled={!dirty || saving}><FloppyDisk size={15} />{saving ? 'Saving' : 'Save'}</Button>
+          <span className={`save-state ${dirty ? 'save-state--dirty' : ''}`}>{dirty ? '未保存' : message || '已保存'}</span>
+          <Button variant="primary" size="sm" onClick={() => void save()} disabled={!dirty || saving}><FloppyDisk size={15} />{saving ? '正在保存' : '保存'}</Button>
           <input ref={uploadRef} className="sr-only" type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); event.target.value = '' }} />
         </div>
       </header>
-      {mode !== 'read' && <FormattingToolbar codeLanguage={codeLanguage} onCodeLanguageChange={setCodeLanguage} onCommand={executeEditorCommand} onInsertLab={openLabInsert} />}
+      {mode !== 'read' && <FormattingToolbar codeLanguage={codeLanguage} sidecars={preview.sidecars.filter((sidecar) => !sidecar.legacy)} onCodeLanguageChange={setCodeLanguage} onCommand={executeEditorCommand} onNewSidecar={openSidecarInsert} onEditSidecar={(existing) => setSidecarEditor({ initialCode: '', existing })} />}
 
       {externalStat && (
         <div className="external-change-banner" role="alert">
           <WarningCircle size={18} />
           <p>磁盘上的文件已发生变化。重新载入可避免覆盖其他编辑器的修改。</p>
-          <Button variant="secondary" size="sm" onClick={() => void reloadExternal()}>Reload</Button>
-          <Button variant="ghost" size="sm" onClick={keepEditing}>Keep mine</Button>
+          <Button variant="secondary" size="sm" onClick={() => void reloadExternal()}>重新载入</Button>
+          <Button variant="ghost" size="sm" onClick={keepEditing}>保留当前版本</Button>
         </div>
       )}
       {recoveredDraft && (
@@ -482,12 +510,13 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
           <Button variant="ghost" size="sm" onClick={() => void discardRecoveredDraft()}><Trash size={14} />丢弃</Button>
         </div>
       )}
-      {message && message !== 'Saved' && message !== 'Reloaded from disk' && <div className="authoring-message">{message}</div>}
+      {message && message !== '已保存' && message !== '已从磁盘重新载入' && <div className="authoring-message">{message}</div>}
+      {mode === 'edit' && preview.sidecarDiagnostics.length > 0 && <aside className="sidecar-diagnostics" role="status"><strong>Sidecar 存在 {preview.sidecarDiagnostics.length} 个格式问题</strong>{preview.sidecarDiagnostics.map((diagnostic) => <button type="button" key={`${diagnostic.offset}:${diagnostic.message}`} onClick={() => revealDiagnostic(diagnostic.offset)}>第 {sourceLineAtOffset(editableBody, diagnostic.offset)} 行：{diagnostic.message}</button>)}</aside>}
 
       <div className="authoring-stage">
         {mode !== 'read' && (
           <section className="markdown-editor-pane" onPasteCapture={handlePaste} onDragOver={(event) => event.preventDefault()} onDropCapture={handleDrop} aria-label="Markdown Editor">
-            <div className="editor-file-label"><span>{note.path}</span><small>Markdown source</small></div>
+            <div className="editor-file-label"><span>{note.path}</span><small>Markdown 源码</small></div>
             <CodeMirror
               value={editableBody}
               extensions={[markdown(), ...(editorWordWrap ? [EditorView.lineWrapping] : [])]}
@@ -502,7 +531,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
         {mode === 'read' && <section className="markdown-preview-pane" aria-label="Markdown Preview"><NotePreview note={preview} provider={provider} /></section>}
         {propertiesOpen && mode !== 'read' && <div id="document-properties"><PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} /></div>}
       </div>
-      {labInitialCode !== null && <LabInsertDialog initialCode={labInitialCode} onInsert={insertLab} onClose={() => setLabInitialCode(null)} />}
+      {sidecarEditor && <LabInsertDialog initialCode={sidecarEditor.initialCode} existing={sidecarEditor.existing} existingIds={preview.sidecars.map((sidecar) => sidecar.id)} onSave={saveSidecar} onDelete={sidecarEditor.existing ? deleteSidecar : undefined} documentPath={note.path} noteId={note.id} knowledgeIndex={useWorkspaceStore.getState().session?.knowledgeIndex} resolveAssetUrl={(path, fromDocument) => provider.resolveAssetUrl(path, fromDocument)} onClose={() => setSidecarEditor(null)} />}
     </main>
   )
 }
