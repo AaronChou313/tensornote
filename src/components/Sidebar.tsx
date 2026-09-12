@@ -12,7 +12,6 @@ import { WorkspaceFileDialog, type FileDialogRequest } from './WorkspaceFileDial
 import { joinWorkspacePath } from '../workspace/path'
 import { useExtensionSnapshot } from '../extensions/ExtensionContext'
 import { useCommandRegistry } from '../commands/CommandContext'
-import { deploymentAdapter } from '../deployment/config'
 import { getHostAdapter } from '../host/runtime'
 
 const treePageSize = 200
@@ -187,7 +186,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
           {session.experiments.length > 0 && <NavLink to="/experiments" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <Flask size={15} />Experiments <small>{session.experiments.length}</small>
           </NavLink>}
-          {(deploymentAdapter.capabilities.gitBridge || hostAdapter.capabilities.nativeGit) && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
+          {hostAdapter.capabilities.nativeGit && session.capabilities.git && session.descriptor.type === 'local' && <NavLink to="/git" onClick={() => setSidebarOpen(false)} className={({ isActive }) => cn(isActive && 'is-active')}>
             <GitBranch size={15} />Git
           </NavLink>}
         </div>

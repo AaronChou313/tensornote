@@ -21,8 +21,8 @@ describe('experiment capability summary', () => {
   })
 
   it('describes online reading without claiming browser process support', () => {
-    const result = describeExperimentCapability({ experiment, session, host: { ...host, desktopShell: false, processManagement: false }, deploymentMode: 'static', executionEnabled: true })
-    expect(result).toMatchObject({ availability: 'preview', platform: 'Online Web', canRun: true })
+    const result = describeExperimentCapability({ experiment, session, host: { ...host, desktopShell: false, processManagement: false }, deploymentMode: 'web', executionEnabled: true })
+    expect(result).toMatchObject({ availability: 'preview', platform: 'Web', canRun: true })
     expect(result.detail).toContain('安全阅读')
   })
 })

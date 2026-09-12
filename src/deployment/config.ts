@@ -1,49 +1,54 @@
-export type DeploymentMode = 'static' | 'local' | 'self-hosted' | 'desktop'
+import type { HostKind } from '../host/types'
 
-export interface DeploymentAdapter {
-  mode: DeploymentMode
-  label: string
+export type WebDeploymentTarget = 'development' | 'static' | 'self-hosted'
+
+export interface WebDeploymentConfig {
+  target: WebDeploymentTarget
   router: 'browser' | 'hash'
+  basePath: string
   pwa: boolean
-  publicReaderUrl: string
-  capabilities: {
-    localDirectory: boolean
-    gitBridge: boolean
-    remoteWorkspace: boolean
-    serverWorkspace: boolean
-  }
-  publishedWorkspace?: {
-    owner: string
-    repo: string
-    revision: string
-    noteId?: string
-  }
 }
 
-export function resolveDeploymentConfig(input: { mode?: string; pwa?: string; publicReaderUrl?: string; publishedOwner?: string; publishedRepo?: string; publishedRevision?: string; publishedNote?: string } = {}): DeploymentAdapter {
-  const mode: DeploymentMode = input.mode === 'static' || input.mode === 'self-hosted' || input.mode === 'desktop' ? input.mode : 'local'
-  const desktop = mode === 'desktop'
+export interface DeploymentAdapter {
+  host: HostKind
+  label: string
+  web: WebDeploymentConfig
+  publicReaderUrl: string
+  publishedWorkspace?: { owner: string; repo: string; revision: string; noteId?: string }
+}
+
+interface DeploymentInput {
+  /** Build target compatibility input. Product capability must never branch on it. */
+  mode?: string
+  host?: string
+  basePath?: string
+  pwa?: string
+  publicReaderUrl?: string
+  publishedOwner?: string
+  publishedRepo?: string
+  publishedRevision?: string
+  publishedNote?: string
+}
+
+export function resolveDeploymentConfig(input: DeploymentInput = {}): DeploymentAdapter {
+  const host: HostKind = input.host === 'desktop' || input.mode === 'desktop' ? 'desktop' : 'web'
+  const target: WebDeploymentTarget = input.mode === 'static' ? 'static' : input.mode === 'self-hosted' ? 'self-hosted' : 'development'
   const publishedWorkspace = input.publishedOwner && input.publishedRepo && input.publishedRevision
     ? { owner: input.publishedOwner, repo: input.publishedRepo, revision: input.publishedRevision, ...(input.publishedNote ? { noteId: input.publishedNote } : {}) }
     : undefined
   return {
-    mode,
-    label: mode === 'static' ? 'Static Web' : mode === 'self-hosted' ? 'Self-hosted Web' : desktop ? 'Desktop' : 'Local Web',
-    router: mode === 'static' || desktop ? 'hash' : 'browser',
-    pwa: !desktop && input.pwa !== 'false',
+    host,
+    label: host === 'desktop' ? 'TensorNote Desktop' : 'TensorNote Web',
+    web: { target, router: target === 'static' || host === 'desktop' ? 'hash' : 'browser', basePath: input.basePath || '/', pwa: host === 'web' && input.pwa !== 'false' },
     publicReaderUrl: input.publicReaderUrl || 'https://aaronchou313.github.io/tensornote/',
-    capabilities: {
-      localDirectory: !desktop,
-      gitBridge: mode === 'local',
-      remoteWorkspace: true,
-      serverWorkspace: false,
-    },
     ...(publishedWorkspace ? { publishedWorkspace } : {}),
   }
 }
 
 export const deploymentAdapter = resolveDeploymentConfig({
   mode: import.meta.env.VITE_TENSORNOTE_DEPLOYMENT,
+  host: import.meta.env.VITE_TENSORNOTE_HOST,
+  basePath: import.meta.env.VITE_BASE_PATH,
   pwa: import.meta.env.VITE_TENSORNOTE_PWA,
   publicReaderUrl: import.meta.env.VITE_TENSORNOTE_PUBLIC_READER_URL,
   publishedOwner: import.meta.env.VITE_TENSORNOTE_PUBLISH_OWNER,

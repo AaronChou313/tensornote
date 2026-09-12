@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 当前阶段：1
-- 最后完成：0 规范与基线
-- 当前工作：Host / Web deployment 契约
+- 当前阶段：2
+- 最后完成：1 Host 契约
+- 当前工作：核心收缩与依赖切割
 - 分支：`codex/v2-core-sidecar`
 - 基线：v1.18.0 发布后主线 `fcdfcc2`
 
@@ -12,8 +12,8 @@
 
 | 阶段 | 状态 | Commit |
 | --- | --- | --- |
-| 0 规范与基线 | DONE | 待提交 |
-| 1 Host 契约 | IN_PROGRESS | |
+| 0 规范与基线 | DONE | `2b5688a` |
+| 1 Host 契约 | DONE | 待提交 |
 | 2 核心收缩 | TODO | |
 | 3 单笔记 Workbench | TODO | |
 | 4 Sidecar 契约 | TODO | |
@@ -37,3 +37,13 @@
 - 建立 0～8 阶段计划与跨会话实施日志。
 - 依据当前源码核对 App routes、AppShell、Host、Deployment、Workspace/Compute Provider，以及待删除系统的直接引用。
 - 确认阶段 2 必须做依赖切割，不能按目录直接批量删除。
+
+## 阶段 1 — Host / Web deployment 契约
+
+状态：DONE
+
+- 正式配置只表达 `web` 与 `desktop` Host；static、self-hosted、development 成为 Web deployment metadata。
+- 路由、basePath 与 PWA 收入 `WebDeploymentConfig`，不再提供产品能力矩阵。
+- Compute 默认 Profile 与能力完全由 Host 决定；Web 不再因本地开发地址获得 localhost Jupyter 产品能力。
+- 浏览器目录能力继续属于 Workspace Provider，不由 deployment target 冒充原生 Host 能力。
+- 4 个相关测试文件、11 项测试、Lint 与 TypeScript 通过。

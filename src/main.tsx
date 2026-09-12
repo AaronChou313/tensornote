@@ -9,7 +9,7 @@ import { deploymentAdapter } from './deployment/config'
 import { registerServiceWorker } from './deployment/registerServiceWorker'
 import { createHostAdapter, installHostAdapter } from './host/runtime'
 
-const Router = deploymentAdapter.router === 'hash' ? HashRouter : BrowserRouter
+const Router = deploymentAdapter.web.router === 'hash' ? HashRouter : BrowserRouter
 
 async function bootstrap() {
   const hostAdapter = await createHostAdapter({

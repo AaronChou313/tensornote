@@ -27,8 +27,8 @@ type PersistedComputeState = Pick<ComputeState, 'profiles' | 'activeProfileId' |
 
 const tokenStorageKey = 'tensornote-compute-tokens'
 const legacyTokenStorageKey = 'tensornote-jupyter-token'
-const defaultProfile = initialComputeProfile(deploymentAdapter.mode)
-const legacyProfile = initialComputeProfile('local')
+const defaultProfile = initialComputeProfile(deploymentAdapter.host)
+const legacyProfile = initialComputeProfile('desktop')
 
 function readTokens() {
   try {

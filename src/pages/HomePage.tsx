@@ -17,7 +17,6 @@ import { useWorkspaceStore } from '../store/useWorkspaceStore'
 import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
 import { pickLocalWorkspace } from '../workspace/providers/LocalWorkspaceProvider'
 import type { RecentWorkspace, WorkspaceProvider } from '../workspace/types'
-import { deploymentAdapter } from '../deployment/config'
 import { getHostAdapter } from '../host/runtime'
 
 const loadNativeWorkspaceProvider = import.meta.env.VITE_TENSORNOTE_HOST === 'desktop'
@@ -114,7 +113,7 @@ export function HomePage() {
 
   const busy = status === 'loading'
   const hostAdapter = getHostAdapter()
-  const supportsLocalWorkspace = deploymentAdapter.capabilities.localDirectory || hostAdapter.capabilities.nativeFilesystem
+  const supportsLocalWorkspace = hostAdapter.id === 'web' || hostAdapter.capabilities.nativeFilesystem
   const visibleRecentWorkspaces = supportsLocalWorkspace
     ? recentWorkspaces
     : recentWorkspaces.filter((recent) => recent.type !== 'local')

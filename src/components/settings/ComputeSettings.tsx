@@ -73,7 +73,7 @@ export function ComputeSettings() {
   const setToken = useComputeStore((state) => state.setToken)
   const kernelStatus = useAppStore((state) => state.kernelStatus)
   const host = getHostAdapter()
-  const computeCapabilities = resolveComputeCapabilities(deploymentAdapter.mode, host.capabilities)
+  const computeCapabilities = resolveComputeCapabilities(host.capabilities)
   const runtimeLocations = runtimeLocationsForCapabilities(computeCapabilities)
   const [runtimeLocation, setRuntimeLocation] = useState<RuntimeLocation>(runtimeLocations[0])
   const [localManualVisible, setLocalManualVisible] = useState(false)

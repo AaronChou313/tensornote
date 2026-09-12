@@ -1,4 +1,4 @@
-import type { DeploymentMode } from '../deployment/config'
+import type { HostKind } from '../host/types'
 import type { HostCapabilities } from '../host/types'
 import type { WorkspaceSession } from '../workspace/types'
 import type { IndexedExperiment } from './types'
@@ -19,11 +19,11 @@ export function describeExperimentCapability(input: {
   experiment: IndexedExperiment
   session: WorkspaceSession
   host: HostCapabilities
-  deploymentMode: DeploymentMode
+  deploymentMode: HostKind
   executionEnabled: boolean
 }): ExperimentCapabilitySummary {
   const { experiment, session, host, deploymentMode, executionEnabled } = input
-  const platform = host.desktopShell ? 'Desktop' : deploymentMode === 'static' ? 'Online Web' : 'Local Web'
+  const platform = deploymentMode === 'desktop' ? 'Desktop' : 'Web'
   if (!experiment.manifest || experiment.diagnostics.some((item) => item.severity === 'error')) return {
     availability: 'invalid', platform, canInspect: true, canRun: false, tone: 'danger',
     title: '实验配置需要修复', detail: '清单或引用未通过校验。修复下方诊断后才能准备运行。',
@@ -42,8 +42,6 @@ export function describeExperimentCapability(input: {
   }
   const detail = host.processManagement
     ? '桌面版可生成绑定脚本摘要的运行计划；确认后按顺序运行受支持的步骤。'
-    : deploymentMode === 'static'
-      ? '在线版提供安全阅读，并可通过已配置的远程 Jupyter 运行兼容步骤；原生进程仍需要桌面版。'
-      : '本地 Web 可通过同机或远程 Jupyter 运行兼容步骤；Git Bridge 不参与实验执行。'
+    : 'Web 提供安全阅读，并可通过已配置的远程 Jupyter 运行兼容步骤；原生进程仍需要桌面版。'
   return { availability: 'preview', platform, canInspect: true, canRun: true, tone: 'success', title: host.processManagement ? '桌面运行器可用' : 'Jupyter 兼容运行器可用', detail }
 }

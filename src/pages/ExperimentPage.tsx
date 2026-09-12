@@ -229,7 +229,7 @@ export function ExperimentPage() {
   const tab: ExperimentTab = requestedTab && tabs.includes(requestedTab) ? requestedTab : 'environment'
   const presetId = experiment.requestedPreset ?? manifest?.defaultPreset ?? ''
   const preset = manifest?.presets[presetId]
-  const capability = describeExperimentCapability({ experiment, session, host: getHostAdapter().capabilities, deploymentMode: deploymentAdapter.mode, executionEnabled: resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled })
+  const capability = describeExperimentCapability({ experiment, session, host: getHostAdapter().capabilities, deploymentMode: deploymentAdapter.host, executionEnabled: resolveWorkspaceExecutionPolicy(session, executionOverrides).enabled })
   const binder = createBinderExperimentTarget(session, experiment)
   const setTab = (next: ExperimentTab) => setSearchParams(next === 'environment' ? {} : { tab: next }, { replace: true })
 
