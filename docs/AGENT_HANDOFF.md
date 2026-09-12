@@ -142,6 +142,10 @@ v1.6.1 保留为历史稳定版；其 Tag `0c6bba3d9dd6f65faa9debe4ff6f7fd3fbc56
 
 验证：`pnpm check` 最终 180 项测试通过；性能测试 3 项通过；生产依赖审计无已知漏洞；Static Web 构建及无 Tauri IPC 边界检查通过；`pnpm check:desktop` 含 14 项 Rust 测试通过；macOS arm64 应用构建成功。公开仓库直达 URL 及分享窗口在本地 Web 实测通过，仍显示 Revision 信任要求。代码已推送 main、打 v1.6.2 Tag 并公开 Release；既有 v1.6.1 发行资产未改动。正式 Apple Silicon 下载包已解压启动并核对版本和阅读布局。用户实际课程目录在候选桌面与已部署在线版均只读验证，中文章节及图片文件夹显示正确。
 
-## TensorNote 2.0 候选（2026-09-12）
+## TensorNote 2.0 已发布（2026-09-12）
 
 `codex/v2-core-sidecar` 从 v1.18.0 发布后主线开始，完成核心收缩、Web/Desktop Host 契约、单笔记 Workbench、Derivation/Jupyter Sidecar、统一 SidePanel、编辑/Outline、双宿主文档与 Skill 迁移。实施来源、阶段和验证以 `docs/V2_CORE_SIDECAR_PRODUCT_SPEC.md`、`docs/V2_IMPLEMENTATION_PLAN.md`、`docs/V2_IMPLEMENTATION_LOG.md` 为准。2.0 Tag/Release 状态必须按 GitHub 实时检查，不从本段推断。
+
+**v2.0.0 已于 2026-09-12 04:18 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v2.0.0) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `63840c821e577b11d1f49615be4dcb26eb81ac36`，21 个附件齐全；[Release Workflow 34671997945](https://github.com/AaronChou313/tensornote/actions/runs/34671997945) 第二次尝试全部通过。第一次尝试仅因 Pages 环境缺少 `v2.0.0` Tag 许可而失败；增加精确 Tag 环境规则后重跑成功，应用代码与 Tag 未改变。
+
+本机 Apple Silicon 可用构建位于 `src-tauri/target/release/bundle/macos/TensorNote.app` 与 `src-tauri/target/release/bundle/dmg/TensorNote_2.0.0_aarch64.dmg`。公开包仍属于未公证社区发行，首次打开提示以中英文使用手册为准。

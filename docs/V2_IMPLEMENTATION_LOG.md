@@ -122,4 +122,7 @@
 - Static Web build 与无 Tauri IPC 边界通过；Rust fmt、Clippy 与 14 项测试通过。
 - Skill `quick_validate.py` 在隔离临时 Python 环境通过；两个模板 strict 零错误零警告，仓库 Workspace 零错误零警告。
 - 本机 Apple Silicon Desktop release build 成功：`TensorNote.app` 与 `TensorNote_2.0.0_aarch64.dmg`。
-- GitHub 推送、Tag、跨平台 Workflow、附件校验与 Release 可见性在本提交之后记录。
+- `main` 与 annotated Tag `v2.0.0` 已推送，Tag 固定到 `63840c821e577b11d1f49615be4dcb26eb81ac36`。
+- [Release Workflow 34671997945](https://github.com/AaronChou313/tensornote/actions/runs/34671997945) 第二次尝试全部通过：发行门、容器、Static Web、Pages、Windows、Linux、Intel/Apple Silicon macOS 与最终归档均成功。
+- [TensorNote v2.0.0](https://github.com/AaronChou313/tensornote/releases/tag/v2.0.0) 已公开为最新稳定版，21 个附件包含各平台安装包、Updater 签名、Static Web、Agent Skill、Manifest 与 SHA256SUMS。
+- GitHub Pages 已部署并返回 HTTP 200；`github-pages` 环境增加精确 `v2.0.0` Tag 许可，保留精确 Tag 发布策略。
