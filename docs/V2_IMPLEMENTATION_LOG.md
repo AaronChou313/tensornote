@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-- 当前阶段：4
-- 最后完成：3 单笔记 Workbench
-- 当前工作：Sidecar 内容契约
+- 当前阶段：5
+- 最后完成：4 Sidecar 内容契约
+- 当前工作：统一 SidePanel
 - 分支：`codex/v2-core-sidecar`
 - 基线：v1.18.0 发布后主线 `fcdfcc2`
 
@@ -15,9 +15,9 @@
 | 0 规范与基线 | DONE | `2b5688a` |
 | 1 Host 契约 | DONE | `5d6c1aa` |
 | 2 核心收缩 | DONE | `1c150e5` |
-| 3 单笔记 Workbench | DONE | 待提交 |
-| 4 Sidecar 契约 | IN_PROGRESS | |
-| 5 统一 SidePanel | TODO | |
+| 3 单笔记 Workbench | DONE | `ce979bc` |
+| 4 Sidecar 契约 | DONE | 待提交 |
+| 5 统一 SidePanel | IN_PROGRESS | |
 | 6 编辑与迁移 | TODO | |
 | 7 双宿主收口 | TODO | |
 | 8 稳定与发行 | TODO | |
@@ -68,3 +68,14 @@
 - 顶部标签仅承担打开笔记与历史切换，不再表示多 Pane 布局。
 - 保留 Properties 编辑入口，并将旧 Lab 作为阶段 4～5 的 Sidecar 兼容输入。
 - `pnpm check` 通过：46 个测试文件、159 项测试、Lint、TypeScript 与生产构建；Rust fmt、Clippy 与 15 项测试通过。
+
+## 阶段 4 — Sidecar 内容契约
+
+状态：DONE
+
+- 新增仅含 `derivation` 与 `jupyter` 的 Sidecar 联合类型、源码范围和解析诊断。
+- `:::tensornote{...}` 指令可从 Markdown 提取为 Sidecar，并在正文原位置生成稳定触发标记。
+- 非法类型、无效/重复 id 与未闭合指令保留原始 Markdown，不静默丢失用户内容。
+- 旧 `python exec` Lab 通过 `legacyLabToSidecar` 适配为 Jupyter Sidecar，继续兼容 Workspace Schema v1。
+- 新增独立 Sidecar Store，只保存宽度偏好；切换笔记会关闭活动 Sidecar。
+- 48 个测试文件、164 项测试、Lint 与 TypeScript 通过。

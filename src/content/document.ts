@@ -2,6 +2,8 @@ import matter from 'gray-matter'
 import { Buffer } from 'buffer'
 import type { Heading, Note, NoteFrontmatter } from '../types'
 import { extractLabs } from './labParser'
+import { legacyLabToSidecar } from '../sidecar/legacyLabAdapter'
+import { parseSidecarDirectives } from '../sidecar/parser'
 
 if (!globalThis.Buffer) globalThis.Buffer = Buffer
 
@@ -63,7 +65,8 @@ function normalizeFrontmatter(data: Record<string, unknown>, path: string): Note
 export function parseDocument(path: string, raw: string, source?: { modifiedAt?: number; size?: number }): Note {
   const parsed = matter(raw)
   const frontmatter = normalizeFrontmatter(parsed.data, path)
-  const { labs, renderedContent } = extractLabs(parsed.content)
+  const parsedSidecars = parseSidecarDirectives(parsed.content)
+  const { labs, renderedContent } = extractLabs(parsedSidecars.renderedContent)
   const headings = getHeadings(parsed.content)
   const inlineTags = extractInlineTags(parsed.content)
   const directory = path.split('/').slice(0, -1).join('/')
@@ -79,6 +82,8 @@ export function parseDocument(path: string, raw: string, source?: { modifiedAt?:
     content: parsed.content,
     renderedContent,
     labs,
+    sidecars: [...parsedSidecars.sidecars, ...labs.map(legacyLabToSidecar)],
+    sidecarDiagnostics: parsedSidecars.diagnostics,
     headings,
     searchText: [
       frontmatter.title,

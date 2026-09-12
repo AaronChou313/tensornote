@@ -10,6 +10,9 @@ export { computeConnectorCompatibilityMatrix, connectorCompatibility, formatComp
 export type { ComputeConnectorCompatibility } from '../compute/compatibility'
 
 export { EXECUTABLE_MARKDOWN_SYNTAX_VERSION, createExecutableLabMarkdown, extractLabs, updateLabCells } from '../content/labParser'
+export { createSidecarDirective, parseSidecarDirectives } from '../sidecar/parser'
+export { legacyLabToSidecar } from '../sidecar/legacyLabAdapter'
+export type { DerivationSidecar, JupyterSidecar, Sidecar, SidecarDiagnostic, SidecarType } from '../sidecar/types'
 export type { ExecutableLabDraft } from '../content/labParser'
 
 export { SECRET_MODEL_VERSION, SETTINGS_MODEL_VERSION } from './contracts'

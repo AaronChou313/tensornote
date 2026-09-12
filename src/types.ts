@@ -44,6 +44,8 @@ export interface Note {
   content: string
   renderedContent: string
   labs: Lab[]
+  sidecars: import('./sidecar/types').Sidecar[]
+  sidecarDiagnostics: import('./sidecar/types').SidecarDiagnostic[]
   headings: Heading[]
   searchText: string
   sourceModifiedAt?: number
