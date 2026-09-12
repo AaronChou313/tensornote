@@ -11,7 +11,7 @@
 
 ## 1. Repository organization
 
-Store knowledge below the configured `content.root`, normally `notes/`. Use folders for durable subject hierarchy, not temporary project status. Prefer lowercase kebab-case filenames and stable paths:
+Store knowledge below the configured `content.root`, normally `notes/`. Use folders for durable subject hierarchy, not temporary project status. The filesystem path determines which file a note is; an explicit Frontmatter `id` determines which knowledge concept it represents. Different directories may contain the same filename. Prefer lowercase kebab-case filenames and stable paths:
 
 ```text
 notes/
@@ -45,7 +45,7 @@ status: growing
 
 Required for agent-authored notes:
 
-- `id`: unique, stable, lowercase kebab-case identifier. Never recycle an ID for another concept.
+- `id`: globally unique, stable, lowercase kebab-case knowledge identifier. Never recycle an ID for another concept. This uniqueness rule applies to explicit IDs, not filenames; `chapter-1/README.md` and `chapter-2/README.md` are valid distinct files.
 - `title`: human-readable title used by navigation and search.
 - `section`: durable subject grouping.
 - `order`: number used for deliberate reading order within a section.
@@ -81,7 +81,7 @@ Use WikiLinks for internal knowledge relations:
 ![[Transformer 学习地图#学习路径]]
 ```
 
-Link targets may resolve through an ID, title, alias, filename, or path, but prefer stable IDs/titles already used by the Workspace. Do not create a dangling link without reporting it.
+Link targets may resolve through an ID, title, alias, filename, or path, but prefer stable explicit IDs. If duplicate filenames make `[[README]]` ambiguous, use a path such as `[[chapter-1/README]]` or assign and link an explicit ID such as `[[chapter-1-readme]]`. Ambiguity is a link issue and must never make the Workspace invalid. Do not create a dangling link without reporting it.
 
 Store images and downloadable resources below `assets.root`, normally `assets/`. Use relative Markdown links and descriptive alt text:
 
@@ -115,7 +115,7 @@ x = 1
 ```
 ````
 
-Read `sidecars.md` before adding Derivation or Jupyter Sidecars. Keep ordinary code fences display-only.
+Read `sidecars.md` before adding Derivation or Jupyter Sidecars. Keep ordinary code fences display-only. Preserve a continuous main narrative: move long auxiliary proofs, detailed derivations, and verification experiments into a Sidecar only when they would interrupt that narrative. Do not hide short equations, short code, or essential reasoning in Sidecars.
 
 ## 6. Quality and safety gates
 

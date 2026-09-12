@@ -74,7 +74,7 @@ function DerivationPanel({ sidecar }: { sidecar: DerivationSidecar }) {
   }
   return <aside className="lab-drawer side-panel" style={{ width: `min(${width}px, 100vw)` }} aria-label={`${sidecar.title} 推导`}>
     <div className="lab-drawer__resize" onPointerDown={startResize} aria-hidden="true" />
-    <header className="lab-drawer__header"><div className="min-w-0 flex-1"><p>DERIVATION SIDECAR</p><h2>{sidecar.title}</h2><span>随笔记保存的 Markdown 推导</span></div><Button variant="ghost" size="icon" onClick={close} aria-label="关闭推导"><X size={18} /></Button></header>
+    <header className="lab-drawer__header"><div className="min-w-0 flex-1"><p>推导 / 补充内容</p><h2>{sidecar.title}</h2><span>随笔记保存的富 Markdown 补充说明</span></div><Button variant="ghost" size="icon" onClick={close} aria-label="关闭推导"><X size={18} /></Button></header>
     <div className="lab-drawer__body side-panel__derivation note-prose"><MarkdownRenderer content={sidecar.markdown} labs={[]} /></div>
   </aside>
 }

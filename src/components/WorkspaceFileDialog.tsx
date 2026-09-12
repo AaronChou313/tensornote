@@ -92,7 +92,7 @@ export function WorkspaceFileDialog({ request, onClose }: { request: FileDialogR
         let id = slugify(title) || 'note'
         if (session.documentById.has(id)) id = `${id}-${Date.now().toString(36)}`
         const note = await createNote(path, createDocumentTemplate(id, title))
-        navigate(`/notes/${note.id}`)
+        navigate(`/notes/${encodeURIComponent(note.id)}`)
       } else if (request.action === 'new-folder') {
         await createFolder(previewPath)
       } else if (request.action === 'delete' && request.path) {
@@ -111,7 +111,7 @@ export function WorkspaceFileDialog({ request, onClose }: { request: FileDialogR
         if (session.documentById.has(id)) id = `${id}-${Date.now().toString(36)}`
         const target = previewPath.toLowerCase().endsWith('.md') ? previewPath : `${previewPath}.md`
         const note = await createNote(target, duplicateDocument(source.raw, id, title))
-        navigate(`/notes/${note.id}`)
+        navigate(`/notes/${encodeURIComponent(note.id)}`)
       }
       onClose()
     } catch (reason) {

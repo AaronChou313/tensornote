@@ -23,4 +23,15 @@ describe('single-note workbench', () => {
     store.openNote('a', 'A'); store.openView('workspace'); store.openNote('b', 'B')
     expect(useWorkbenchStore.getState()).toMatchObject({ activeView: null, history: ['a', 'b'] })
   })
+
+  it('keeps independent note scroll positions for the current workspace session', () => {
+    const store = useWorkbenchStore.getState()
+    store.saveNoteScroll('a', 1000)
+    store.saveNoteScroll('b', 400)
+    expect(useWorkbenchStore.getState().getNoteScroll('a')).toBe(1000)
+    expect(useWorkbenchStore.getState().getNoteScroll('b')).toBe(400)
+    expect(useWorkbenchStore.getState().getNoteScroll('new')).toBe(0)
+    store.resetWorkspace()
+    expect(useWorkbenchStore.getState().getNoteScroll('a')).toBe(0)
+  })
 })

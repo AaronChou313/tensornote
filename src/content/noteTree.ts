@@ -15,13 +15,6 @@ interface MutableTreeItem extends NoteTreeItem {
 
 const fileNameCollator = new Intl.Collator('zh-CN', { numeric: true, sensitivity: 'base' })
 
-function fallbackLabel(value: string) {
-  return value
-    .replace(/^\d+[-_. ]*/, '')
-    .replace(/[-_]+/g, ' ')
-    .replace(/\b\w/g, (letter) => letter.toUpperCase())
-}
-
 export function buildNoteTree(documents: Note[], contentRoot: string, directoryPaths: string[] = []): NoteTreeItem[] {
   const root: MutableTreeItem = { label: 'Workspace', children: [] }
   const folders = new Map<string, MutableTreeItem>([['', root]])
@@ -61,7 +54,7 @@ export function buildNoteTree(documents: Note[], contentRoot: string, directoryP
     const parent = ensureFolder(segments)
 
     parent.children.push({
-      label: note.frontmatter.title || fallbackLabel(fileName.replace(/\.md$/i, '')),
+      label: fileName.replace(/\.md$/i, ''),
       kind: 'file',
       noteId: note.id,
       path: relativePath,

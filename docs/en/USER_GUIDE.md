@@ -24,7 +24,7 @@ For a Jupyter Sidecar, open Settings → Compute & Jupyter → Remote runtime, c
 
 Download the package for your OS and CPU, verify `SHA256SUMS`, and install it. Open an existing knowledge base or select a parent directory to create one. Desktop stores an opaque identifier for user-authorized roots; creation and file operations remain inside that authority. Markdown, assets, and `tensornote.yaml` remain in the selected folder. No Vite or extra TensorNote service is required.
 
-The guide link opens through the restricted system URL opener. Files mirrors the filesystem; search and tabs switch notes; Outline navigates within the current note. Saves use disk conflict checks and unsaved drafts stay in device recovery storage.
+The guide link opens through the restricted system URL opener. Files mirrors the filesystem; search and tabs switch notes; Outline navigates within the current note. Saves use disk conflict checks and unsaved drafts stay in device recovery storage. Duplicate Markdown filenames are valid across directories: paths identify files, while explicit Frontmatter IDs identify knowledge concepts. Overview uses only a root `OVERVIEW.md`, then root `README.md`.
 
 For Jupyter, use Settings → Compute & Jupyter → Local runtime. Convenient connection selects or creates a Conda/uv/venv environment and shows its full path before launch. Manual connection uses a server you start. Remote runtime matches Web. Reading and editing need no Python.
 
@@ -36,7 +36,9 @@ Legacy `/open/github/:owner/:repo` links remain valid. New `/open/remote` links 
 
 ## 5. Sidecars, Git, and agents
 
-A trigger opens the unified SidePanel. Derivation renders complete Markdown reasoning; Jupyter provides multiple Python cells sharing one Kernel. Legacy `python exec` Labs remain readable; new content uses `:::tensornote{...}`.
+A trigger opens the unified SidePanel. Derivation is a non-executable rich Markdown supplement supporting math, tables, images, Mermaid, and Callouts. Jupyter executes only explicit `python` fences, with multiple cells sharing one Kernel.
+
+In edit mode, choose **Sidecar content** to create a Sidecar or select one already in the note. Derivations provide edit/preview; Jupyter cells can be added, removed, and reordered. Changes replace only the selected directive source range. IDs are generated from titles and remain available under advanced settings. Legacy `python exec` Labs remain readable.
 
 TensorNote has no Git workbench. Save edits, then use Git CLI or a dedicated Git client to commit and synchronize the ordinary folder.
 

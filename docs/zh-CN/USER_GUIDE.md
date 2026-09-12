@@ -24,7 +24,7 @@
 
 从 GitHub Release 下载对应系统和 CPU 的安装包，核对 `SHA256SUMS` 后安装。首页可直接打开已有知识库，也可选择父目录创建新知识库。桌面端只保存用户授权目录的内部标识，创建和文件操作始终限制在该授权范围内。Markdown、附件和 `tensornote.yaml` 留在原目录，无需 Vite 或额外 TensorNote 服务。
 
-顶部“使用说明”通过受限的系统外链能力打开浏览器。在 Files 中按真实目录/文件名浏览；使用搜索或标签切换笔记；Outline 在当前笔记内定位。保存使用磁盘冲突检查，未保存草稿保存在设备恢复区。
+顶部“使用说明”通过受限的系统外链能力打开浏览器。在 Files 中按真实目录/文件名浏览；使用搜索或标签切换笔记；Outline 在当前笔记内定位。保存使用磁盘冲突检查，未保存草稿保存在设备恢复区。 不同目录可以包含同名 Markdown；路径区分文件，显式 Frontmatter `id` 用作知识引用身份。Overview 只读取根目录 `OVERVIEW.md`，不存在时读取根 `README.md`。
 
 运行 Jupyter Sidecar：设置 → 计算与 Jupyter → 本地运行。便捷连接可选择已有 Conda/uv/venv 环境或创建环境，确认完整落盘路径后启动 Jupyter；手动连接用于你自己启动的 Server。远程运行与 Web 相同。阅读与编辑不需要 Python。
 
@@ -41,7 +41,9 @@
 
 ## 5. Sidecar 与 Git
 
-正文卡片打开统一 SidePanel，同一时刻显示一个 Sidecar。Derivation 展示完整 Markdown 推导；Jupyter 提供共享 Kernel 的多 Cell 执行。旧 `python exec` Lab 仍可读取；新内容使用 `:::tensornote{...}`。
+正文卡片打开统一 SidePanel，同一时刻显示一个 Sidecar。Derivation 是不执行代码的“推导 / 补充内容”，支持 Markdown、公式、表格、图片、Mermaid 与 Callout；Jupyter 只执行明确标记为 `python` 的多个 Cell，并共享同一 Kernel。
+
+编辑笔记时点击“侧栏内容”，可以新建或选择当前笔记中的 Sidecar。Derivation 提供编辑/预览；Jupyter Cell 可以添加、删除和排序；修改与删除只作用于对应的 Markdown 指令范围。ID 会从标题自动生成，高级用户可在“高级设置”修改。旧 `python exec` Lab 仍可读取。
 
 TensorNote 不提供 Git 工作台。知识库是普通文件夹：先保存编辑，再使用 Git CLI、GitHub Desktop、Fork、SourceTree 等工具提交和同步。
 

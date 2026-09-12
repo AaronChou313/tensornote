@@ -53,7 +53,7 @@ function TreeItem({ item, depth = 0, onAction, onOpenNote }: { item: NoteTreeIte
         )}
         {item.noteId ? (
           <NavLink
-            to={`/notes/${item.noteId}`}
+            to={`/notes/${encodeURIComponent(item.noteId)}`}
             onClick={() => { onOpenNote(item.noteId!); closeSidebar(false) }}
             className={({ isActive }) => cn('tree-link', isActive && 'tree-link--active')}
           >
@@ -178,7 +178,7 @@ export function Sidebar({ onSwitchWorkspace }: { onSwitchWorkspace: () => Promis
 
         {recent.length > 0 && <SidebarSection title="Recent files" className="sidebar-recent"><div>{recent.slice(0, 4).map((noteId) => {
           const note = session.documentById.get(noteId)
-          return note ? <NavLink key={noteId} to={`/notes/${noteId}`} onClick={() => { openNote(note.id); setSidebarOpen(false) }}><FileText size={13} />{note.frontmatter.title}</NavLink> : null
+          return note ? <NavLink key={noteId} to={`/notes/${encodeURIComponent(noteId)}`} onClick={() => { openNote(note.id); setSidebarOpen(false) }}><FileText size={13} />{note.frontmatter.title}</NavLink> : null
         })}</div></SidebarSection>}
 
         <SidebarSection title="Files" className="sidebar-files">
