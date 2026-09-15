@@ -1,8 +1,14 @@
 # TensorNote 维护者交接
 
-更新：2026-09-15。仓库：`AaronChou313/tensornote`。本文件是项目继续开发和发行操作的首要入口；外部状态仍须实时查询 GitHub。
+更新：2026-09-16。仓库：`AaronChou313/tensornote`。本文件是项目继续开发和发行操作的首要入口；外部状态仍须实时查询 GitHub。
 
 ## 当前交付
+
+### v2.1.3 已发布：单篇笔记导出 PDF（2026-09-16）
+
+当前笔记顶部工具栏提供 Web/Desktop 共用的 PDF 导出入口。导出使用独立可打印文档，不包含 Files、Tabs、工具栏或 SidePanel；Derivation 与 Jupyter Sidecar 在原位置展开，Jupyter 只导出 Cell 标题和 Python 代码，不执行代码、改变 Kernel 或包含运行结果。KaTeX、Mermaid、图片、表格、Callout 与代码高亮继续复用 MarkdownRenderer，并使用白底黑字和分页保护样式。
+
+**v2.1.3 已于 2026-09-15 16:59 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v2.1.3) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `4601c98ab37fa8873e025aaa7c4722be8e14ef96`，21 个附件齐全；[Release Workflow 34996815175](https://github.com/AaronChou313/tensornote/actions/runs/34996815175) 的发行门、Web、容器、Linux、Windows、Intel/Apple Silicon macOS、资产汇总与 Pages 部署全部通过。全部下载资产已按 `SHA256SUMS` 核验，7 个 Updater 签名已用仓库公钥独立验证，`latest.json` 包含 11 个更新目标。Apple Silicon 应用版本与启动冒烟测试通过，线上资源包含 2.1.3 与 PDF 导出入口。
 
 ### v2.1.2 已发布：阅读、文件身份、Sidecar 写作与排版完善（2026-09-15）
 
