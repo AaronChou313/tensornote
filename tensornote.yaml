@@ -23,5 +23,6 @@ publishing:
   title: TensorNote Workspace Fixture
   description: 用于应用与知识库 Skill 验证的最小测试数据
   accent: '#4f8061'
+  defaultNote: workspace-fixture-overview
 
 extensions: {}
