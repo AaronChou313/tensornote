@@ -4708,7 +4708,7 @@ button.trust-status {
   .local-runtime-server-details > div > span { justify-content: flex-end; }
 }
 
-/* v2.1.1 Sidecar authoring */
+/* v2.1.x Sidecar authoring */
 .formatting-toolbar__sidecars { position: relative; flex: none; }
 .formatting-toolbar__sidecars > summary { list-style: none; }
 .formatting-toolbar__sidecars > summary::-webkit-details-marker { display: none; }
