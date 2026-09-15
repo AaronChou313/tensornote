@@ -44,9 +44,31 @@ interface MarkdownRendererProps {
   knowledgeIndex?: KnowledgeIndex
   noteId?: string
   embeddedTrail?: string[]
+  renderMode?: 'interactive' | 'print'
 }
 
-export function MarkdownRenderer({ content, labs, sidecars = [], documentTitle, documentPath = '', resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail = [] }: MarkdownRendererProps) {
+function PrintableSidecar({ sidecar, rendererProps }: { sidecar: Sidecar; rendererProps: MarkdownRendererProps }) {
+  const label = sidecar.type === 'jupyter' ? 'Python 实验' : '补充推导'
+  return (
+    <section className={`print-sidecar print-sidecar--${sidecar.type}`}>
+      <header className="print-sidecar__header"><p>{label}</p><h2>{sidecar.title}</h2></header>
+      {sidecar.type === 'derivation' ? (
+        <MarkdownRenderer {...rendererProps} content={sidecar.markdown} labs={[]} sidecars={[]} renderMode="print" />
+      ) : (
+        <div className="print-sidecar__cells">
+          {sidecar.cells.map((cell, index) => (
+            <section className="print-sidecar__cell" key={cell.id}>
+              <h3>{cell.title || `Cell ${index + 1}`}</h3>
+              <MarkdownRenderer {...rendererProps} content={`\`\`\`python\n${cell.code}\n\`\`\``} labs={[]} sidecars={[]} renderMode="print" />
+            </section>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+export function MarkdownRenderer({ content, labs, sidecars = [], documentTitle, documentPath = '', resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail = [], renderMode = 'interactive' }: MarkdownRendererProps) {
   const labMap = new Map(labs.map((lab) => [lab.id, lab]))
   const sidecarMap = new Map(sidecars.map((sidecar) => [sidecar.id, sidecar]))
   const markdown = useMemo(
@@ -106,13 +128,16 @@ export function MarkdownRenderer({ content, labs, sidecars = [], documentTitle, 
         code: ({ className, children, ...props }) => {
           const language = /language-([\w-]+)/.exec(className ?? '')?.[1]
           const source = String(children).replace(/\n$/, '')
-          if (language === 'mermaid') return <MermaidDiagram chart={source} />
+          if (language === 'mermaid') return <MermaidDiagram chart={source} renderTheme={renderMode === 'print' ? 'light' : undefined} />
           if (language === 'tensornote-lab') {
             const lab = labMap.get(source.trim())
+            const printableSidecar = sidecarMap.get(source.trim())
+            if (renderMode === 'print' && printableSidecar) return <PrintableSidecar sidecar={printableSidecar} rendererProps={{ content: '', labs: [], documentPath, resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail, renderMode }} />
             return lab ? <LabCard lab={lab} noteId={noteId} /> : null
           }
           if (language === 'tensornote-sidecar') {
             const sidecar = sidecarMap.get(source.trim())
+            if (renderMode === 'print' && sidecar) return <PrintableSidecar sidecar={sidecar} rendererProps={{ content: '', labs: [], documentPath, resolveAssetUrl, knowledgeIndex, noteId, embeddedTrail, renderMode }} />
             return sidecar ? <SidecarCard sidecar={sidecar} noteId={noteId} /> : null
           }
           if (language === 'tensornote-embed' && knowledgeIndex && noteId) {
@@ -134,6 +159,7 @@ export function MarkdownRenderer({ content, labs, sidecars = [], documentTitle, 
                   knowledgeIndex={knowledgeIndex}
                   noteId={resolved.note.id}
                   embeddedTrail={[...embeddedTrail, noteId]}
+                  renderMode={renderMode}
                 />
               </aside>
             )

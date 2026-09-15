@@ -1,9 +1,10 @@
 import { useEffect, useId, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 
-export function MermaidDiagram({ chart }: { chart: string }) {
+export function MermaidDiagram({ chart, renderTheme }: { chart: string; renderTheme?: 'light' | 'dark' }) {
   const id = `mermaid-${useId().replace(/:/g, '')}`
-  const theme = useAppStore((state) => state.theme)
+  const appTheme = useAppStore((state) => state.theme)
+  const theme = renderTheme ?? appTheme
   const [svg, setSvg] = useState('')
   const [error, setError] = useState<string | null>(null)
 

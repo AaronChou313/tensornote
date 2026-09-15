@@ -4748,3 +4748,114 @@ button.trust-status {
   .note-prose { width: min(calc(100% - 32px), 900px); }
   .note-page, .markdown-preview-pane { padding-block: 36px 64px; }
 }
+
+/* Printable note document */
+.print-document {
+  --ink: #111714;
+  --muted: #39413d;
+  --faint: #606a64;
+  --line: #d8ddd9;
+  --surface: #fff;
+  --surface-muted: #f5f7f5;
+  --surface-raised: #f8faf8;
+  --code-surface: #f4f6f4;
+  --code-line: #d8ddd9;
+  --code-ink: #152019;
+  position: fixed;
+  top: 0;
+  left: -100000px;
+  width: 180mm;
+  margin: 0;
+  background: #fff;
+  color: #111714;
+  font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.print-document__header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.print-document__header h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 2.25rem;
+  line-height: 1.15;
+  letter-spacing: -.03em;
+}
+
+.print-sidecar {
+  margin: 1.6rem 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.print-sidecar__header { margin-bottom: .85rem; }
+.print-sidecar__header > p {
+  margin: 0 0 .25rem;
+  color: var(--faint);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.print-sidecar__header > h2 { margin: 0; color: var(--ink); font-size: 1.25rem; line-height: 1.35; }
+.print-sidecar__cells { display: grid; gap: 1rem; }
+.print-sidecar__cell > h3 { margin: 0 0 .45rem; color: var(--ink); font-size: .86rem; line-height: 1.4; }
+.print-sidecar__cell pre { margin: 0; }
+
+@media print {
+  @page { size: auto; margin: 16mm 16mm 18mm; }
+
+  html,
+  body { min-width: 0 !important; background: #fff !important; color: #111 !important; }
+  body > *:not(.print-document) { display: none !important; }
+  body > .print-document {
+    position: static;
+    display: block !important;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    background: #fff !important;
+    color: #111 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-document *,
+  .print-document *::before,
+  .print-document *::after { box-shadow: none !important; }
+  .print-document a { color: #1d5f3c !important; text-decoration: underline; }
+  .print-document h1,
+  .print-document h2,
+  .print-document h3,
+  .print-document h4,
+  .print-document h5,
+  .print-document h6 { break-after: avoid-page; page-break-after: avoid; }
+  .print-document p,
+  .print-document li { orphans: 3; widows: 3; }
+  .print-document pre,
+  .print-document blockquote,
+  .print-document table,
+  .print-document figure,
+  .print-document img,
+  .print-document .callout,
+  .print-document .katex-display,
+  .print-document .mermaid-diagram,
+  .print-document .print-sidecar__cell { break-inside: avoid-page; page-break-inside: avoid; }
+  .print-document img,
+  .print-document svg,
+  .print-document table { max-width: 100% !important; }
+  .print-document img,
+  .print-document svg { height: auto !important; max-height: 235mm; object-fit: contain; }
+  .print-document table { table-layout: fixed; }
+  .print-document th,
+  .print-document td { overflow-wrap: anywhere; }
+  .print-document pre { overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .print-document .mermaid-diagram { overflow: visible; }
+  .print-document button,
+  .print-document [role="button"],
+  .print-document .mermaid-loading,
+  .print-document .workspace-image-loading { display: none !important; }
+}
