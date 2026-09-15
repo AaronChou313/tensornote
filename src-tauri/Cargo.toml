@@ -1,6 +1,6 @@
 [package]
 name = "tensornote"
-version = "2.1.2"
+version = "2.1.3"
 description = "Local-first, Markdown-first executable knowledge workspace"
 authors = ["AaronChou313"]
 license = "Apache-2.0"
