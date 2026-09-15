@@ -1,8 +1,16 @@
 # TensorNote 维护者交接
 
-更新：2026-09-10。仓库：`AaronChou313/tensornote`。本文件是项目继续开发和发行操作的首要入口；外部状态仍须实时查询 GitHub。
+更新：2026-09-15。仓库：`AaronChou313/tensornote`。本文件是项目继续开发和发行操作的首要入口；外部状态仍须实时查询 GitHub。
 
 ## 当前交付
+
+### v2.1.2 已发布：阅读、文件身份、Sidecar 写作与排版完善（2026-09-15）
+
+v2.1.x 将路径与知识语义身份分离，允许不同目录存在同名 Markdown；Files 保持真实文件系统层级，Overview 只读取根目录 `OVERVIEW.md` 或 `README.md`。每篇笔记拥有 Session 内独立滚动位置，标题导航优先。Sidecar 支持可视化新增、编辑、删除 Derivation 与 Jupyter 内容，并同步更新 Agent Skill 与 Validator。v2.1.2 进一步优化标题、正文、公式、表格、代码、图片与 Mermaid 的阅读密度，参考技术笔记单屏可见内容约增加 24%。
+
+**v2.1.2 已于 2026-09-15 08:35 UTC 公开为最新 GitHub 社区稳定版。** [下载 Release](https://github.com/AaronChou313/tensornote/releases/tag/v2.1.2) · [在线版](https://aaronchou313.github.io/tensornote/)。Tag 固定到 `d2c462ac0fb755e83b03eac47df6da9f78aa6072`，21 个附件齐全；[Release Workflow 34946552052](https://github.com/AaronChou313/tensornote/actions/runs/34946552052) 的发行门、Web、容器、Linux、Windows、Intel/Apple Silicon macOS、资产汇总与 Pages 部署全部通过。全部下载资产已按 `SHA256SUMS` 核验，`latest.json` 包含 11 个更新目标。
+
+本机 Rust 检查因当前主机尚未接受 Xcode 许可协议而无法运行；GitHub Actions 的干净 macOS 环境已完成相同 Rust 检查及 Desktop 构建。社区包仍未使用 Apple Developer ID 公证或 Windows 受信发布者签名。
 
 ### v1.18.0 已发布：以环境和连接为中心的 Compute UX（2026-09-10）
 
