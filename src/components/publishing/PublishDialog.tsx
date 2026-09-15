@@ -1,127 +1,60 @@
-import { useEffect, useMemo, useState } from 'react'
-import { ArrowSquareOut, Check, Copy, DownloadSimple, GithubLogo, Laptop, ShareNetwork, ShieldCheck, ShieldWarning, X } from '@phosphor-icons/react'
+import { useState } from 'react'
+import { ArrowSquareOut, Check, Copy, ShareNetwork, X } from '@phosphor-icons/react'
 import { useLocation } from 'react-router-dom'
 import { useAppStore } from '../../store/useAppStore'
 import { useWorkspaceStore } from '../../store/useWorkspaceStore'
 import { useWorkbenchStore } from '../../workbench/useWorkbenchStore'
-import { createGitHubPublicationTargets, createGitHubReaderUrl, isPinnedGitHubRevision } from '../../publishing/links'
-import { Button } from '../ui/Button'
+import { createRemoteReaderUrl } from '../../publishing/links'
 import { deploymentAdapter } from '../../deployment/config'
+import { formatWorkspaceSource, isRemoteWorkspaceSource } from '../../workspace/remote'
+import { Button } from '../ui/Button'
+import { ModalSurface } from '../ui/ModalSurface'
 
-type CopyTarget = 'link' | 'latest' | 'badge' | 'compatibility' | null
-type CopyFeedback = { target: Exclude<CopyTarget, null>; status: 'copied' | 'error' } | null
-
-function copyWithSelection(value: string) {
-  const field = document.createElement('textarea')
-  field.value = value
-  field.setAttribute('readonly', '')
-  field.style.position = 'fixed'
-  field.style.opacity = '0'
-  document.body.append(field)
-  field.select()
-  const copied = document.execCommand('copy')
-  field.remove()
-  return copied
+function copyFallback(value: string) {
+  const field = document.createElement('textarea'); field.value = value; field.style.position = 'fixed'; field.style.opacity = '0'
+  document.body.append(field); field.select(); const copied = document.execCommand('copy'); field.remove(); return copied
 }
 
-async function writeClipboard(value: string) {
-  try {
-    if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable')
-    await navigator.clipboard.writeText(value)
-    return true
-  } catch {
-    return copyWithSelection(value)
-  }
+async function copyText(value: string) {
+  try { await navigator.clipboard.writeText(value); return true } catch { return copyFallback(value) }
 }
 
 export function PublishDialog() {
   const open = useAppStore((state) => state.publishOpen)
   const setOpen = useAppStore((state) => state.setPublishOpen)
   const session = useWorkspaceStore((state) => state.session)
-  const paneNote = useWorkbenchStore((state) => state.activeNoteId)
+  const activeNoteId = useWorkbenchStore((state) => state.activeNoteId)
   const location = useLocation()
-  const [copyFeedback, setCopyFeedback] = useState<CopyFeedback>(null)
-  const activeNote = location.pathname.startsWith('/notes/') ? paneNote ?? undefined : undefined
-  const owner = session?.descriptor.config?.owner
-  const repo = session?.descriptor.config?.repo
-  const revision = session?.descriptor.revision
-  const latestUrl = owner && repo ? createGitHubReaderUrl(deploymentAdapter.publicReaderUrl, owner, repo) : undefined
-  const targets = useMemo(() => {
-    if (!owner || !repo || !isPinnedGitHubRevision(revision)) return null
-    return createGitHubPublicationTargets(deploymentAdapter.publicReaderUrl, { owner, repo, revision, ...(activeNote ? { noteId: activeNote } : {}) })
-  }, [activeNote, owner, repo, revision])
+  const [pinned, setPinned] = useState(false)
+  const [copied, setCopied] = useState<'ok' | 'error' | null>(null)
+  const noteId = location.pathname.startsWith('/notes/') ? activeNoteId || undefined : undefined
+  const remote = session && isRemoteWorkspaceSource(session.descriptor.type) && session.descriptor.config?.project
+    ? { provider: session.descriptor.type, project: session.descriptor.config.project, repositoryUrl: session.descriptor.config.repositoryUrl || '', ref: session.descriptor.config.ref, revision: session.descriptor.revision, noteId }
+    : null
+  const shareUrl = remote ? createRemoteReaderUrl(deploymentAdapter.publicReaderUrl, remote, pinned) : ''
+  if (!session) return null
 
-  useEffect(() => {
-    if (!open) return
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
-  }, [open, setOpen])
-
-  if (!open || !session) return null
-
-  const copy = async (value: string, target: Exclude<CopyTarget, null>) => {
-    const copied = await writeClipboard(value)
-    setCopyFeedback({ target, status: copied ? 'copied' : 'error' })
-    window.setTimeout(() => setCopyFeedback(null), 1800)
+  const changeOpen = (next: boolean) => {
+    if (!next) { setPinned(false); setCopied(null) }
+    setOpen(next)
   }
-  const environment = session.environmentFiles.filter((file) => file.exists)
 
-  return <div className="publish-dialog-layer" role="presentation" onMouseDown={() => setOpen(false)}>
-    <section className="publish-dialog" role="dialog" aria-modal="true" aria-label="分享与发布 Workspace" onMouseDown={(event) => event.stopPropagation()}>
-      <header>
-        <span><ShareNetwork size={18} />分享与发布</span>
-        <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="关闭分享窗口"><X size={18} /></Button>
-      </header>
-      <div className="publish-dialog__body">
-        <div className="publish-source-card">
-          <div className="publish-source-card__mark"><GithubLogo size={22} weight="duotone" /></div>
-          <div><small>Current workspace</small><strong>{session.manifest.publishing.title || session.manifest.workspace.name}</strong><span>{session.descriptor.detail || session.descriptor.sourceLabel}</span></div>
-          <div className="publish-badges"><em>{session.capabilities.write ? 'Editable' : 'Read only'}</em>{revision && <em>{revision.slice(0, 8)}</em>}</div>
-        </div>
+  const copy = async () => {
+    const ok = await copyText(shareUrl)
+    setCopied(ok ? 'ok' : 'error')
+    window.setTimeout(() => setCopied(null), 1800)
+  }
 
-        {targets ? <>
-          <section className="publish-section">
-            <div><strong>知识库最新内容链接</strong><p>收件人直接进入在线阅读器，打开仓库默认分支；你更新仓库后，同一链接会显示新的内容。</p></div>
-            <div className="publish-copy-row"><code>{latestUrl}</code><button onClick={() => void copy(latestUrl!, 'latest')} aria-label="复制知识库最新内容链接"><Copy size={16} /></button></div>
-            {copyFeedback?.target === 'latest' && <small role="status">{copyFeedback.status === 'copied' ? '知识库链接已复制' : '复制失败，请手动选择链接'}</small>}
-          </section>
-          <section className="publish-section">
-            <div><strong>可复现阅读链接</strong><p>固定到当前 commit{activeNote ? ' 和当前笔记' : ''}；仓库后续更新不会改变这次分享的内容。</p></div>
-            <div className="publish-copy-row"><code>{targets.webUrl}</code><button onClick={() => void copy(targets.webUrl, 'link')} aria-label={copyFeedback?.target === 'link' && copyFeedback.status === 'copied' ? '固定链接已复制' : '复制固定链接'}>{copyFeedback?.target === 'link' && copyFeedback.status === 'copied' ? <Check size={16} /> : <Copy size={16} />}</button></div>
-            {copyFeedback?.target === 'link' && <small className={`publish-copy-status${copyFeedback.status === 'error' ? ' is-error' : ''}`} role="status">{copyFeedback.status === 'copied' ? '固定链接已复制' : '无法访问剪贴板，请手动选择复制'}</small>}
-          </section>
-          <section className="publish-actions-grid">
-            <a href={targets.repositoryUrl} target="_blank" rel="noreferrer"><GithubLogo size={18} /><span><strong>Repository</strong><small>查看来源与 License</small></span><ArrowSquareOut size={14} /></a>
-            <a href={targets.forkUrl} target="_blank" rel="noreferrer"><ShareNetwork size={18} /><span><strong>Fork</strong><small>创建自己的副本</small></span><ArrowSquareOut size={14} /></a>
-            <a href={targets.downloadUrl}><DownloadSimple size={18} /><span><strong>Download</strong><small>下载当前 revision</small></span><ArrowSquareOut size={14} /></a>
-            <a href={targets.desktopUrl}><Laptop size={18} /><span><strong>Open in Desktop</strong><small>需要已安装 TensorNote</small></span><ArrowSquareOut size={14} /></a>
-          </section>
-          <section className="publish-section">
-            <div><strong>Open in TensorNote Badge</strong><p>复制到知识库 README，让读者一键打开这个固定版本。</p></div>
-            <div className="publish-copy-row"><code>{targets.badgeMarkdown}</code><button onClick={() => void copy(targets.badgeMarkdown, 'badge')} aria-label={copyFeedback?.target === 'badge' && copyFeedback.status === 'copied' ? 'Badge Markdown 已复制' : '复制 Badge Markdown'}>{copyFeedback?.target === 'badge' && copyFeedback.status === 'copied' ? <Check size={16} /> : <Copy size={16} />}</button></div>
-            {copyFeedback?.target === 'badge' && <small className={`publish-copy-status${copyFeedback.status === 'error' ? ' is-error' : ''}`} role="status">{copyFeedback.status === 'copied' ? 'Badge Markdown 已复制' : '无法访问剪贴板，请手动选择复制'}</small>}
-          </section>
-          <section className="publish-section">
-            <div><strong>Workspace v1 兼容性徽章</strong><p>声明知识库遵循可移植的 Workspace Schema、执行权限与 Markdown 兼容边界。</p></div>
-            <div className="publish-copy-row"><code>{targets.compatibilityBadgeMarkdown}</code><button onClick={() => void copy(targets.compatibilityBadgeMarkdown, 'compatibility')} aria-label={copyFeedback?.target === 'compatibility' && copyFeedback.status === 'copied' ? '兼容性 Badge Markdown 已复制' : '复制兼容性 Badge Markdown'}>{copyFeedback?.target === 'compatibility' && copyFeedback.status === 'copied' ? <Check size={16} /> : <Copy size={16} />}</button></div>
-            {copyFeedback?.target === 'compatibility' && <small className={`publish-copy-status${copyFeedback.status === 'error' ? ' is-error' : ''}`} role="status">{copyFeedback.status === 'copied' ? '兼容性 Badge Markdown 已复制' : '无法访问剪贴板，请手动选择复制'}</small>}
-          </section>
-        </> : <section className="publish-guidance">
-          <GithubLogo size={24} />
-          <div><strong>先发布到公开 GitHub Repository</strong><p>固定 revision 分享、Fork、下载和 Desktop 深链只对 GitHub Workspace 开放。本地内容不会被 TensorNote 自动上传。</p></div>
-        </section>}
-
-        <section className="publish-readiness">
-          <div><span>{session.descriptor.type === 'github' ? <ShieldCheck size={17} /> : <ShieldWarning size={17} />}</span><strong>来源与权限</strong><small>{session.descriptor.sourceLabel} · {session.capabilities.write ? '可编辑' : '只读'}</small></div>
-          <div><span>{session.manifest.features.executable ? <Check size={17} /> : <ShieldWarning size={17} />}</span><strong>实验能力</strong><small>{session.manifest.features.executable ? 'Workspace 已声明可执行' : '默认仅阅读代码'}</small></div>
-          <div><span>{environment.length ? <Check size={17} /> : <ShieldWarning size={17} />}</span><strong>环境说明</strong><small>{environment.length ? environment.map((file) => file.path).join(', ') : '没有可用的依赖声明'}</small></div>
-          {session.descriptor.type === 'github' && <div><span>{session.trusted ? <ShieldCheck size={17} /> : <ShieldWarning size={17} />}</span><strong>执行信任</strong><small>{session.trusted ? '当前 revision 已由本机信任' : '阅读安全；运行前仍需信任当前 revision'}</small></div>}
-        </section>
-        {!targets && <p className="publish-footer-note">Repository-owned Pages 的复制式 Workflow 和发布前检查见项目分发文档。</p>}
-      </div>
-    </section>
-  </div>
+  return <ModalSurface open={open} onOpenChange={changeOpen} title="分享知识库" layerClassName="publish-dialog-layer" className="publish-dialog publish-dialog--compact">
+    <header><span><ShareNetwork size={18} />分享知识库</span><Button variant="ghost" size="icon" onClick={() => changeOpen(false)} aria-label="关闭分享窗口"><X size={18} /></Button></header>
+    <div className="publish-dialog__body">
+      <div className="share-source"><small>{formatWorkspaceSource(session.descriptor.type)}</small><strong>{session.manifest.publishing.title || session.manifest.workspace.name}</strong><span>{session.descriptor.detail || session.descriptor.sourceLabel}</span></div>
+      {remote ? <>
+        <section className="share-link"><label htmlFor="knowledge-share-link">分享链接</label><div><input id="knowledge-share-link" readOnly value={shareUrl} onFocus={(event) => event.currentTarget.select()} /><Button variant="primary" onClick={() => void copy()}>{copied === 'ok' ? <Check size={16} /> : <Copy size={16} />}{copied === 'ok' ? '已复制' : '复制链接'}</Button></div>{copied === 'error' && <small role="alert">无法访问剪贴板，请手动选择链接。</small>}</section>
+        <p className="share-target">当前链接将打开：<strong>{noteId ? session.documentById.get(noteId)?.frontmatter.title || noteId : '知识库概览'}</strong></p>
+        {session.descriptor.revision && <details className="share-options"><summary>更多选项</summary><label><input type="checkbox" checked={pinned} onChange={(event) => setPinned(event.target.checked)} />固定到当前版本 <code>{session.descriptor.revision.slice(0, 8)}</code></label></details>}
+        <footer><a href={shareUrl} target="_blank" rel="noreferrer">打开链接 <ArrowSquareOut size={14} /></a></footer>
+      </> : <section className="share-local-guidance"><strong>这是一个本地知识库。</strong><p>TensorNote 不会自动上传你的文件。如果需要分享，请先将知识库托管到 GitHub、GitLab 或 Gitee，再通过“打开在线知识库”打开并复制分享链接。</p></section>}
+    </div>
+  </ModalSurface>
 }

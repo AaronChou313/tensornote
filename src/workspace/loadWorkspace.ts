@@ -41,7 +41,7 @@ const documentCache = new WeakMap<WorkspaceProvider, Map<string, { fingerprint: 
 async function loadDocument(provider: WorkspaceProvider, entry: WorkspaceEntry) {
   const stat = await provider.stat(entry.path)
   const fingerprint = `${provider.descriptor.revision ?? ''}:${stat.modifiedAt ?? ''}:${stat.size ?? ''}`
-  const cacheable = provider.type === 'bundled' || Boolean(provider.descriptor.revision) || stat.modifiedAt !== undefined || stat.size !== undefined
+  const cacheable = Boolean(provider.descriptor.revision) || stat.modifiedAt !== undefined || stat.size !== undefined
   const cache = documentCache.get(provider) ?? new Map()
   documentCache.set(provider, cache)
   const cached = cacheable ? cache.get(entry.path) : undefined
@@ -90,8 +90,7 @@ export async function loadWorkspace(provider: WorkspaceProvider, trustedRevision
     ...provider.descriptor,
     name: manifest.workspace.name || provider.descriptor.name,
   }
-  const trusted = descriptor.type !== 'github'
-    || Boolean(descriptor.trustKey && trustedRevisions.includes(descriptor.trustKey))
+  const trusted = !descriptor.trustKey || trustedRevisions.includes(descriptor.trustKey)
 
   return {
     descriptor,

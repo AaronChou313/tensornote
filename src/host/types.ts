@@ -21,6 +21,12 @@ export interface HostDirectorySelection {
   initialPath?: string
 }
 
+export interface HostParentDirectorySelection {
+  parentId: string
+  name: string
+  displayPath: string
+}
+
 export interface RuntimeTool {
   id: string
   kind: 'uv' | 'conda' | 'jupyter' | (string & {})
@@ -166,6 +172,8 @@ export interface HostAdapter {
   readonly capabilities: HostCapabilities
   getPlatformInfo(): Promise<HostPlatformInfo>
   selectWorkspaceDirectory?(): Promise<HostDirectorySelection | null>
+  selectWorkspaceParentDirectory?(): Promise<HostParentDirectorySelection | null>
+  createWorkspaceDirectory?(parentId: string, name: string, manifest: string): Promise<HostDirectorySelection>
   restoreWorkspaceDirectory?(workspaceId: string): Promise<HostDirectorySelection>
   revealWorkspaceItem?(workspaceId: string, path?: string): Promise<void>
   takePendingWorkspaceOpen?(): Promise<HostDirectorySelection | null>

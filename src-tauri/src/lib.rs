@@ -78,6 +78,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             platform_info,
             native_workspace::select_native_workspace,
+            native_workspace::select_native_workspace_parent,
+            native_workspace::create_native_workspace,
             native_workspace::reopen_native_workspace,
             native_workspace::take_pending_native_workspace,
             native_workspace::reveal_native_workspace,

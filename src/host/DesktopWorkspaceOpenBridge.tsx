@@ -46,7 +46,7 @@ export function DesktopWorkspaceOpenBridge() {
           : undefined
         if (note) {
           useWorkbenchStore.getState().openNote(note.id, note.frontmatter.title)
-          navigate(`/notes/${note.id}`)
+          navigate(`/notes/${encodeURIComponent(note.id)}`)
         } else {
           navigate('/workspace')
         }

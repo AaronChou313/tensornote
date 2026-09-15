@@ -8,6 +8,13 @@ export function scrollToHeading(root: ParentNode, id: string) {
   return true
 }
 
+/** Restore a saved position unless an explicit heading can be resolved in this pane. */
+export function restoreNoteScroll(container: HTMLElement, savedScrollTop: number, headingId?: string) {
+  if (headingId && scrollToHeading(container, headingId)) return 'heading' as const
+  container.scrollTop = savedScrollTop
+  return 'position' as const
+}
+
 export function headingSourceOffset(source: string, id: string): number | null {
   const prose = source.replace(/```[\s\S]*?```|~~~[\s\S]*?~~~/g, (block) => block.replace(/[^\n]/g, ' '))
   const counts = new Map<string, number>()

@@ -12,12 +12,15 @@ interface WorkbenchState {
   history: string[]
   historyIndex: number
   headingRequest: { id: string; sequence: number } | null
+  noteScrollPositions: Record<string, number>
   openNote: (noteId: string, title: string) => void
   openView: (view: WorkbenchView) => void
   resetWorkspace: () => void
   closeTab: (noteId: string) => string | null
   closeAllTabs: () => void
   revealHeading: (id: string) => void
+  saveNoteScroll: (noteId: string, scrollTop: number) => void
+  getNoteScroll: (noteId: string) => number
   setSidebar: (side: 'left', open: boolean) => void
   goBack: () => string | null
   goForward: () => string | null
@@ -32,6 +35,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   history: [],
   historyIndex: -1,
   headingRequest: null,
+  noteScrollPositions: {},
   openNote: (noteId, title) => set((state) => {
     if (state.activeNoteId === noteId && state.activeView === null) return state
     const history = state.history.slice(0, state.historyIndex + 1)
@@ -46,7 +50,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
     }
   }),
   openView: (activeView) => set({ activeView }),
-  resetWorkspace: () => set({ tabs: [], activeNoteId: null, activeView: null, leftSidebar: true, recent: [], history: [], historyIndex: -1, headingRequest: null }),
+  resetWorkspace: () => set({ tabs: [], activeNoteId: null, activeView: null, leftSidebar: true, recent: [], history: [], historyIndex: -1, headingRequest: null, noteScrollPositions: {} }),
   closeTab: (noteId) => {
     const state = get()
     const tabs = state.tabs.filter((tab) => tab.noteId !== noteId)
@@ -56,6 +60,8 @@ export const useWorkbenchStore = create<WorkbenchState>((set, get) => ({
   },
   closeAllTabs: () => set({ tabs: [], activeNoteId: null }),
   revealHeading: (id) => set((state) => ({ headingRequest: { id, sequence: (state.headingRequest?.sequence ?? 0) + 1 } })),
+  saveNoteScroll: (noteId, scrollTop) => set((state) => ({ noteScrollPositions: { ...state.noteScrollPositions, [noteId]: scrollTop } })),
+  getNoteScroll: (noteId) => get().noteScrollPositions[noteId] ?? 0,
   setSidebar: (_side, leftSidebar) => set({ leftSidebar }),
   goBack: () => {
     const state = get()

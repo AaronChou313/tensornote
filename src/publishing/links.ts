@@ -5,6 +5,8 @@ export interface GitHubPublicationSource {
   noteId?: string
 }
 
+import { remoteRepositoryUrl, type RemoteRepositoryLocation } from '../workspace/remote'
+
 export interface PublicationTargets {
   webUrl: string
   desktopUrl: string
@@ -48,6 +50,36 @@ export function createGitHubReaderUrl(appUrl: string, owner: string, repo: strin
   url.search = ''
   url.hash = `/open/github/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`
   return url.toString()
+}
+
+export function createRemoteOpenPath(source: RemoteRepositoryLocation & { noteId?: string }, pinRevision = false) {
+  const params = new URLSearchParams({ provider: source.provider, project: source.project })
+  if (source.ref) params.set('ref', source.ref)
+  if (pinRevision && source.revision) params.set('revision', source.revision)
+  if (source.noteId) params.set('note', source.noteId)
+  return `/open/remote?${params.toString()}`
+}
+
+export function createRemoteReaderUrl(appUrl: string, source: RemoteRepositoryLocation & { noteId?: string }, pinRevision = false) {
+  const url = new URL(appUrl)
+  url.search = ''
+  url.hash = createRemoteOpenPath(source, pinRevision)
+  return url.toString()
+}
+
+export function parseRemoteRoute(params: URLSearchParams): RemoteRepositoryLocation | null {
+  const provider = params.get('provider')
+  const project = params.get('project')?.trim().replace(/^\/+|\/+$/g, '')
+  if ((provider !== 'github' && provider !== 'gitlab' && provider !== 'gitee') || !project || project.length > 500 || project.includes('\\')) return null
+  const segments = project.split('/').filter(Boolean)
+  if ((provider === 'github' || provider === 'gitee') && segments.length !== 2) return null
+  if (provider === 'gitlab' && segments.length < 2) return null
+  if (segments.some((segment) => !isRepositorySegment(segment))) return null
+  const ref = params.get('ref') || undefined
+  const revision = params.get('revision') || undefined
+  if (ref && (ref.length > 256 || [...ref].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127))) return null
+  if (revision && !pinnedRevision.test(revision)) return null
+  return { provider, project, repositoryUrl: remoteRepositoryUrl(provider, project), ...(ref ? { ref } : {}), ...(revision ? { revision } : {}) }
 }
 
 export function createGitHubPublicationTargets(appUrl: string, source: GitHubPublicationSource): PublicationTargets {

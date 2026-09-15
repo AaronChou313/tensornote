@@ -42,12 +42,10 @@ const connectorLabels = {
 
 function computeContextFromSession(session: ReturnType<typeof useWorkspaceStore.getState>['session']): ComputeContext {
   if (!session) return { workspaceId: 'workspace' }
-  const owner = session.descriptor.config?.owner
-  const repo = session.descriptor.config?.repo
   return {
     workspaceId: session.descriptor.id,
-    ...(session.descriptor.type === 'github' && owner && repo && session.descriptor.revision
-      ? { workspaceSource: { provider: 'github' as const, repository: `${owner}/${repo}`, revision: session.descriptor.revision } }
+    ...(session.descriptor.trustKey && session.descriptor.config?.project && session.descriptor.revision
+      ? { workspaceSource: { provider: session.descriptor.type, repository: session.descriptor.config.project, revision: session.descriptor.revision } }
       : {}),
   }
 }
@@ -202,7 +200,7 @@ export function ComputeSettings() {
         <SettingRow title="允许当前 Workspace 执行代码" description={executionDescription}>
           <label className="settings-switch"><input type="checkbox" checked={executionPolicy?.enabled ?? false} disabled={!executionPolicy?.canChange} onChange={(event) => setActiveWorkspaceExecution(event.target.checked)} aria-label="允许当前 Workspace 执行代码" /><i /></label>
         </SettingRow>
-        {session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前设备，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前 Workspace 没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.type === 'github' && !session.trusted ? ' GitHub Workspace 还需要信任当前 Revision。' : ''}</p>}
+        {session && <p className="settings-execution-note">{executionPolicy?.source === 'preference' ? '此授权保存在当前设备，可随时关闭。' : executionPolicy?.source === 'manifest' ? '当前默认值来自 tensornote.yaml；切换后将保存为本机偏好。' : '当前知识库没有声明执行能力；开启后仅在本机生效。'}{session.descriptor.trustKey && !session.trusted ? ' 远程知识库还需要信任当前版本。' : ''}</p>}
       </div>
       <ComputeRuntimeLocationTabs capabilities={computeCapabilities} value={runtimeLocation} onChange={(location) => { setRuntimeLocation(location); setDiagnostics([]) }} />
       <div className="settings-runtime-heading"><span>{runtimeLocation === 'local' ? 'Local runtime' : 'Remote runtime'}</span><h3>{runtimeLocation === 'local' ? '在这台电脑上运行' : '连接远程计算环境'}</h3><p>{runtimeLocation === 'local' ? (computeCapabilities.environmentManagement ? '便捷连接由 TensorNote 管理环境和 Server；手动连接适合你已经启动的 Jupyter。' : '浏览器不能启动本机进程。请先自行启动 Jupyter Server，再填写连接信息。') : '计算资源位于其他设备或云平台。在线版要求 HTTPS，并需要服务端允许当前网页来源和 WebSocket。'}</p></div>

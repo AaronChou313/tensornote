@@ -37,6 +37,7 @@ describe('buildNoteTree', () => {
       'chapter2/10-note.md',
       'chapter2/overview.md',
     ])
+    expect(tree[0].children?.map((item) => item.label)).toEqual(['2-note', '10-note', 'overview'])
     expect(tree[0].noteId).toBeUndefined()
   })
 })

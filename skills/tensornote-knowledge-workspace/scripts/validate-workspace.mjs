@@ -229,7 +229,17 @@ export async function validateWorkspace(rootArg, { strict = false } = {}) {
         const bodyStart = match.index + match[0].length
         const closing = doc.body.slice(bodyStart).search(/^:::\s*$/m)
         if (closing < 0) report('error', 'sidecar-unclosed', doc.path, 'Sidecar is missing its closing ::: marker')
-        else if (attrs.type === 'jupyter' && !/```python(?:\s|$)/m.test(doc.body.slice(bodyStart, bodyStart + closing))) report('warning', 'sidecar-jupyter-empty', doc.path, 'Jupyter Sidecar should contain at least one Python fence')
+        else {
+          const sidecarBody = doc.body.slice(bodyStart, bodyStart + closing)
+          if (/^:::tensornote\{/m.test(sidecarBody)) report('error', 'sidecar-nested', doc.path, 'Sidecar directives cannot be nested')
+          if (attrs.type === 'jupyter') {
+            const fences = [...sidecarBody.matchAll(/^```([^\s`]*)[^\n]*\n[\s\S]*?^```\s*$/gm)]
+            const pythonFences = fences.filter((item) => item[1] === 'python')
+            if (!pythonFences.length) report('warning', 'sidecar-jupyter-empty', doc.path, 'Jupyter Sidecar should contain at least one Python fence')
+            if (fences.some((item) => item[1] !== 'python')) report('warning', 'sidecar-jupyter-language', doc.path, 'Only Python fences are executable inside a Jupyter Sidecar')
+            for (const fence of pythonFences) if (!/\btitle="[^"]+"/.test(fence[0].split('\n', 1)[0])) report('warning', 'sidecar-cell-title', doc.path, 'Each Jupyter Python Cell should have a useful title')
+          }
+        }
       }
 
     }

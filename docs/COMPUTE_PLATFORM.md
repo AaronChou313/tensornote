@@ -100,16 +100,16 @@ JupyterHub Profile 可留空用户名，让 Token 自动识别身份；填写用
 
 输出不会自动写入 Markdown。图片和 HTML 输出只存在当前界面会话中。
 
-## 6. 从编辑器插入实验
+## 6. 从编辑器插入 Python 实验 Sidecar
 
-编辑本地可写笔记时，点击 Markdown 工具栏中的烧瓶“实验”按钮，可以直接创建可执行实验，无需手写 Fence 元数据。
+编辑本地可写笔记时，点击 Markdown 工具栏中的“侧栏内容”，再选择“Python 实验”。无需手写 Directive 或 Fence 元数据。
 
-1. 可先在编辑器中选中一段 Python 代码；打开窗口后，这段代码会成为第一个 Cell。
-2. 填写稳定的实验标识，例如 `loss-curves`。相同标识的 Cell 会合并为同一张实验卡。
-3. 选择运行级别，并按需使用“添加 Cell”组织准备数据、运行模型、绘图等步骤。
-4. 点击“插入实验”后保存笔记；切回阅读视图即可从实验卡打开并运行全部 Cell。
+1. 可先选中一段 Python 代码，作为第一个 Cell 的初始内容。
+2. 填写标题；TensorNote 自动生成笔记内唯一 ID，高级设置中可以修改。
+3. 添加、删除或上下移动 Cell，并为每个 Cell 填写标题。
+4. 插入后保存笔记；切回阅读视图即可从 Sidecar 卡片打开实验。
 
-TensorNote 会自动生成连续的 `cell` 编号和必要的 `exec`、`lab`、`title`、`difficulty` 元数据。Cell 代码不能包含嵌套的三个反引号 Fence；需要展示 Fence 时请改用字符串拼接或其他写法。
+每个 Cell 保存为明确的 `python` Fence。同一 Sidecar 中的 Cell 共享当前 Kernel 并按从上到下的顺序执行；其他语言 Fence 不会成为可执行 Cell。输出只属于当前运行 Session，不自动写入 Markdown。
 
 ## 7. Scratch Lab
 

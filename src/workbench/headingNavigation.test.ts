@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest'
-import { headingSourceOffset, scrollToHeading } from './headingNavigation'
+import { headingSourceOffset, restoreNoteScroll, scrollToHeading } from './headingNavigation'
 
 describe('pane heading navigation', () => {
   it('scrolls only the requested pane even if both render identical IDs', () => {
@@ -20,5 +20,17 @@ describe('pane heading navigation', () => {
     expect(headingSourceOffset(source, 'same')).toBe(0)
     expect(headingSourceOffset(source, 'same-1')).toBe(source.lastIndexOf('## Same'))
     expect(headingSourceOffset(source, 'missing')).toBeNull()
+  })
+  it('lets explicit heading navigation override a saved scroll position', () => {
+    const pane = document.createElement('section')
+    pane.innerHTML = '<h2 id="target">Target</h2>'
+    pane.scrollTop = 1000
+    const headingScroll = vi.fn()
+    pane.querySelector('h2')!.scrollIntoView = headingScroll
+    expect(restoreNoteScroll(pane, 400, 'target')).toBe('heading')
+    expect(headingScroll).toHaveBeenCalledOnce()
+    expect(pane.scrollTop).toBe(1000)
+    expect(restoreNoteScroll(pane, 400)).toBe('position')
+    expect(pane.scrollTop).toBe(400)
   })
 })

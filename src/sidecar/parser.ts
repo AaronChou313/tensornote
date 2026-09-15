@@ -4,14 +4,14 @@ import type { Sidecar, SidecarDiagnostic, SidecarType } from './types'
 const OPENING = /^:::tensornote\{([^}]*)\}\s*$/
 const CLOSING = /^:::\s*$/
 const ATTRIBUTE = /([\w-]+)="([^"]*)"/g
-const CODE_FENCE = /```(?:python)?(?:\s+exec)?([^\n]*)\n([\s\S]*?)```/g
+const CODE_FENCE = /```python(?:\s+exec)?([^\n]*)\n([\s\S]*?)```/g
 
 function attributes(source: string) {
   return Object.fromEntries([...source.matchAll(ATTRIBUTE)].map((match) => [match[1], match[2]]))
 }
 
 function safeId(value: string) {
-  return value.trim().replace(/[^a-zA-Z0-9_-]/g, '-').replace(/^-+|-+$/g, '')
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 }
 
 function jupyterCells(id: string, body: string): LabCell[] {
@@ -28,10 +28,34 @@ function jupyterCells(id: string, body: string): LabCell[] {
       code: match[2].trim(),
     })
   }
-  if (!cells.length && body.trim()) {
-    cells.push({ id: `${id}-1`, lab: id, order: 1, title: 'Cell 1', difficulty: 'basic', code: body.trim() })
-  }
   return cells
+}
+
+export function createUniqueSidecarId(title: string, type: SidecarType, existingIds: Iterable<string>, currentId?: string) {
+  const occupied = new Set([...existingIds].filter((id) => id !== currentId))
+  const localizedDefault = title.trim() === '完整推导' ? 'full-derivation' : title.trim() === 'Python 实验' ? 'python-experiment' : ''
+  const base = localizedDefault || safeId(title) || (type === 'derivation' ? 'derivation' : 'python-experiment')
+  if (!occupied.has(base)) return base
+  let suffix = 2
+  while (occupied.has(`${base}-${suffix}`)) suffix += 1
+  return `${base}-${suffix}`
+}
+
+export function replaceSidecarSource(content: string, source: { start: number; end: number }, directive: string) {
+  const original = content.slice(source.start, source.end)
+  const lineEnding = original.endsWith('\r\n') ? '\r\n' : original.endsWith('\n') ? '\n' : ''
+  const replacement = lineEnding && !directive.endsWith(lineEnding) ? `${directive}${lineEnding}` : directive
+  return `${content.slice(0, source.start)}${replacement}${content.slice(source.end)}`
+}
+
+export function deleteSidecarSource(content: string, source: { start: number; end: number }) {
+  const before = content.slice(0, source.start)
+  const after = content.slice(source.end)
+  return before.endsWith('\n\n') && after.startsWith('\n') ? `${before}${after.slice(1)}` : `${before}${after}`
+}
+
+export function sourceLineAtOffset(content: string, offset: number) {
+  return content.slice(0, Math.max(0, offset)).split('\n').length
 }
 
 export function createSidecarDirective(sidecar: { type: SidecarType; id: string; title: string; body: string }) {
@@ -79,8 +103,9 @@ export function parseSidecarDirectives(content: string): {
     const values = attributes(opening[1])
     const type = values.type
     const id = safeId(values.id || '')
-    if ((type !== 'derivation' && type !== 'jupyter') || !id || ids.has(id)) {
-      const reason = !id ? 'Sidecar 缺少有效 id' : ids.has(id) ? `Sidecar id 重复：${id}` : `不支持的 Sidecar 类型：${type || '(空)'}`
+    const nested = lines.slice(cursor + 1, closing).some((candidate) => OPENING.test(candidate.replace(/\r?\n$/, '')))
+    if ((type !== 'derivation' && type !== 'jupyter') || !id || ids.has(id) || nested) {
+      const reason = nested ? 'Sidecar 不支持嵌套' : !id ? 'Sidecar 缺少有效 id' : ids.has(id) ? `Sidecar id 重复：${id}` : `不支持的 Sidecar 类型：${type || '(空)'}`
       diagnostics.push({ offset: start, message: reason })
       renderedContent += rawBlock
     } else {
@@ -97,4 +122,3 @@ export function parseSidecarDirectives(content: string): {
 
   return { sidecars, renderedContent, diagnostics }
 }
-

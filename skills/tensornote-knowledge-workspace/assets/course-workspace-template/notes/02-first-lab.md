@@ -17,7 +17,7 @@ status: seed
 验证固定随机种子能让抽样实验保持可重复，并区分原始观察与解释。
 
 :::tensornote{type="jupyter" id="first-lab" title="First executable check"}
-```python
+```python title="生成样本"
 from random import Random
 
 rng = Random(7)
@@ -25,7 +25,7 @@ samples = [rng.random() for _ in range(8)]
 print("samples:", [round(value, 4) for value in samples])
 ```
 
-```python
+```python title="验证均值"
 sample_mean = sum(samples) / len(samples)
 print("mean:", round(sample_mean, 4))
 assert len(samples) == 8

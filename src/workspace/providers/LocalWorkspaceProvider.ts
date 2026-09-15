@@ -22,7 +22,7 @@ interface FileHandleLike {
   createWritable(): Promise<WritableFileLike>
 }
 
-interface DirectoryHandleLike {
+export interface DirectoryHandleLike {
   kind: 'directory'
   name: string
   values(): AsyncIterableIterator<FileHandleLike | DirectoryHandleLike>
@@ -33,6 +33,30 @@ interface DirectoryHandleLike {
 
 interface DirectoryPickerWindow extends Window {
   showDirectoryPicker?: (options?: { mode?: 'read' | 'readwrite' }) => Promise<DirectoryHandleLike>
+}
+
+export async function pickLocalWorkspaceParent() {
+  const picker = (window as DirectoryPickerWindow).showDirectoryPicker
+  if (!picker) throw new Error('当前浏览器不支持本地目录读写，请使用最新版 Chrome / Edge 或 TensorNote Desktop')
+  return picker.call(window, { mode: 'readwrite' })
+}
+
+export async function createLocalWorkspaceInParent(parent: DirectoryHandleLike, name: string, manifest: string) {
+  try {
+    await parent.getDirectoryHandle(name)
+    throw new Error('该位置已经存在同名目录。')
+  } catch (reason) {
+    if (reason instanceof Error && reason.message === '该位置已经存在同名目录。') throw reason
+    if (!(reason instanceof DOMException && reason.name === 'NotFoundError')) throw reason
+  }
+  const root = await parent.getDirectoryHandle(name, { create: true })
+  await root.getDirectoryHandle('notes', { create: true })
+  await root.getDirectoryHandle('assets', { create: true })
+  const file = await root.getFileHandle('tensornote.yaml', { create: true })
+  const writable = await file.createWritable()
+  await writable.write(manifest)
+  await writable.close()
+  return new LocalWorkspaceProvider(root)
 }
 
 export async function pickLocalWorkspace() {

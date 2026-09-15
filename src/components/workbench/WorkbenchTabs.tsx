@@ -23,13 +23,14 @@ export function WorkbenchTabs() {
   const open = (noteId: string) => {
     const note = session.documentById.get(noteId)
     useWorkbenchStore.getState().openNote(noteId, note?.frontmatter.title || noteId)
-    if (location.pathname !== `/notes/${noteId}`) navigate(`/notes/${noteId}`)
+    const route = `/notes/${encodeURIComponent(noteId)}`
+    if (location.pathname !== route) navigate(route)
   }
   const close = (noteId: string) => {
     const fallback = closeTab(noteId)
-    navigate(fallback ? `/notes/${fallback}` : '/notes')
+    navigate(fallback ? `/notes/${encodeURIComponent(fallback)}` : '/notes')
   }
-  const navigateHistory = (next: string | null) => { if (next && location.pathname !== `/notes/${next}`) navigate(`/notes/${next}`) }
+  const navigateHistory = (next: string | null) => { if (next) { const route = `/notes/${encodeURIComponent(next)}`; if (location.pathname !== route) navigate(route) } }
 
   return <section className="workbench-pane-tabs is-active">
     <div className="workbench-tabs__history"><button onClick={() => navigateHistory(goBack())} aria-label="后退" title="后退" disabled={historyIndex <= 0}><ArrowLeft size={16} /></button><button onClick={() => navigateHistory(goForward())} aria-label="前进" title="前进" disabled={historyIndex < 0 || historyIndex >= history.length - 1}><ArrowRight size={16} /></button></div>

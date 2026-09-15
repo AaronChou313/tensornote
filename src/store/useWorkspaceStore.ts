@@ -24,7 +24,7 @@ interface WorkspaceState {
   recentWorkspaces: RecentWorkspace[]
   trustedRevisions: string[]
   executionOverrides: WorkspaceExecutionOverrides
-  openProvider: (provider: WorkspaceProvider) => Promise<WorkspaceSession>
+  openProvider: (provider: WorkspaceProvider, loadingMessage?: string) => Promise<WorkspaceSession>
   refreshWorkspace: () => Promise<WorkspaceSession>
   saveDocument: (path: string, content: string, options?: WorkspaceWriteOptions) => Promise<Note>
   writeAsset: (path: string, content: ArrayBuffer) => Promise<WorkspaceFileStat>
@@ -96,8 +96,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         recentWorkspaces: [],
         trustedRevisions: [],
         executionOverrides: {},
-        openProvider: async (provider) => {
-          set({ status: 'loading', loadingMessage: '正在读取 Workspace…', error: null })
+        openProvider: async (provider, loadingMessage = '正在读取知识库…') => {
+          set({ status: 'loading', loadingMessage, error: null })
           try {
             const current = get().provider
             if (current && current !== provider) await current.close()
@@ -199,7 +199,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
     },
     {
       name: 'tensornote-workspaces',
-      version: 2,
+      version: 3,
       migrate: (persisted) => migrateWorkspaceSettings(persisted),
       storage: createJSONStorage(() => localStorage),
       partialize: ({ recentWorkspaces, trustedRevisions, executionOverrides }) => ({ recentWorkspaces, trustedRevisions, executionOverrides }),

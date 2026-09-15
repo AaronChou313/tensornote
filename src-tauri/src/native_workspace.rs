@@ -22,6 +22,14 @@ pub struct NativeWorkspaceRegistration {
     pub initial_path: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeWorkspaceParentSelection {
+    parent_id: String,
+    name: String,
+    display_path: String,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 struct StoredRegistry {
     version: u8,
@@ -39,6 +47,7 @@ struct StoredWorkspace {
 pub struct NativeWorkspaceRegistry {
     registry_path: PathBuf,
     roots: Mutex<HashMap<String, PathBuf>>,
+    parents: Mutex<HashMap<String, PathBuf>>,
     pending_open: Mutex<Option<NativeWorkspaceRegistration>>,
 }
 
@@ -65,6 +74,7 @@ impl NativeWorkspaceRegistry {
         Ok(Self {
             registry_path,
             roots: Mutex::new(roots),
+            parents: Mutex::new(HashMap::new()),
             pending_open: Mutex::new(None),
         })
     }
@@ -74,6 +84,7 @@ impl NativeWorkspaceRegistry {
         Self {
             registry_path,
             roots: Mutex::new(HashMap::new()),
+            parents: Mutex::new(HashMap::new()),
             pending_open: Mutex::new(None),
         }
     }
@@ -206,6 +217,58 @@ impl NativeWorkspaceRegistry {
         .map_err(error_string)?;
         atomic_write(&self.registry_path, &source)
     }
+
+    fn register_parent(&self, path: PathBuf) -> Result<NativeWorkspaceParentSelection, String> {
+        let canonical = path.canonicalize().map_err(error_string)?;
+        if !canonical.is_dir() {
+            return Err("所选路径不是目录".into());
+        }
+        let parent_id = format!("parent:{}", workspace_id(&canonical));
+        self.parents
+            .lock()
+            .map_err(|_| "Native parent directory registry is unavailable")?
+            .insert(parent_id.clone(), canonical.clone());
+        Ok(NativeWorkspaceParentSelection {
+            parent_id,
+            name: canonical
+                .file_name()
+                .and_then(|value| value.to_str())
+                .unwrap_or("Directory")
+                .to_string(),
+            display_path: canonical.to_string_lossy().into_owned(),
+        })
+    }
+
+    fn create_workspace(
+        &self,
+        parent_id: &str,
+        name: &str,
+        manifest: &str,
+    ) -> Result<NativeWorkspaceRegistration, String> {
+        validate_workspace_name(name)?;
+        let parent = self
+            .parents
+            .lock()
+            .map_err(|_| "Native parent directory registry is unavailable")?
+            .get(parent_id)
+            .cloned()
+            .ok_or("父目录授权已失效，请重新选择")?;
+        let root = parent.join(name);
+        if root.exists() {
+            return Err("该位置已经存在同名目录。".into());
+        }
+        fs::create_dir(&root).map_err(error_string)?;
+        let initialize = || -> Result<(), String> {
+            fs::create_dir(root.join("notes")).map_err(error_string)?;
+            fs::create_dir(root.join("assets")).map_err(error_string)?;
+            atomic_write(&root.join("tensornote.yaml"), manifest.as_bytes())
+        };
+        if let Err(error) = initialize() {
+            let _ = fs::remove_dir_all(&root);
+            return Err(error);
+        }
+        self.register(root)
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -241,6 +304,34 @@ pub async fn select_native_workspace(
             .map(Some),
         None => Ok(None),
     }
+}
+
+#[tauri::command]
+pub async fn select_native_workspace_parent(
+    app: AppHandle,
+    registry: State<'_, NativeWorkspaceRegistry>,
+) -> Result<Option<NativeWorkspaceParentSelection>, String> {
+    let selected = app
+        .dialog()
+        .file()
+        .set_title("Choose where to create the knowledge base")
+        .blocking_pick_folder();
+    match selected {
+        Some(path) => registry
+            .register_parent(path.into_path().map_err(error_string)?)
+            .map(Some),
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
+pub fn create_native_workspace(
+    registry: State<'_, NativeWorkspaceRegistry>,
+    parent_id: String,
+    name: String,
+    manifest: String,
+) -> Result<NativeWorkspaceRegistration, String> {
+    registry.create_workspace(&parent_id, &name, &manifest)
 }
 
 #[tauri::command]
@@ -405,6 +496,32 @@ fn workspace_id(path: &Path) -> String {
         hash = hash.wrapping_mul(0x100000001b3);
     }
     format!("native:{hash:016x}")
+}
+
+fn validate_workspace_name(name: &str) -> Result<(), String> {
+    if name.is_empty() {
+        return Err("请输入知识库名称".into());
+    }
+    if name.trim() != name {
+        return Err("知识库名称不能包含首尾空格".into());
+    }
+    if matches!(name, "." | "..")
+        || name.contains(['/', '\\', '\0', ':', '*', '?', '"', '<', '>', '|'])
+    {
+        return Err("知识库名称包含系统不允许的字符".into());
+    }
+    let stem = name.split('.').next().unwrap_or(name).to_ascii_lowercase();
+    if matches!(stem.as_str(), "con" | "prn" | "aux" | "nul")
+        || (stem.len() == 4
+            && (stem.starts_with("com") || stem.starts_with("lpt"))
+            && stem[3..].parse::<u8>().is_ok_and(|n| (1..=9).contains(&n)))
+    {
+        return Err("该名称是 Windows 保留文件名".into());
+    }
+    if name.ends_with('.') {
+        return Err("知识库名称不能以句点结尾".into());
+    }
+    Ok(())
 }
 
 fn error_string(error: impl std::fmt::Display) -> String {
@@ -808,5 +925,40 @@ mod tests {
             selected.workspace_id
         );
         assert!(registry.take_pending_open().expect("empty queue").is_none());
+    }
+
+    #[test]
+    fn creates_a_minimal_workspace_only_below_an_authorized_parent() {
+        let temp = tempdir().expect("tempdir");
+        let registry = NativeWorkspaceRegistry::for_test(temp.path().join("registry.json"));
+        let parent = registry
+            .register_parent(temp.path().to_path_buf())
+            .expect("parent");
+        let manifest = "schemaVersion: 1\nworkspace:\n  name: 课程笔记\n";
+        let created = registry
+            .create_workspace(&parent.parent_id, "课程笔记", manifest)
+            .expect("workspace");
+        let root = registry
+            .root(&created.workspace_id)
+            .expect("registered root");
+        assert!(root.join("notes").is_dir());
+        assert!(root.join("assets").is_dir());
+        assert!(fs::read_to_string(root.join("tensornote.yaml"))
+            .unwrap()
+            .contains("课程笔记"));
+        assert_eq!(
+            fs::read_to_string(root.join("tensornote.yaml")).unwrap(),
+            manifest
+        );
+        assert!(registry
+            .create_workspace(&parent.parent_id, "课程笔记", manifest)
+            .unwrap_err()
+            .contains("同名目录"));
+        assert!(registry
+            .create_workspace(&parent.parent_id, "../escape", manifest)
+            .is_err());
+        assert!(registry
+            .create_workspace("missing", "Other", manifest)
+            .is_err());
     }
 }

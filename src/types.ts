@@ -35,6 +35,9 @@ export interface Heading {
 
 export interface Note {
   id: string
+  /** Stable file identity. Frontmatter IDs are semantic identities; otherwise the normalized path is used. */
+  identitySource: 'frontmatter' | 'path'
+  explicitId?: string
   path: string
   directory: string
   frontmatter: NoteFrontmatter

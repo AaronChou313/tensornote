@@ -124,7 +124,7 @@ export function MarkdownRenderer({ content, labs, sidecars = [], documentTitle, 
             }
             return (
               <aside className="embedded-note">
-                <header><span>Embedded note</span><Link to={`/notes/${resolved.note.id}${resolved.heading ? `#${resolved.heading.id}` : ''}`}>{resolved.note.frontmatter.title}</Link></header>
+                <header><span>Embedded note</span><Link to={`/notes/${encodeURIComponent(resolved.note.id)}${resolved.heading ? `#${resolved.heading.id}` : ''}`}>{resolved.note.frontmatter.title}</Link></header>
                 <MarkdownRenderer
                   content={extractHeadingSection(resolved.note, resolved.heading?.id)}
                   labs={resolved.note.labs}

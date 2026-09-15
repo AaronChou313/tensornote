@@ -74,6 +74,24 @@ describe('portable workspace validator', () => {
     const output = execFileSync(process.execPath, [resolve('skills/tensornote-knowledge-workspace/scripts/validate-workspace.mjs'), root, '--strict', '--json'], { encoding: 'utf8' })
     expect(JSON.parse(output)).toMatchObject({ formatVersion: 1, ok: true, notes: 1, findings: [] })
   })
+  it('allows duplicate filenames in different directories and only checks explicit IDs', async () => {
+    const root = await fixture()
+    await mkdir(join(root, 'notes/chapter-1'))
+    await mkdir(join(root, 'notes/chapter-2'))
+    await writeFile(join(root, 'notes/chapter-1/README.md'), '# Chapter 1')
+    await writeFile(join(root, 'notes/chapter-2/README.md'), '# Chapter 2')
+    const result = await validateWorkspace(root)
+    expect(result.errors).toBe(0)
+    expect(result.notes).toBe(3)
+    expect(codes(result)).not.toContain('id-duplicate')
+  })
+  it('validates Sidecar nesting, executable language and Cell titles', async () => {
+    const root = await fixture()
+    const body = '# Start\n\n:::tensornote{type="jupyter" id="demo" title="Demo"}\n```javascript\nalert(1)\n```\n```python\nvalue = 1\n```\n:::tensornote{type="derivation" id="nested" title="Nested"}\ntext\n:::\n:::'
+    await writeFile(join(root, 'notes/start.md'), note('', body))
+    const result = await validateWorkspace(root)
+    expect(codes(result)).toEqual(expect.arrayContaining(['sidecar-nested', 'sidecar-jupyter-language', 'sidecar-cell-title']))
+  })
   it.skipIf(process.platform === 'win32')('runs through a symlinked skill entry point', async () => {
     const root = await fixture()
     const link = join(root, 'validator.mjs')

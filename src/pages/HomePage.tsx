@@ -1,203 +1,104 @@
-import { GettingStarted } from '../components/GettingStarted'
-import { useState } from 'react'
-import {
-  ArrowRight,
-  BookOpenText,
-  ClockCounterClockwise,
-  FolderOpen,
-  GithubLogo,
-  Plus,
-  Trash,
-  X,
-} from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
+import { ArrowRight, ClockCounterClockwise, CloudArrowDown, FolderOpen, FolderPlus, Trash, X } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router-dom'
-import logoSquare from '../../assets/images/TensorNote_logo.png'
-import { Button } from '../components/ui/Button'
+import { ProductIdentity } from '../components/ProductIdentity'
+import { CreateKnowledgeBaseDialog } from '../components/home/CreateKnowledgeBaseDialog'
+import { OpenOnlineWorkspaceDialog } from '../components/home/OpenOnlineWorkspaceDialog'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
-import { GitHubWorkspaceProvider } from '../workspace/providers/GitHubWorkspaceProvider'
-import { pickLocalWorkspace } from '../workspace/providers/LocalWorkspaceProvider'
-import type { RecentWorkspace, WorkspaceProvider } from '../workspace/types'
 import { getHostAdapter } from '../host/runtime'
+import { pickLocalWorkspace } from '../workspace/providers/LocalWorkspaceProvider'
+import { createRemoteWorkspaceProvider } from '../workspace/providers/createRemoteWorkspaceProvider'
+import { formatWorkspaceSource, isRemoteWorkspaceSource } from '../workspace/remote'
+import type { RecentWorkspace, WorkspaceProvider } from '../workspace/types'
 
-const loadNativeWorkspaceProvider = import.meta.env.VITE_TENSORNOTE_HOST === 'desktop'
+const packagedNativeProviderLoader = import.meta.env.VITE_TENSORNOTE_HOST === 'desktop'
   ? () => import('../workspace/providers/NativeLocalWorkspaceProvider')
   : undefined
 
-function parseGitHubRepository(value: string) {
-  const normalized = value.trim().replace(/\.git$/, '').replace(/\/$/, '')
-  const urlMatch = normalized.match(/github\.com[/:]([^/]+)\/([^/]+)$/i)
-  const shortMatch = normalized.match(/^([^/\s]+)\/([^/\s]+)$/)
-  const match = urlMatch ?? shortMatch
-  return match ? { owner: match[1], repo: match[2] } : null
-}
-
 export function HomePage() {
   const navigate = useNavigate()
+  const host = getHostAdapter()
   const status = useWorkspaceStore((state) => state.status)
   const loadingMessage = useWorkspaceStore((state) => state.loadingMessage)
-  const error = useWorkspaceStore((state) => state.error)
   const clearError = useWorkspaceStore((state) => state.clearError)
   const openProvider = useWorkspaceStore((state) => state.openProvider)
   const recentWorkspaces = useWorkspaceStore((state) => state.recentWorkspaces)
   const removeRecentWorkspace = useWorkspaceStore((state) => state.removeRecentWorkspace)
   const clearRecentWorkspaces = useWorkspaceStore((state) => state.clearRecentWorkspaces)
-  const [repository, setRepository] = useState('')
-  const [ref, setRef] = useState('')
-  const [inputError, setInputError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [onlineOpen, setOnlineOpen] = useState(false)
+  const webSupportsLocal = typeof window !== 'undefined' && 'showDirectoryPicker' in window
+  const supportsLocal = host.id === 'desktop' || webSupportsLocal
+  const busy = status === 'loading'
+  const recents = useMemo(() => [...recentWorkspaces].sort((a, b) => b.openedAt - a.openedAt).slice(0, 8), [recentWorkspaces])
 
-  const open = async (provider: WorkspaceProvider) => {
-    setInputError(null)
-    clearError()
-    try {
-      await openProvider(provider)
-      navigate('/workspace')
-    } catch {
-      // Store exposes the user-facing error state.
-    }
+  const open = async (provider: WorkspaceProvider, loading = '正在打开知识库…') => {
+    setMessage(null); clearError()
+    try { await openProvider(provider, loading); navigate('/workspace') }
+    catch (reason) { setMessage(reason instanceof Error ? reason.message : '无法打开知识库') }
   }
 
   const openLocal = async () => {
+    if (!supportsLocal) return
     try {
-      const host = getHostAdapter()
-      if (host.capabilities.nativeFilesystem) {
-        if (!loadNativeWorkspaceProvider) throw new Error('当前构建不包含桌面文件系统能力')
+      if (host.id === 'desktop') {
         const selection = await host.selectWorkspaceDirectory?.()
-        if (!selection) return
-        const { NativeLocalWorkspaceProvider } = await loadNativeWorkspaceProvider()
-        await open(new NativeLocalWorkspaceProvider(selection))
-        return
-      }
-      await open(await pickLocalWorkspace())
+        if (selection) {
+          if (!packagedNativeProviderLoader) throw new Error('当前 Web 构建不包含桌面文件能力')
+          const { NativeLocalWorkspaceProvider } = await packagedNativeProviderLoader()
+          await open(new NativeLocalWorkspaceProvider(selection), '正在读取本地知识库…')
+        }
+      } else await open(await pickLocalWorkspace(), '正在读取本地知识库…')
     } catch (reason) {
-      if (!(reason instanceof DOMException && reason.name === 'AbortError')) setInputError(reason instanceof Error ? reason.message : '无法打开本地目录')
+      if (!(reason instanceof DOMException && reason.name === 'AbortError')) setMessage(reason instanceof Error ? reason.message : '无法打开本地知识库')
     }
-  }
-
-  const openBundled = async () => {
-    const { BundledWorkspaceProvider } = await import('../workspace/providers/BundledWorkspaceProvider')
-    await open(new BundledWorkspaceProvider())
-  }
-
-  const openGitHub = async () => {
-    const parsed = parseGitHubRepository(repository)
-    if (!parsed) {
-      setInputError('请输入 owner/repository 或完整 GitHub Repository URL')
-      return
-    }
-    await open(new GitHubWorkspaceProvider(parsed.owner, parsed.repo, ref.trim() || undefined))
   }
 
   const reopen = async (recent: RecentWorkspace) => {
-    if (recent.type === 'bundled') return openBundled()
-    if (recent.type === 'github' && recent.config?.owner && recent.config.repo) {
-      return open(new GitHubWorkspaceProvider(recent.config.owner, recent.config.repo, recent.config.ref))
+    setMessage(null)
+    if (isRemoteWorkspaceSource(recent.type) && recent.config?.project) {
+      await open(createRemoteWorkspaceProvider({ provider: recent.type, project: recent.config.project, repositoryUrl: recent.config.repositoryUrl || '', ref: recent.config.ref }), `正在读取 ${formatWorkspaceSource(recent.type)} 知识库…`)
+      return
     }
     if (recent.type === 'local' && recent.config?.provider === 'native-local' && recent.config.workspaceId) {
-      const host = getHostAdapter()
-      if (!host.capabilities.nativeFilesystem || !host.restoreWorkspaceDirectory) {
-        setInputError('这个 Workspace 需要 TensorNote Desktop 打开')
-        return
-      }
       try {
-        if (!loadNativeWorkspaceProvider) throw new Error('当前构建不包含桌面文件系统能力')
-        const selection = await host.restoreWorkspaceDirectory(recent.config.workspaceId)
-        const { NativeLocalWorkspaceProvider } = await loadNativeWorkspaceProvider()
-        return open(new NativeLocalWorkspaceProvider(selection))
-      } catch (reason) {
-        setInputError(reason instanceof Error ? reason.message : String(reason))
-        return
-      }
+        const selection = await host.restoreWorkspaceDirectory?.(recent.config.workspaceId)
+        if (!selection) throw new Error('这个知识库需要 TensorNote Desktop 打开')
+        if (!packagedNativeProviderLoader) throw new Error('这个知识库需要 TensorNote Desktop 打开')
+        const { NativeLocalWorkspaceProvider } = await packagedNativeProviderLoader()
+        await open(new NativeLocalWorkspaceProvider(selection), '正在读取本地知识库…')
+      } catch (reason) { setMessage(reason instanceof Error ? reason.message : '无法重新打开知识库') }
+      return
     }
     await openLocal()
   }
 
-  const busy = status === 'loading'
-  const hostAdapter = getHostAdapter()
-  const supportsLocalWorkspace = hostAdapter.id === 'web' || hostAdapter.capabilities.nativeFilesystem
-  const visibleRecentWorkspaces = supportsLocalWorkspace
-    ? recentWorkspaces
-    : recentWorkspaces.filter((recent) => recent.type !== 'local')
+  const localUnsupported = '当前浏览器不支持本地目录读写，请使用最新版 Chrome / Edge 或 TensorNote Desktop。'
+  const actions = [
+    { id: 'open-local', title: '打开本地知识库', description: supportsLocal ? '选择已有 Markdown 知识库' : localUnsupported, icon: FolderOpen, disabled: !supportsLocal, run: openLocal, primary: host.id === 'desktop' },
+    { id: 'create-local', title: '新建本地知识库', description: supportsLocal ? '创建一个新的 TensorNote 知识库' : localUnsupported, icon: FolderPlus, disabled: !supportsLocal, run: () => setCreateOpen(true), primary: false },
+    { id: 'open-online', title: '打开在线知识库', description: '从 GitHub、GitLab 或 Gitee 打开', icon: CloudArrowDown, disabled: false, run: () => setOnlineOpen(true), primary: host.id === 'web' },
+  ]
 
-  return (
-    <main className="workspace-home">
-      <header className="landing-nav">
-        <div className="brand-compact">
-          <span className="brand-compact__logo"><img src={logoSquare} alt="" aria-hidden="true" /></span>
-          <strong>TensorNote</strong>
-        </div>
-        <div className="landing-nav__runtime"><span>{hostAdapter.label}</span></div>
-      </header>
-
-      <div className="workspace-home__content">
-        <section className="workspace-hero">
-          <h1>打开知识，继续探索。</h1>
-          <p>用 Markdown 记录想法，在同一个工作台中阅读、写作与运行实验。</p>
+  return <main className="workspace-home">
+    <header className="landing-nav"><ProductIdentity /></header>
+    <div className="workspace-home__content">
+      <section className="workspace-hero"><h1>打开知识库，继续你的工作。</h1><p>Markdown 主体笔记，推导与实验按需展开。</p></section>
+      {message && <div className="workspace-alert" role="alert"><span>{message}</span><button onClick={() => setMessage(null)}>关闭</button></div>}
+      <div className="knowledge-entry-grid">
+        <section className="recent-workspaces" aria-labelledby="recent-title">
+          <div className="section-heading recent-heading"><span><ClockCounterClockwise size={17} /><h2 id="recent-title">最近打开</h2></span>{recents.length > 0 && <button type="button" onClick={clearRecentWorkspaces}><Trash size={14} />清空记录</button>}</div>
+          {recents.length ? <div className="recent-list">{recents.map((recent) => <div className="recent-item" key={recent.id}>
+            <button className="recent-open" onClick={() => void reopen(recent)} disabled={busy}><span className="recent-mark">{recent.name.slice(0, 1).toUpperCase()}</span><span><strong>{recent.name}</strong><small>{recent.detail || recent.config?.repositoryUrl || recent.sourceLabel}</small></span><span className={`recent-source recent-source--${recent.type}`}>{formatWorkspaceSource(recent.type)}</span></button>
+            <button className="recent-remove" type="button" onClick={() => removeRecentWorkspace(recent.id)} aria-label={`从最近打开中移除 ${recent.name}`}><X size={15} /></button>
+          </div>)}</div> : <div className="recent-empty"><ClockCounterClockwise size={23} /><strong>还没有最近打开的知识库</strong><p>从右侧打开或创建一个知识库开始。</p></div>}
         </section>
-
-        {(error || inputError) && (
-          <div className="workspace-alert" role="alert">
-            <span>{inputError || error}</span>
-            <button onClick={() => { setInputError(null); clearError() }}>关闭</button>
-          </div>
-        )}
-
-        <section className="workspace-actions" aria-label="打开 Workspace">
-          {supportsLocalWorkspace && <button className="workspace-action workspace-action--primary" onClick={() => void openLocal()} disabled={busy}>
-            <span className="workspace-action__icon"><FolderOpen size={23} weight="duotone" /></span>
-            <span><strong>打开本地 Workspace</strong><small>选择电脑上的 Markdown 文件夹</small></span>
-            <ArrowRight size={17} />
-          </button>}
-
-          <button className={`workspace-action${supportsLocalWorkspace ? '' : ' workspace-action--primary'}`} onClick={() => void openBundled()} disabled={busy}>
-            <span className="workspace-action__icon"><BookOpenText size={23} weight="duotone" /></span>
-            <span><strong>AI Learning Notes</strong><small>打开随 TensorNote 提供的示例 Workspace</small></span>
-            <ArrowRight size={17} />
-          </button>
-
-          {supportsLocalWorkspace && <button className="workspace-action" onClick={() => void openLocal()} disabled={busy}>
-            <span className="workspace-action__icon"><Plus size={22} /></span>
-            <span><strong>新建 Workspace</strong><small>选择一个新建或空文件夹，从第一篇笔记开始</small></span>
-            <ArrowRight size={17} />
-          </button>}
-        </section>
-
-        <GettingStarted />
-
-        {visibleRecentWorkspaces.length > 0 && (
-          <section className="recent-workspaces">
-            <div className="section-heading recent-heading">
-              <span><ClockCounterClockwise size={17} /><h2>最近打开</h2></span>
-              <button type="button" onClick={clearRecentWorkspaces}><Trash size={14} />清空记录</button>
-            </div>
-            <div className="recent-list">
-              {visibleRecentWorkspaces.map((recent) => (
-                <div className="recent-item" key={recent.id}>
-                  <button className="recent-open" onClick={() => void reopen(recent)} disabled={busy}>
-                    <span className="recent-mark">{recent.name.slice(0, 1).toUpperCase()}</span>
-                    <span><strong>{recent.name}</strong><small>{recent.detail || recent.sourceLabel}</small></span>
-                    <span className="recent-source">{recent.sourceLabel}</span>
-                  </button>
-                  <button className="recent-remove" type="button" onClick={() => removeRecentWorkspace(recent.id)} aria-label={`从最近打开中移除 ${recent.name}`} title="移除记录"><X size={15} /></button>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section className="github-open">
-          <div>
-            <span className="workspace-section-icon"><GithubLogo size={18} weight="fill" /></span>
-            <div><h2>从 GitHub 打开</h2><p>读取公开 Repository；默认禁用远程可执行代码。</p></div>
-          </div>
-          <form onSubmit={(event) => { event.preventDefault(); void openGitHub() }}>
-            <input value={repository} onChange={(event) => setRepository(event.target.value)} placeholder="owner/repository 或 GitHub URL" aria-label="GitHub Repository" />
-            <input value={ref} onChange={(event) => setRef(event.target.value)} placeholder="分支 / Ref（可选）" aria-label="GitHub Branch 或 Ref" />
-            <Button type="submit" variant="primary" disabled={busy || !repository.trim()}>打开</Button>
-          </form>
-        </section>
-
-        {busy && <div className="workspace-loading" role="status"><span />{loadingMessage || '正在打开 Workspace…'}</div>}
+        <section className="knowledge-actions" aria-labelledby="start-title"><div className="section-heading"><h2 id="start-title">开始</h2></div><div>{actions.map(({ id, title, description, icon: Icon, disabled, run, primary }) => <button key={id} className={`knowledge-action${primary ? ' knowledge-action--primary' : ''}`} onClick={() => void run()} disabled={busy || disabled} title={disabled ? localUnsupported : undefined}><span><Icon size={21} weight="duotone" /></span><span><strong>{title}</strong><small>{description}</small></span><ArrowRight size={16} /></button>)}</div></section>
       </div>
-    </main>
-  )
+      {busy && <div className="workspace-loading" role="status"><span />{loadingMessage || '正在打开知识库…'}</div>}
+    </div>
+    <CreateKnowledgeBaseDialog open={createOpen} onOpenChange={setCreateOpen} onCreate={(provider) => open(provider, '正在创建知识库…')} busy={busy} />
+    <OpenOnlineWorkspaceDialog open={onlineOpen} onOpenChange={setOnlineOpen} onOpen={open} busy={busy} />
+  </main>
 }

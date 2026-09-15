@@ -24,7 +24,7 @@ export function SearchDialog() {
 
   const choose = (noteId: string) => {
     if ((Object.keys(editorDirtyPaths).length > 0 || labDirty) && !window.confirm('当前笔记或实验还有未保存修改，确定离开吗？')) return
-    navigate(`/notes/${noteId}`)
+    navigate(`/notes/${encodeURIComponent(noteId)}`)
     setOpen(false)
   }
 
