@@ -8,12 +8,13 @@ import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { restoreNoteScroll, scrollToHeading } from '../workbench/headingNavigation'
 import type { Note } from '../types'
 import type { WorkspaceProvider } from '../workspace/types'
+import { PrintableNote } from '../components/PrintableNote'
 
 const NoteEditor = lazy(() => import('../components/NoteEditor').then((module) => ({ default: module.NoteEditor })))
 
 function ReadingSurface({ note, provider }: { note: Note; provider: WorkspaceProvider }) {
   const session = useWorkspaceStore((state) => state.session)
-  return <main className="note-page note-page--knowledge"><article className="note-prose"><header className="note-header"><p className="note-section">{note.frontmatter.section}</p><h1>{note.frontmatter.title}</h1>{note.frontmatter.summary && <p className="note-summary">{note.frontmatter.summary}</p>}<div className="note-tags">{note.frontmatter.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></header><MarkdownRenderer content={note.renderedContent} labs={note.labs} sidecars={note.sidecars} documentTitle={note.frontmatter.title} documentPath={note.path} resolveAssetUrl={(path, fromDocument) => provider.resolveAssetUrl(path, fromDocument)} knowledgeIndex={session?.knowledgeIndex} noteId={note.id} /><NoteProgress noteId={`${session?.descriptor.id}:${note.id}`} hasLab={note.labs.length > 0} /></article></main>
+  return <><main className="note-page note-page--knowledge"><article className="note-prose"><header className="note-header"><p className="note-section">{note.frontmatter.section}</p><h1>{note.frontmatter.title}</h1>{note.frontmatter.summary && <p className="note-summary">{note.frontmatter.summary}</p>}<div className="note-tags">{note.frontmatter.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></header><MarkdownRenderer content={note.renderedContent} labs={note.labs} sidecars={note.sidecars} documentTitle={note.frontmatter.title} documentPath={note.path} resolveAssetUrl={(path, fromDocument) => provider.resolveAssetUrl(path, fromDocument)} knowledgeIndex={session?.knowledgeIndex} noteId={note.id} /><NoteProgress noteId={`${session?.descriptor.id}:${note.id}`} hasLab={note.labs.length > 0} /></article></main><PrintableNote note={note} provider={provider} knowledgeIndex={session?.knowledgeIndex} /></>
 }
 
 export function NotePage() {

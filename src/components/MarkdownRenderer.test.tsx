@@ -84,6 +84,34 @@ describe('MarkdownRenderer', () => {
     expect(html).not.toMatch(/<pre>\s*<button class="lab-card/)
   })
 
+  it('expands derivation and Jupyter Sidecars inline for print without interactive cards', () => {
+    const note = parseDocument('notes/print.md', [
+      '---', 'id: print', 'title: Print', '---',
+      'Before',
+      ':::tensornote{type="derivation" id="proof" title="完整推导"}',
+      '推导正文与公式 $x^2$',
+      ':::',
+      'Between',
+      ':::tensornote{type="jupyter" id="demo" title="验证实验"}',
+      '```python title="准备数据"', 'x = 1', '```',
+      '```python title="计算结果"', 'print(x)', '```',
+      ':::',
+      'After',
+    ].join('\n'))
+    const html = renderToStaticMarkup(<MarkdownRenderer content={note.renderedContent} labs={note.labs} sidecars={note.sidecars} renderMode="print" />)
+
+    expect(html).toContain('补充推导')
+    expect(html).toContain('完整推导')
+    expect(html).toContain('推导正文与公式')
+    expect(html).toContain('class="katex"')
+    expect(html).toContain('Python 实验')
+    expect(html).toContain('准备数据')
+    expect(html).toContain('计算结果')
+    expect(html).toContain('language-python')
+    expect(html).not.toContain('sidecar-card')
+    expect(html).not.toContain('<button')
+  })
+
   it('marks only the duplicated document title while keeping later H1 headings visible', () => {
     const html = renderToStaticMarkup(
       <MarkdownRenderer content={'# Document title\n\nIntro\n\n# A real section'} documentTitle="Document title" labs={[]} />,

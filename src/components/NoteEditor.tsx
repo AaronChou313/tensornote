@@ -57,6 +57,7 @@ import { draftRecovery, type DraftRecoveryRecord } from '../recovery/draftRecove
 import { LabInsertDialog } from './LabInsertDialog'
 import { deleteSidecarSource, replaceSidecarSource, sourceLineAtOffset } from '../sidecar/parser'
 import type { Sidecar } from '../sidecar/types'
+import { PrintableNote } from './PrintableNote'
 
 function NotePreview({ note, provider }: { note: Note; provider: WorkspaceProvider }) {
   const session = useWorkspaceStore((state) => state.session)
@@ -532,6 +533,7 @@ export function NoteEditor({ note, provider, isActive = true }: { note: Note; pr
         {propertiesOpen && mode !== 'read' && <div id="document-properties"><PropertiesPanel raw={draft} onChange={changeDraft} onClose={() => setPropertiesOpen(false)} /></div>}
       </div>
       {sidecarEditor && <LabInsertDialog initialCode={sidecarEditor.initialCode} existing={sidecarEditor.existing} existingIds={preview.sidecars.map((sidecar) => sidecar.id)} onSave={saveSidecar} onDelete={sidecarEditor.existing ? deleteSidecar : undefined} documentPath={note.path} noteId={note.id} knowledgeIndex={useWorkspaceStore.getState().session?.knowledgeIndex} resolveAssetUrl={(path, fromDocument) => provider.resolveAssetUrl(path, fromDocument)} onClose={() => setSidecarEditor(null)} />}
+      <PrintableNote note={preview} provider={provider} knowledgeIndex={useWorkspaceStore.getState().session?.knowledgeIndex} />
     </main>
   )
 }

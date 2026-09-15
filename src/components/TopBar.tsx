@@ -1,4 +1,4 @@
-import { Flask, Gear, List, ShareNetwork, ShieldCheck, ShieldWarning, SidebarSimple } from '@phosphor-icons/react'
+import { Flask, Gear, List, Printer, ShareNetwork, ShieldCheck, ShieldWarning, SidebarSimple } from '@phosphor-icons/react'
 import { useWorkbenchStore } from '../workbench/useWorkbenchStore'
 import { useAppStore } from '../store/useAppStore'
 import { useWorkspaceStore } from '../store/useWorkspaceStore'
@@ -6,6 +6,7 @@ import { Button } from './ui/Button'
 import { useComputeStore } from '../store/useComputeStore'
 import { WorkbenchTopTools } from './workbench/WorkbenchTabs'
 import { useSidecarStore } from '../sidecar/useSidecarStore'
+import { usePrintStore } from '../printing/usePrintStore'
 
 export function TopBar() {
   const kernelStatus = useAppStore((state) => state.kernelStatus)
@@ -16,10 +17,12 @@ export function TopBar() {
   const setLeftSidebar = useWorkbenchStore((state) => state.setSidebar)
   const leftSidebar = useWorkbenchStore((state) => state.leftSidebar)
   const activeNoteId = useWorkbenchStore((state) => state.activeNoteId)
+  const activeView = useWorkbenchStore((state) => state.activeView)
   const revealHeading = useWorkbenchStore((state) => state.revealHeading)
   const session = useWorkspaceStore((state) => state.session)
   const trustActiveWorkspace = useWorkspaceStore((state) => state.trustActiveWorkspace)
   const headings = activeNoteId ? session?.documentById.get(activeNoteId)?.headings ?? [] : []
+  const requestNotePrint = usePrintStore((state) => state.requestNotePrint)
   if (!session) return null
 
   return (
@@ -30,6 +33,7 @@ export function TopBar() {
       <WorkbenchTopTools />
       <div className="topbar-actions">
         {headings.length > 0 && <details className="outline-popover"><summary aria-label="打开大纲"><List size={18} /></summary><div className="outline-popover__panel"><header><strong>Outline</strong><span>{headings.length} sections</span></header>{headings.map((heading) => <button key={heading.id} style={{ paddingLeft: `${12 + (heading.depth - 1) * 12}px` }} onClick={(event) => { revealHeading(heading.id); event.currentTarget.closest('details')?.removeAttribute('open') }}>{heading.text}</button>)}</div></details>}
+        {activeNoteId && activeView === null && <Button variant="ghost" size="icon" className="print-note-trigger" onClick={() => requestNotePrint(activeNoteId)} aria-label="导出当前笔记为 PDF" title="导出 PDF"><Printer size={18} /></Button>}
         {session.descriptor.trustKey && (
           session.trusted ? (
             <span className="trust-status trust-status--trusted" title="当前远程版本已受信任"><ShieldCheck size={14} />Trusted</span>
